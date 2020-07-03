@@ -144,7 +144,7 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     if (tankOptions & (TANK_EXIT_BOTTOM | TANK_MANIFOLD_BOTTOM))
     {   // An exit pipe at the bottom of the tank with or without a manifold
         path.addRect(bottom_pipe1.x(),bottom_pipe1.y(),RPIPE<<1,60);
-        painter->fillPath(path,Qt::blue);
+        painter->fillPath(path,COLOR_IN0);
         if (tankOptions & TANK_MANIFOLD_BOTTOM)
         {   // A manifold always has a tank-exit pipe
             painter->setPen(QPen(Qt::blue,5,Qt::SolidLine));
@@ -154,14 +154,14 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     if (tankOptions & TANK_MANIFOLD_TOP)
     {   // A return-manifold at the top of the tank
         path.addRect(left_top_pipe.x(),left_top_pipe.y(),65,RPIPE<<1);
-        painter->fillPath(path,Qt::blue);
-        painter->setPen(QPen(Qt::blue,5,Qt::SolidLine));
+        painter->fillPath(path,COLOR_OUT0);
+        painter->setPen(QPen(COLOR_OUT0,5,Qt::SolidLine));
         painter->drawEllipse(1.5*TANK_WALL-(tankWidth>>1),20-tankHeight,tankWidth-3*TANK_WALL,20);
     } // if
     if (tankOptions & TANK_RETURN_BOTTOM)
     {   // A return pipe at the bottom of the tank (no manifold)
         path.addRect(bottom_pipe2.x(),bottom_pipe2.y(),RPIPE<<1,60);
-        painter->fillPath(path,Qt::blue);
+        painter->fillPath(path,COLOR_OUT0);
     } // if
     if (tankOptions & TANK_HEAT_EXCHANGER)
     {   // A heat-exchanger in the middle of the tank
@@ -169,7 +169,7 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
         path.addRect(left_pipe2.x() ,left_pipe2.y() ,90,RPIPE<<1); // lower pipe left
         path.addRect(right_pipe1.x(),right_pipe1.y(),80,RPIPE<<1); // upper pipe right
         path.addRect(right_pipe2.x(),right_pipe2.y(),80,RPIPE<<1); // lower pipe right
-        painter->setPen(QPen(Qt::blue,5,Qt::SolidLine));
+        painter->setPen(QPen(COLOR_OUT0,5,Qt::SolidLine));
         int x1 = -tankWidth>>2;
         painter->drawEllipse(x1,left_pipe2.y()+10,tankWidth>>1,10);
         painter->drawEllipse(x1,left_pipe2.y()   ,tankWidth>>1,10);
@@ -177,7 +177,7 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
         painter->drawEllipse(x1,left_pipe2.y()-20,tankWidth>>1,10);
         painter->drawEllipse(x1,left_pipe2.y()-30,tankWidth>>1,10);
         painter->drawEllipse(x1,left_pipe2.y()-40,tankWidth>>1,10);
-        painter->fillPath(path,Qt::blue);
+        painter->fillPath(path,COLOR_OUT0);
     } // if
     painter->restore();
     QGraphicsPolygonItem::paint(painter,option,widget);
@@ -246,6 +246,7 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(-50,1-RPIPE);
              break;
         case PIPE2_LEFT_RIGHT:
+        case PIPE2_RIGHT_LEFT:
              left  = QPoint(-pipeLength>>1,0);
              right = -left;
              path.moveTo(-pipeLength>>1,1-RPIPE);
@@ -276,6 +277,8 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(-RPIPE,-length);
              break;
         case PIPE2_TOP_BOTTOM:
+        case PIPE2_BOTTOM_TOP:
+        case PIPE2_BOTTOM_TOP_NO_ARROW:
              top    = QPoint(0,-(pipeLength>>1));
              bottom = -top;
              path.moveTo(+RPIPE,-(pipeLength>>1));
@@ -374,6 +377,45 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
     pipePolygon = path.toFillPolygon();
     setPolygon(pipePolygon);
 } // Pipe::drawPipe()
+
+void Pipe::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    QPainterPath path;
+    QPen pen;
+
+    pen.setColor(Qt::black);
+    pen.setWidth(3);
+    painter->setPen(pen);
+    if (pipeType == PIPE2_LEFT_RIGHT)
+    {
+        painter->drawLine(bottom + QPoint(-20,20), bottom + QPoint(10,20));
+        painter->drawLine(bottom + QPoint(10,20) , bottom + QPoint( 5,15));
+        painter->drawLine(bottom + QPoint( 5,15) , bottom + QPoint( 5,25));
+        painter->drawLine(bottom + QPoint( 5,25) , bottom + QPoint(10,20));
+    } // if
+    else if (pipeType == PIPE2_RIGHT_LEFT)
+    {
+        painter->drawLine(bottom + QPoint(20,20) , bottom + QPoint(-10,20));
+        painter->drawLine(bottom + QPoint(-10,20), bottom + QPoint(-5,15));
+        painter->drawLine(bottom + QPoint(- 5,15), bottom + QPoint(-5,25));
+        painter->drawLine(bottom + QPoint(- 5,25), bottom + QPoint(-10,20));
+    } // if
+    else if (pipeType == PIPE2_TOP_BOTTOM)
+    {
+        painter->drawLine(right + QPoint(20,-10), right + QPoint(20,20));
+        painter->drawLine(right + QPoint(20,20) , right + QPoint(25,15));
+        painter->drawLine(right + QPoint(25,15) , right + QPoint(15,15));
+        painter->drawLine(right + QPoint(15,15) , right + QPoint(20,20));
+    } // if
+    else if (pipeType == PIPE2_BOTTOM_TOP)
+    {
+        painter->drawLine(right + QPoint(20,+20), right + QPoint(20,-10));
+        painter->drawLine(right + QPoint(20,-10), right + QPoint(25,-5));
+        painter->drawLine(right + QPoint(25,-5) , right + QPoint(15,-5));
+        painter->drawLine(right + QPoint(15,-5) , right + QPoint(20,-10));
+    } // if
+    QGraphicsPolygonItem::paint(painter,option,widget);
+} // Pipe::paint()
 
 //------------------------------------------------------------------------------------------
 Meter::Meter(QPointF point, uint8_t type, QString name)

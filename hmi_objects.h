@@ -84,6 +84,9 @@
 #define PIPE3_NO_BOTTOM    (8)
 #define PIPE3_NO_LEFT      (9)
 #define PIPE4_ALL         (10)
+#define PIPE2_RIGHT_LEFT  (11)
+#define PIPE2_BOTTOM_TOP  (12)
+#define PIPE2_BOTTOM_TOP_NO_ARROW (13)
 
 #define TANK_HEAT_EXCHANGER   (1)
 #define TANK_MANIFOLD_BOTTOM  (2) /* False bottom connecting to TANK_EXIT_BOTTOM */
@@ -110,6 +113,12 @@
 #define COORD_RIGHT         (8)
 #define COORD_TOP           (9)
 #define COORD_BOTTOM       (10)
+
+// Color-definitions for input and output pipes, with and without flow
+#define COLOR_OUT0 QColor(  0,  0,255) /* Output pipe color when no flow */
+#define COLOR_OUT1 QColor(  0,128,255) /* Output pipe color when flow */
+#define COLOR_IN0  QColor(102,153,255) /* Input pipe color when no flow */
+#define COLOR_IN1  QColor(102,255,255) /* Input pipe color when flow */
 
 //------------------------------------------------------------------------------------------
 class Tank : public QGraphicsPolygonItem
@@ -142,7 +151,7 @@ public:
     Pipe(QPointF point, uint8_t type, uint16_t length, QColor color);
     void    drawPipe(uint8_t type, uint16_t length, QColor color);
     QPointF get_coordinate(uint8_t side);
-    //void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     void    setColor(QColor color);
 protected:
     uint16_t  pipeLength;
