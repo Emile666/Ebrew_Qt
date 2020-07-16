@@ -48,11 +48,7 @@
 **
 ****************************************************************************/
 
-#include <QApplication>
-#include <QGraphicsView>
-#include <QMainWindow>
-#include <QMenuBar>
-#include <QVBoxLayout>
+#include <QGraphicsScene>
 #include "hmi_objects.h"
 #include "MainEbrew.h"
 
@@ -76,7 +72,6 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     Tank *hlt = new Tank(-700,0,250,300,TANK_EXIT_BOTTOM|TANK_HEAT_EXCHANGER,"HLT 200L");
     scene->addItem(hlt); // Hot-Liquid Tun (HLT)
     p->hlt = hlt;        // save hlt reference to MainEbrew
-    hlt->setValues(21.3,65.5,121.5,100.0); // TODO: remove
     point = hlt->get_coordinate(COORD_LEFT_PIPE1) + QPoint(-60,20); // get coordinates of top-left pipe of heat-exchanger
     Pump *pump2 = new Pump(point,OUT_RIGHT,"P2");
     pump2->setStatus(AUTO_OFF);
@@ -323,43 +318,21 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     len   = (elbow11->get_coordinate(COORD_LEFT) - hlt->get_coordinate(COORD_RIGHT_PIPE2)).x(); // x-length
     Pipe *elbow12 = new Pipe(point,PIPE2_RIGHT_LEFT,len,COLOR_OUT0);
     scene->addItem(elbow12);
+
+    Display *std_text = new Display(QPointF(-700,450),600,35);
+    std_text->setText("12. Boiling Finished, wait 1/5 min., prepare Chiller (M)");
+    scene->addItem(std_text);
+
+    PowerButton *hlt_pid = new PowerButton(-850,200,270,60,"HLT PID Controller");
+    scene->addWidget(hlt_pid);
+    p->hlt_pid = hlt_pid; // add hlt_pid reference to MainEbrew
+
+    PowerButton *boil_pid = new PowerButton(-850,270,270,60,"BOIL PID Controller");
+    scene->addWidget(boil_pid);
+    p->boil_pid = boil_pid; // add boil_pid reference to MainEbrew
+
+    PowerButton *cip = new PowerButton(-850,340,270,60,"Clean in Place (CIP)");
+    scene->addWidget(cip);
+    cip->hide();
 } // draw_hmi_screen()
 
-
-/*-----------------------------------------------------------------------------
-  Purpose    : Main-entry program of Ebrew v3 Qt.
-  Variables  : argc: argument count
-               argv: pointer to arguments
-  Returns    : 0 if no error
-  ---------------------------------------------------------------------------*/
-int main(int argc, char **argv)
-{
-    QApplication   app(argc, argv);
-    QGraphicsScene scene;
-    QGraphicsView  view(&scene);
-
-    auto mainWindow = new QMainWindow;
-    auto Ebrew      = new MainEbrew;
-
-    auto menuBar    = new QMenuBar;
-    auto menu       = new QMenu("&File");
-    auto action     = new QAction("Read Log-File...");
-    menu->addAction(action);
-    menuBar->addMenu(menu);
-    mainWindow->setMenuBar(menuBar);
-
-    auto frame = new QFrame;
-    frame->setLayout(new QVBoxLayout);
-    mainWindow->setCentralWidget(frame);
-
-    app.setApplicationName("Ebrew 3.0 Qt: Automating your Home-Brewery!");
-    draw_hmi_screen(&scene,Ebrew); // Draw the total Human-Machine Interface on screen
-    view.showNormal();
-    view.fitInView(scene.sceneRect().adjusted(-50, -50, 50, 50), Qt::KeepAspectRatio);
-
-    frame->layout()->addWidget(&view);
-
-    mainWindow->setFixedSize(1100,900);
-    mainWindow->showNormal();
-    return app.exec();
-} // main()

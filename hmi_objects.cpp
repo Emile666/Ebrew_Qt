@@ -57,6 +57,51 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QTextStream>
 
+//------------------------------------------------------------------------------------------
+PowerButton::PowerButton(int x, int y, int width, int height, QString name)
+    : QPushButton()
+{
+    QFont font;
+
+    move(x,y);
+    pixmap_off = QPixmap(":/img/button_red_med.png");
+    pixmap_on  = QPixmap(":/img/button_green_med.png");
+    icon_off   = QIcon(pixmap_off);
+    icon_on    = QIcon(pixmap_on);
+    buttonState = false;
+
+    font.setPointSize(16);
+    font.setBold(true);
+    setFont(font);
+    setIcon(icon_off);
+    setIconSize(QSize(height/2,height/2));
+    setFixedSize(QSize(width,height));
+    setText(name);
+    connect(this,SIGNAL(pressed()),this,SLOT(button_pressed()));
+} // PowerButton::PowerButton()
+
+void PowerButton::button_pressed(void)
+{
+    buttonState = !buttonState;
+    if (buttonState)
+         setIcon(icon_on);
+    else setIcon(icon_off);
+} // PowerButton::button_pressed()
+
+bool PowerButton::getButtonState(void)
+{
+    return buttonState;
+} // PowerButton::getButtonState()
+
+void PowerButton::setButtonState(bool state)
+{
+    buttonState = state;
+    if (buttonState)
+         setIcon(icon_on);
+    else setIcon(icon_off);
+} // PowerButton::setButtonState()
+
+//------------------------------------------------------------------------------------------
 Tank::Tank(int x, int y, int width, int height, uint8_t options, QString name)
     : QGraphicsPolygonItem()
 {
@@ -110,6 +155,14 @@ void Tank::setOrientation(int width, int height, uint8_t options)
     left_top_pipe.setY(20-height);      // top-left pipe for return manifold
 } // Tank::setOrientation()
 
+void Tank::setValues(qreal temp, qreal sp, qreal vol, qreal power)
+{
+    tankTemp     = temp;
+    tankSetPoint = sp;
+    tankVolume   = vol;
+    tankPower    = power;
+} // Tank::setValues()
+
 QPointF Tank::get_coordinate(int which)
 {
     QPointF point = pos();
@@ -133,6 +186,7 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     QPainterPath path;
     QFont        font;
     QString      text;
+    int          yb;   // Top y-coordinate for value displays
 
     // Draw tank Title at top of tank
     font.setPointSize(24); // assume 150 width
@@ -180,7 +234,72 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
         painter->fillPath(path,COLOR_OUT0);
     } // if
     painter->restore();
+
     QGraphicsPolygonItem::paint(painter,option,widget);
+
+    painter->setBrush(Qt::lightGray);
+    painter->setPen(Qt::black);
+    font.setPointSize(18);
+    font.setBold(true);
+    painter->setFont(font);
+    //-------------------------------------
+    // Temperature with Setpoint Display
+    //-------------------------------------
+    if (tankOptions & TANK_MANIFOLD_TOP)
+    {   // Return manifold in top, this is an MLT
+        yb = 100;
+    } // if
+    else
+    {   // No return manifold in top, this is an HLT or boil-kettle
+        yb = 20;
+    } // else
+    painter->drawRect(-(tankWidth>>2),yb+4-tankHeight,120,40); // Draw Temperature display rectangle
+    painter->setPen(Qt::red);
+    text = QString("%1 °C").arg(tankTemp,2,'f',2);
+    painter->drawText(10-(tankWidth>>2),yb+26-tankHeight,text); // Draw Actual temperature
+    font.setPointSize(10);
+    font.setBold(true);
+    painter->setFont(font);
+    painter->setPen(Qt::yellow);
+    text = QString("Setpoint: %1 °C").arg(tankSetPoint,2,'f',1);
+    painter->drawText(5-(tankWidth>>2),yb+40-tankHeight,text); // Draw Setpoint temperature
+    painter->setPen(Qt::black);
+    painter->drawText(5-(tankWidth>>2),yb-tankHeight,"Temperature"); // Draw title
+    //-------------------------------------
+    // Volume Display
+    //-------------------------------------
+    yb += 60;
+    font.setPointSize(18);
+    font.setBold(true);
+    painter->setFont(font);
+    painter->drawRect(-(tankWidth>>2),yb+4-tankHeight,120,28); // Draw Volume display rectangle
+    painter->setPen(Qt::red);
+    text = QString("%1 L").arg(tankVolume,2,'f',1);
+    painter->drawText(10-(tankWidth>>2),yb+26-tankHeight,text); // Draw Actual Volume
+    font.setPointSize(10);
+    font.setBold(true);
+    painter->setFont(font);
+    painter->setPen(Qt::black);
+    painter->drawText(5-(tankWidth>>2),yb-tankHeight,"Volume"); // Draw title
+    //-------------------------------------
+    // Actual Power Display
+    //-------------------------------------
+    if (!(tankOptions & TANK_MANIFOLD_TOP))
+    {   // Only display actual power for a HLT or Boil-kettle
+        yb += 50;
+        font.setPointSize(18);
+        font.setBold(true);
+        painter->setFont(font);
+        painter->drawRect(-(tankWidth>>2),yb+4-tankHeight,120,28); // Draw Volume display rectangle
+        painter->setPen(Qt::red);
+        text = QString("%1 %").arg(tankPower,2,'f',0);
+        painter->drawText(10-(tankWidth>>2),yb+26-tankHeight,text); // Draw Actual Power
+        font.setPointSize(10);
+        font.setBold(true);
+        painter->setFont(font);
+        painter->setPen(Qt::black);
+        painter->drawText(5-(tankWidth>>2),yb-tankHeight,"Actual Power"); // Draw title
+    } // if
 } // Tank::paint()
 
 //------------------------------------------------------------------------------------------
@@ -416,6 +535,44 @@ void Pipe::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     } // if
     QGraphicsPolygonItem::paint(painter,option,widget);
 } // Pipe::paint()
+//------------------------------------------------------------------------------------------
+
+Display::Display(QPointF point,int w, int h)
+    : QGraphicsSimpleTextItem()
+{
+    QFont font;
+
+    width  = w;
+    height = h;
+    font.setPointSize(18);
+    setFont(font);
+    setBrush(QBrush(Qt::red));
+    setPen(QPen(Qt::red));
+    setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
+    setFlag(QGraphicsItem::ItemIsSelectable,true);
+    setPos(point);
+    boundary = QRectF(-5,-20,width,height+20);
+} // Display::Display()
+
+void Display::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    QPainterPath path;
+    QFont        font;
+    QString      text1,text2 = "";
+
+    painter->setBrush(Qt::lightGray);
+    painter->setPen(Qt::black);
+    painter->drawRect(-5,0,width,height); // Draw display rectangle
+    font.setPointSize(10);
+    font.setBold(true);
+    painter->setFont(font);
+//    painter->setPen(Qt::yellow);
+//    text2 = QString("yellow sub-text");
+//    painter->drawText(5,35,text2); // Draw text
+    painter->setPen(Qt::black);
+    painter->drawText(0,-5,"Current STD state"); // Draw title
+    QGraphicsSimpleTextItem::paint(painter,option,widget);
+} // Display::paint()
 
 //------------------------------------------------------------------------------------------
 Meter::Meter(QPointF point, uint8_t type, QString name)
@@ -437,7 +594,7 @@ Meter::Meter(QPointF point, uint8_t type, QString name)
          setText("F");
     else setText("T");
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
-    setFlag(QGraphicsItem::ItemIsSelectable,true);
+    //setFlag(QGraphicsItem::ItemIsSelectable,true);
     if ((meterType == METER_HFLOW) || (meterType == METER_HTEMP))
          boundary = QRectF(-14,-15,50,80);  // horizontal lay-out
     else boundary = QRectF(-35,-10,160,60); // vertical lay-out
@@ -493,6 +650,7 @@ void Meter::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     if (meterError)
          painter->fillPath(path,Qt::red);
     else painter->fillPath(path,Qt::green);
+    painter->drawArc(QRect(-14,-1,50,50),0,5760);
     font.setPointSize(12);
     font.setBold(true);
     painter->setFont(font);
@@ -521,7 +679,7 @@ void Meter::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     painter->setFont(font);
     if ((meterType == METER_HFLOW) || (meterType == METER_HTEMP))
          painter->drawText(-10,-4,meterName);
-    else painter->drawText(-35,+2,meterName);
+    else painter->drawText(-37,+2,meterName);
     QGraphicsSimpleTextItem::paint(painter,option,widget);
 } // Meter::paint()
 
@@ -565,13 +723,25 @@ void Base_Valve_Pump::setName(QString name)
     valveName = name;
 }
 
-void Base_Valve_Pump::setStatus(int status)
+void Base_Valve_Pump::setStatus(uint8_t status)
 {
     valveStatus = status;
     if ((valveStatus == MANUAL_OFF) || (valveStatus == AUTO_OFF))
          setColor(Qt::red);
     else setColor(Qt::green);
 }
+
+bool Base_Valve_Pump::inManualMode(void)
+{
+    if ((valveStatus == MANUAL_OFF) || (valveStatus == MANUAL_ON))
+         return true;
+    else return false;
+} // Base_Valve_Pump::inManualMode()
+
+uint8_t Base_Valve_Pump::getStatus(void)
+{
+    return valveStatus;
+} // Base_Valve_Pump::getStatus()
 
 void Base_Valve_Pump::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
@@ -585,7 +755,7 @@ void Base_Valve_Pump::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
     {
         mouseEvent->accept();
         setAutoAction = new QAction("Auto");
-        //QObject::connect(setAutoAction,SIGNAL(triggered()),this,SLOT(slotAuto()));
+        //connect(setAutoAction,SIGNAL(triggered()),this,SLOT(slotAuto()));
         setManualOffAction = new QAction("OFF (M)");
         //QObject::connect(setManualOffAction,SIGNAL(triggered()),0,SLOT(slotManualOff()));
         setManualOnAction = new QAction("ON (M)");
@@ -739,9 +909,12 @@ void Pump::setPumpOrientation(bool orientation)
 void Pump::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     QFont font;
+    QPen  pen;
+
     font.setStyleHint(QFont::Times, QFont::PreferAntialias);
     font.setBold(true);
     font.setPointSize(20);
+    pen.setWidth(3);
 
     painter->setFont(font);
     painter->save();
@@ -757,11 +930,10 @@ void Pump::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
         painter->drawText(38,+3,"out");
         painter->setBrush(Qt::white);
     }
-    else
-    {
-    }
     painter->restore();
     QGraphicsPolygonItem::paint(painter,option,widget);
+    painter->setPen(pen);
+    painter->drawArc(-10,-10,20,20,0,5760);
 } // paint()
 
 

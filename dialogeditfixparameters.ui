@@ -1,44 +1,1114 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <author/>
- <comment/>
- <exportmacro/>
- <class>dialogeditfixparameters</class>
- <widget name="dialogeditfixparameters" class="QDialog">
+ <class>DialogEditFixParameters</class>
+ <widget class="QDialog" name="DialogEditFixParameters">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>279</width>
+    <height>533</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget name="buttonBox" class="QDialogButtonBox">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>240</y>
-     <width>341</width>
-     <height>32</height>
+     <x>10</x>
+     <y>20</y>
+     <width>261</width>
+     <height>27</height>
     </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <item>
+     <widget class="QCheckBox" name="cbHltSp">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>170</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Setpoint Temperature</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDoubleSpinBox" name="sbHltSp">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>60</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="suffix">
+       <string> °C</string>
+      </property>
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="minimum">
+       <double>20.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="layoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>50</y>
+     <width>261</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <item>
+     <widget class="QCheckBox" name="cbHltTemp">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>170</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Actual Temperature</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDoubleSpinBox" name="sbHltTemp">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>60</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="suffix">
+       <string> °C</string>
+      </property>
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="minimum">
+       <double>20.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="layoutWidget_3">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>80</y>
+     <width>261</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,0">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <item>
+     <widget class="QCheckBox" name="cbHltVol">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>170</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Actual Volume</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDoubleSpinBox" name="sbHltVol">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>60</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="suffix">
+       <string> L</string>
+      </property>
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="minimum">
+       <double>0.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>200.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="layoutWidget_4">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>110</y>
+     <width>261</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <item>
+     <widget class="QCheckBox" name="cbHltPid">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>170</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>PID-controller output</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDoubleSpinBox" name="sbHltPid">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>60</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>50</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="suffix">
+       <string> %</string>
+      </property>
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="minimum">
+       <double>0.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="Line" name="line">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>130</y>
+     <width>261</width>
+     <height>18</height>
+    </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>0</width>
+     <height>2</height>
+    </size>
+   </property>
+   <property name="lineWidth">
+    <number>2</number>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
    </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+  </widget>
+  <widget class="QWidget" name="layoutWidget_5">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>160</y>
+     <width>261</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <item>
+     <widget class="QCheckBox" name="cbMltTemp">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>170</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Actual Temperature</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDoubleSpinBox" name="sbMltTemp">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>60</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="suffix">
+       <string> °C</string>
+      </property>
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="minimum">
+       <double>20.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="layoutWidget_6">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>190</y>
+     <width>261</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <item>
+     <widget class="QCheckBox" name="cbMltVol">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>170</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Actual Volume</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDoubleSpinBox" name="sbMltVol">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>60</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="suffix">
+       <string> L</string>
+      </property>
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="minimum">
+       <double>0.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>200.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="Line" name="line_2">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>210</y>
+     <width>261</width>
+     <height>18</height>
+    </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>0</width>
+     <height>2</height>
+    </size>
+   </property>
+   <property name="lineWidth">
+    <number>2</number>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
    </property>
   </widget>
+  <widget class="Line" name="line_3">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>350</y>
+     <width>261</width>
+     <height>18</height>
+    </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>0</width>
+     <height>2</height>
+    </size>
+   </property>
+   <property name="lineWidth">
+    <number>2</number>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QWidget" name="layoutWidget_7">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>330</y>
+     <width>261</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,0">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <item>
+     <widget class="QCheckBox" name="cbBkPid">
+      <property name="minimumSize">
+       <size>
+        <width>170</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>PID-controller output</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDoubleSpinBox" name="sbBkPid">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>60</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>50</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="suffix">
+       <string> %</string>
+      </property>
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="minimum">
+       <double>0.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="layoutWidget_8">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>240</y>
+     <width>261</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0,0">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <item>
+     <widget class="QCheckBox" name="cbBkSp">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>170</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Setpoint Temperature</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDoubleSpinBox" name="sbBkSp">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>60</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="suffix">
+       <string> °C</string>
+      </property>
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="minimum">
+       <double>20.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="layoutWidget_9">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>270</y>
+     <width>261</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="0,0">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <item>
+     <widget class="QCheckBox" name="cbBkTemp">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>170</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Actual Temperature</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDoubleSpinBox" name="sbBkTemp">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>60</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="suffix">
+       <string> °C</string>
+      </property>
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="minimum">
+       <double>20.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="layoutWidget_10">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>300</y>
+     <width>261</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="0,0">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <item>
+     <widget class="QCheckBox" name="cbBkVol">
+      <property name="minimumSize">
+       <size>
+        <width>170</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Actual Volume</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDoubleSpinBox" name="sbBkVol">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>60</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="suffix">
+       <string> L</string>
+      </property>
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="minimum">
+       <double>0.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>200.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>220</y>
+     <width>91</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Boil-Kettle</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>140</y>
+     <width>141</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Mash Lauter Tun (MLT)</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_3">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>0</y>
+     <width>181</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Hot Liquid Tun (HLT)</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="layoutWidget_11">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>380</y>
+     <width>261</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="0,0">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <item>
+     <widget class="QCheckBox" name="cbTTriac">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>170</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Actual Temperature Electronics</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDoubleSpinBox" name="sbTTriac">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>60</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="suffix">
+       <string> °C</string>
+      </property>
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="minimum">
+       <double>20.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>360</y>
+     <width>91</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Other</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="layoutWidget_12">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>410</y>
+     <width>261</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="0,0">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <item>
+     <widget class="QCheckBox" name="cbMsIdx">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>170</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Mash Index (ms_idx)</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDoubleSpinBox" name="sbMsIdx">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>60</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="suffix">
+       <string/>
+      </property>
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="minimum">
+       <double>0.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>10.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="layoutWidget_13">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>440</y>
+     <width>261</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="0,0">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <item>
+     <widget class="QCheckBox" name="cbSpIdx">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>170</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Sparge Index (sp_idx)</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDoubleSpinBox" name="sbSpIdx">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>60</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="suffix">
+       <string/>
+      </property>
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="minimum">
+       <double>0.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>10.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="layoutWidget_14">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>470</y>
+     <width>261</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="0,0">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <item>
+     <widget class="QCheckBox" name="cbStd">
+      <property name="minimumSize">
+       <size>
+        <width>70</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>70</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>STD state</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QComboBox" name="comboStd">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <item>
+       <property name="text">
+        <string>00. Initialization</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>01. Wait for HLT Temperature</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>14. Pump prefill/prime</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>02. Fill MLT</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>03. Wait for MLT Temperature</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>15. Add Malt to MLT</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>04. Mash Timer Running</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>13. Mash Preheat HLT</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>05. Sparge Timer Running</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>06. Pump from MLT to Boil-Kettle</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>07. Pump from HLT to MLT</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>08. Delay x Seconds</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>09. Empty MLT</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>10. Wait for Boil</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>11. Boiling</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>12. Boiling Finished</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>16. Chill and Pump to Fermentor</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>17. Finished!</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>18. Mash Rest 5 Minutes</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>19. Ready to Add Malt</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>500</y>
+     <width>239</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_15">
+    <item>
+     <widget class="QPushButton" name="pbApply">
+      <property name="text">
+       <string>&amp;Apply</string>
+      </property>
+      <property name="autoDefault">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QDialogButtonBox" name="buttonBox">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="standardButtons">
+       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
  </widget>
- <pixmapfunction/>
  <resources/>
  <connections>
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>dialogeditfixparameters</receiver>
+   <receiver>DialogEditFixParameters</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -54,7 +1124,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>dialogeditfixparameters</receiver>
+   <receiver>DialogEditFixParameters</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

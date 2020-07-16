@@ -15,6 +15,11 @@ public:
     explicit DialogEditMashScheme(QWidget *parent = nullptr);
     ~DialogEditMashScheme();
 
+private slots:
+    void on_pushButton_clicked();   // Load Mash Scheme File...
+    void on_pushButton_2_clicked(); // Save As...
+    void on_pushButton_3_clicked(); // Save
+
 private:
     Ui::DialogEditMashScheme *ui;
 };

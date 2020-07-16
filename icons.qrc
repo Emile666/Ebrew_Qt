@@ -1,5 +1,20 @@
-<!DOCTYPE RCC><RCC version="1.0">
-<qresource prefix="/">
-    <file>img/exit.png</file>
-</qresource>
+<RCC>
+    <qresource prefix="/">
+        <file>img/exit.png</file>
+        <file>img/fileopen.png</file>
+        <file>img/filesave.png</file>
+        <file>img/button_green_med.png</file>
+        <file>img/button_red_med.png</file>
+        <file>img/fileedit.png</file>
+        <file>img/fixparams.png</file>
+        <file>img/cooking.png</file>
+        <file>img/hwsettings.png</file>
+        <file>img/measurements.png</file>
+        <file>img/pidsettings.png</file>
+        <file>img/about.png</file>
+        <file>img/qt.png</file>
+        <file>img/alarm.png</file>
+        <file>img/progress.png</file>
+        <file>img/task.png</file>
+    </qresource>
 </RCC>

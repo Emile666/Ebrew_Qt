@@ -56,6 +56,7 @@
 #include <QAction>
 #include <QMenu>
 #include <QGraphicsSimpleTextItem>
+#include <QPushButton>
 
 #define HORIZONTAL (0) /* Valve horizontal direction */
 #define VERTICAL   (1) /* Valve vertical direction */
@@ -88,6 +89,7 @@
 #define PIPE2_BOTTOM_TOP  (12)
 #define PIPE2_BOTTOM_TOP_NO_ARROW (13)
 
+// These are the possible tank options
 #define TANK_HEAT_EXCHANGER   (1)
 #define TANK_MANIFOLD_BOTTOM  (2) /* False bottom connecting to TANK_EXIT_BOTTOM */
 #define TANK_MANIFOLD_TOP     (4) /* Return manifold at top of tank */
@@ -121,19 +123,43 @@
 #define COLOR_IN1  QColor(102,255,255) /* Input pipe color when flow */
 
 //------------------------------------------------------------------------------------------
+class PowerButton : public QPushButton
+{
+    Q_OBJECT
+
+public:
+    PowerButton(int x, int y, int width, int height, QString name);
+    bool getButtonState(void);
+    void setButtonState(bool state);
+public slots:
+    void button_pressed(void);
+protected:
+    bool    buttonState;
+    QPixmap pixmap_off;
+    QPixmap pixmap_on;
+    QIcon   icon_off;
+    QIcon   icon_on;
+}; // class Powerbutton
+
+//------------------------------------------------------------------------------------------
 class Tank : public QGraphicsPolygonItem
 {
 public:
     Tank(int x, int y, int width, int height, uint8_t options, QString name);
     void setOrientation(int width, int height, uint8_t options);
     void setName(QString name);
+    void setValues(qreal temp, qreal sp, qreal vol, qreal power);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     QPointF get_coordinate(int which);
 protected:
     int       tankWidth, tankHeight;
     QString   tankName;      /* Tank name */
-    uint8_t   tankOptions;   /* Tank options */
+    uint8_t   tankOptions;   /* Tank options: TANK_HEAT_EXCHANGER ... TANK_EXIT_BOTTOM */
     QPolygonF tankPolygon;   /* Contains polygon for drawing the tank */
+    qreal     tankTemp;      /* Actual temperature inside tank */
+    qreal     tankSetPoint;  /* Setpoint temperature for tank */
+    qreal     tankVolume;    /* Actual volume in the tank */
+    qreal     tankPower;     /* Actual heating power applied to the tank */
     QPointF   left_pipe1;    /* Coordinate of top-left pipe for connecting a pump */
     QPointF   left_pipe2;    /* Coordinate of bottom-left pipe for connecting a pump */
     QPoint    left_top_pipe; /* Coordinate of top-left pipe for return manifold at top of tank */
@@ -161,6 +187,18 @@ protected:
     QColor    pipeColor;
 };
 //------------------------------------------------------------------------------------------
+class Display : public QGraphicsSimpleTextItem
+{
+public:
+    Display(QPointF point, int w, int h);
+    void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    QRectF  boundary; // boundary of object
+
+protected:
+    QRectF boundingRect() const override { return boundary; }
+    int    width;
+    int    height;
+};
 
 //------------------------------------------------------------------------------------------
 class Meter : public QGraphicsSimpleTextItem
@@ -193,20 +231,22 @@ class Base_Valve_Pump : public QGraphicsPolygonItem
 
 public:
     Base_Valve_Pump(QPointF point, QString name);
-    void setColor(QColor color);
-    void setName(QString name);
-    void setStatus(int status);
-    //virtual void setOrientation(bool orientation); // draws the object as a polygon
-    QRectF boundary; // boundary of object
+    void    setColor(QColor color);
+    void    setName(QString name);
+    void    setStatus(uint8_t status);
+    uint8_t getStatus(void);
     QPointF get_coordinate(uint8_t side);
+    bool    inManualMode(void);
+
+    QRectF  boundary; // boundary of object
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
     QString   valveName;                     /* Valve name */
     QColor    valveColor       = Qt::red;    /* color of valve */
     bool      valveOrientation = HORIZONTAL; /* Orientation of valve: HORIZONTAL or VERTICAL */
-    int       valveStatus;                   /* Status of the valve: MANUAL_OFF, MANUAL_ON, AUTO_OFF, AUTO_ON */
     QPolygonF valvePolygon;                  /* Contains polygon for drawing the valve */
+    uint8_t   valveStatus;                   /* Status of the valve: MANUAL_OFF, MANUAL_ON, AUTO_OFF, AUTO_ON */
     QString   status_text[4] = { "OFF(M)", "ON (M)", "OFF(A)", "ON (A)" };
     QPointF   left,top,right,bottom;         // coordinates of various points
 
