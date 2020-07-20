@@ -53,14 +53,15 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QSettings>
+#include <QCheckBox>
 #include <QDateTime>
 #include "hmi_objects.h"
+#include "controlobjects.h"
 
 #define LOGFILE  "ebrewlog.txt"
 #define MASHFILE "maisch.sch"
 #define REGKEY   "HKEY_CURRENT_USER\\Software\\ebrew\\V3"
 
-#define MA_MAX_N    (20) /* Max. order N for moving_average filter */
 #define MAX_MS      (10) /* Max. number of mash temp-time pairs */
 #define MAX_SP      (10) /* Max. number of batch sparge sessions */
 #define NOT_STARTED (-1) /* Timer not started */
@@ -155,6 +156,8 @@
 #define GAS_NON_MODULATING (1)
 #define ELECTRICAL_HEATING (2)
 
+#define SENSOR_VAL_LIM_OK    (-99.9)
+
 typedef struct _mash_schedule
 {
    qreal time;           /* time (min.) to remain at this temperature */
@@ -190,11 +193,18 @@ public:
     Display     *std_text; // STD state description
     PowerButton *hlt_pid;  // HLT PID on/off button
     PowerButton *boil_pid; // Boil-kettle PID on/off button
-    PowerButton *cip;      // Clean in Place (CIP) program
     QSettings   *RegEbrew; // Pointer to Registry Ebrew object
 
-    void  state_machine(void);   // Ebrew State Transition Diagram
-    void  readMashSchemeFile(bool initTimers);
+    SlopeLimiter *slopeLimHLT; // slope-limiter object for tset_hlt
+    SlopeLimiter *slopeLimBK;  // slope-limiter object for tset_boil
+
+    uint16_t state_machine(void);   // Ebrew State Transition Diagram
+    void     readMashSchemeFile(bool initTimers);
+    void     setKettleNames(void);
+    void     createRegistry(void);  // Create default Registry entries for Ebrew
+    void     createStatusBar(void); // Creates a status bar at the bottom of the screen
+    void     createMenuBar(void);   // Creates a menu bar at the top of the screen
+    void     setStateName(void);    // Update state nr and description on screen
 
     /* Switches and Fixes for variables */
     bool  tset_hlt_sw  = false;  // Switch value for tset_hlt
@@ -226,15 +236,18 @@ public:
     QDateTime dlyStartTime;      // Holds date and time for delayed-start
 
 public slots:
-    void  T100msecLoop(void);               // This is the main-loop that is executed every 100 msec.
-    void  task_alive_led(void);             // 500 msec. task for blinking alive LED
-    void  task_update_std(void);            // 1 sec. task for call to STD
-    void  about(void);                      // About() screen of MainEbrew
-    void  MenuEditMashScheme(void);         // Edit->Mash Scheme dialog screen
-    void  MenuEditFixParameters(void);      // Edit->Fix Parameters dialog screen
-    void  MenuOptionsPidSettings(void);     // Options->PID Settings dialog screen
-    void  MenuOptionsMeasurements(void);    // Options->Measurements Settings dialog screen
-    void  MenuOptionsBrewDaySettings(void); // Options->Brew Day Settings dialog screen
+    void     T100msecLoop(void);               // This is the main-loop that is executed every 100 msec.
+    void     task_alive_led(void);             // 500 msec. task for blinking alive LED
+    void     task_update_std(void);            // 1 sec. task for call to STD
+    void     task_read_temps(void);            // 2 sec. task for reading all temperatures
+    void     task_read_flows(void);            // 2 sec. task for reading all flow-sensors
+    void     about(void);                      // About() screen of MainEbrew
+    void     MenuEditMashScheme(void);         // Edit->Mash Scheme dialog screen
+    void     MenuEditFixParameters(void);      // Edit->Fix Parameters dialog screen
+    void     MenuOptionsPidSettings(void);     // Options->PID Settings dialog screen
+    void     MenuOptionsMeasurements(void);    // Options->Measurements Settings dialog screen
+    void     MenuOptionsBrewDaySettings(void); // Options->Brew Day Settings dialog screen
+    void     MenuOptionsSystemSettings(void);  // Options->System Settings dialog screen
 
 protected:
     // Temperature, Volume and pid-output values
@@ -247,6 +260,7 @@ protected:
 	qreal tcfc;             // CFC-output actual temperature
 	qreal tcfc_offset;      // Offset to add to Tcfc measurement
 	qreal tset_slope_limit; // Slope limiter for Temp. Setpoints
+    qreal ttriac;           // Temperature of Power Electronics
 	qreal gamma_hlt;        // PID controller output for HLT
 	qreal gamma_boil;       // PID controller output for Boil-Kettle
 	qreal tset_hlt;         // HLT reference temperature
@@ -314,8 +328,8 @@ protected:
     /* Sparge Settings */
     int   sp_batches;      // Total number of sparge batches
     int   sp_time;         // Time between two sparge batches in minutes
-    int   mash_vol;        // Total mashing volume in litres
-    int   sp_vol;          // Total sparge volume in litres
+    int   mash_vol;        // Total mashing volume in litres (read from maisch.sch)
+    int   sp_vol;          // Total sparge volume in litres (read from maisch.sch)
     int   sp_time_ticks;   // sp_time in TS ticks
     int   boil_time_ticks; // boil_time in TS ticks
     qreal sp_vol_batch;    // Sparge volume of 1 batch = sp_vol / sp_batches
@@ -323,7 +337,7 @@ protected:
 
     /* Boil Settings */
     int   boil_min_temp;   // Min. Temp. for Boil-Kettle to enable PID controller
-    int   boil_time;       // Total boiling time in minutes
+    int   boil_time;       // Total boiling time in minutes (read from maisch.sch)
     int   sp_preboil;      // Setpoint Preboil Temperature
     qreal boil_detect;     // Boiling-Detection minimum Temperature (Celsius)
     int   sp_boil;         // Setpoint Boil Temperature
@@ -335,63 +349,29 @@ protected:
     char  Boil[2][40];          // Boil-start and Boil-End time-stamps
     char  Chill[2][40];         // Chill-start and Chill-End time-stamps
 
-    mash_schedule ms[MAX_MS]; // struct containing mash schedule
+    mash_schedule ms[MAX_MS];   // struct containing mash schedule
 
-    bool  toggle_led;       // Indicator for Alive LED
-    bool  power_up_flag;    // true = power-up in progress
+    bool  toggle_led;           // Indicator for Alive LED
+    bool  power_up_flag;        // true = power-up in progress
+    bool  triac_too_hot;        // true = SSR too hot
 
     QString ebrew_revision = "$Revision: 3.00 $";
 
 private:
     // Pointers to Labels in Statusbar at bottom of screen
-    QLabel *statusAlarm;
-    QLabel *statusMashScheme;
-    QLabel *statusMashVol;
-    QLabel *statusSpargeVol;
-    QLabel *statusMsIdx;
-    QLabel *statusSpIdx;
-    QLabel *statusSwRev;
+    QLabel    *statusAlarm;
+    QLabel    *statusMashScheme;
+    QLabel    *statusMashVol;
+    QLabel    *statusSpargeVol;
+    QLabel    *statusBoilTime;
+    QLabel    *statusMsIdx;
+    QLabel    *statusSpIdx;
+    QLabel    *statusSwRev;
+    QCheckBox *toolStartCIP;
+    QCheckBox *toolStartAddMalt;
+    QCheckBox *toolMaltAdded;
+    QCheckBox *toolBoilStarted;
+    QCheckBox *toolStartChilling;
 }; // MainEbrew()
-
-//------------------------------------------------------------------------------------------
-class PidCtrl : public QObject
-{
-    Q_OBJECT
-
-public:
-    PidCtrl(qreal Kc, qreal Ti, qreal Td, qreal Ts);
-    qreal pid_control(qreal xk, qreal tset);
-    void  pid_init(qreal Kc, qreal Ti, qreal Td, qreal Ts);
-    void  pid_enable(bool enable);
-
-protected:
-    bool  pid_on; // true = pid-controller is enabled
-    qreal xk_2;   // x[k-2], previous value of x[k-1] (= measured temperature)
-    qreal xk_1;   // x[k-1], previous value of the input variable x[k] (= measured temperature)
-    qreal yk;     // y[k], pid-controller output (%)
-    qreal kp;     // = Kc
-    qreal ki;     // = Kc*Ts/Ti
-    qreal kd;     // = Kc*Ti/Td
-    qreal pp;     // output of P-action
-    qreal pi;     // output of I-action
-    qreal pd;     // output of D-action
-}; // class PidCtrl
-
-//------------------------------------------------------------------------------------------
-class MA : public QObject
-{
-    Q_OBJECT
-
-public:
-    MA(uint8_t order, qreal init_val);
-    void  ma_init(uint8_t order, qreal init_val);
-    qreal moving_average(qreal x);
-
-protected:
-    uint8_t N;           // order of MA-filter, N < MA_MAX_N
-    qreal   T[MA_MAX_N]; // array with delayed values of input signal
-    uint8_t index;       // index in T[] where to store the new input value
-    qreal   sum;         // The running sum of the MA filter
-}; // clas MA
 
 #endif // MAIN_EBREW_H

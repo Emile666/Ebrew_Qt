@@ -95,15 +95,14 @@ void DialogEditFixParameters::on_cbMltVol_stateChanged(int arg1)
 {
     if (arg1)
     {
-        ui->sbHltVol->setEnabled(true);
-        ui->sbHltVol->setFocus();
+        ui->sbMltVol->setEnabled(true);
+        ui->sbMltVol->setFocus();
     } // if
     else
     {
-        ui->sbHltVol->setEnabled(false);
-        ui->cbHltVol->setFocus();
+        ui->sbMltVol->setEnabled(false);
+        ui->cbMltVol->setFocus();
     } // else
-
 } // DialogEditFixParameters::on_cbMltVol_stateChanged()
 
 //---------------------------------------------------------------
@@ -229,13 +228,13 @@ void DialogEditFixParameters::on_cbStd_stateChanged(int arg1)
 
 void DialogEditFixParameters::on_buttonBox_accepted()
 {
-    set_switch_fix();
+    set_switch_fix(); // Set SW & Fix and leave dialog
 } // DialogEditFixParameters::on_buttonBox_accepted()
 
 void DialogEditFixParameters::on_pbApply_clicked()
 {
-    set_switch_fix();
-}
+    set_switch_fix(); // Set SW & Fix without leaving dialog
+} // DialogEditFixParameters::on_pbApply_clicked()
 
 void DialogEditFixParameters::on_buttonBox_rejected()
 {

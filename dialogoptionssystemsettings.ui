@@ -1,0 +1,752 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DialogOptionsSystemSettings</class>
+ <widget class="QDialog" name="DialogOptionsSystemSettings">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>328</width>
+    <height>445</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <widget class="QDialogButtonBox" name="buttonBox">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>410</y>
+     <width>171</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   </property>
+  </widget>
+  <widget class="QTabWidget" name="tabWidget">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>20</y>
+     <width>301</width>
+     <height>391</height>
+    </rect>
+   </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="tab">
+    <attribute name="title">
+     <string>Heater Mode</string>
+    </attribute>
+    <widget class="QGroupBox" name="gb1">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>261</width>
+       <height>111</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>This option selects the specific heating mode of the HERMS brewing system</string>
+     </property>
+     <property name="title">
+      <string>Brew-system Heating Mode</string>
+     </property>
+     <widget class="QWidget" name="">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>244</width>
+        <height>81</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QRadioButton" name="rb1">
+         <property name="toolTip">
+          <string>Select this option if you have a modulating gas-burner that is controlled with a 25 kHz PWM signal (0-28 Volt DC).</string>
+         </property>
+         <property name="text">
+          <string>Modulating Gas-Burner (25 kHz PWM)</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="rb2">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select this option if you have a non-modulating gas-burner that can only be switched on and off.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Non-Modulating Gas-Burner (Relay, On-Off)</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="rb3">
+         <property name="toolTip">
+          <string>Select this option if the HLT has an electrical heating element</string>
+         </property>
+         <property name="text">
+          <string>Electrical Heating (SSR, T = 5 sec. slow PWM)</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="gb2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>120</y>
+       <width>291</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In case a modulating gas-burner is used, it also needs to be switched on and off. This is done with a 230 V signal supplied to the gas-burner. These values control when the gas-burner is energized. Typically set to a low value, e.g. 2% and 4 %.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="title">
+      <string>Energize Modulating Gas-Burner</string>
+     </property>
+     <widget class="QWidget" name="formLayoutWidget_3">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>271</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="formLayout_3">
+       <item row="0" column="0">
+        <widget class="QLabel" name="lbl11">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>200</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>The modulating gas-burner is switched off when the PID-controller output percentage is lower than this value</string>
+         </property>
+         <property name="text">
+          <string>Hysteresis Lower-Limit for PID-output</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QSpinBox" name="sb11">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>The modulating gas-burner is switched off when the PID-controller output percentage is lower than this value</string>
+         </property>
+         <property name="suffix">
+          <string> %</string>
+         </property>
+         <property name="value">
+          <number>10</number>
+         </property>
+         <property name="displayIntegerBase">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="lbl12">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The modulating gas-burner is switched on when the PID-controller output percentage exceeds this value&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Hysteresis Upper-Limit for PID-output</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QSpinBox" name="sb12">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>The modulating gas-burner is switched on when the PID-controller output percentage exceeds this value</string>
+         </property>
+         <property name="suffix">
+          <string> %</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="gb3">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>200</y>
+       <width>291</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>In case a gas-burner is used that can only switch on and off, the PID-controller output percentage is converted into an ON/OFF signal with these values.</string>
+     </property>
+     <property name="title">
+      <string>Switching-point for Non-Modulating Gas-Burner</string>
+     </property>
+     <widget class="QWidget" name="formLayoutWidget_4">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>271</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="formLayout_4">
+       <item row="0" column="0">
+        <widget class="QLabel" name="lbl21">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>200</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The gas-burner is switched off if the PID-controller output is lower than this percentage&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Hysteresis Lower-Limit for PID-output</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QSpinBox" name="sb21">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>The gas-burner is switched off if the PID-controller output is lower than this percentage</string>
+         </property>
+         <property name="suffix">
+          <string> %</string>
+         </property>
+         <property name="value">
+          <number>10</number>
+         </property>
+         <property name="displayIntegerBase">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="lbl22">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The gas-burner is switched on if the PID-controller output exceeds this percentage&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Hysteresis Upper-Limit for PID-output</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QSpinBox" name="sb22">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>The gas-burner is switched on if the PID-controller output exceeds this percentage</string>
+         </property>
+         <property name="suffix">
+          <string> %</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>280</y>
+       <width>291</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>If the Solid-State-Relay (SSR) temperature becomes too high, the electrical heating element is switched off</string>
+     </property>
+     <property name="title">
+      <string>Electrical Heating Overprotection Limit</string>
+     </property>
+     <widget class="QWidget" name="formLayoutWidget_5">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>271</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="formLayout_5">
+       <item row="0" column="0">
+        <widget class="QLabel" name="lbl31">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>200</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Lower-limit for switching off the Solid-State-Relay (SSR)</string>
+         </property>
+         <property name="text">
+          <string>Hysteresis Lower-Limit Temperature</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QSpinBox" name="sb31">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Lower-limit for switching off the Solid-State-Relay (SSR)</string>
+         </property>
+         <property name="suffix">
+          <string> °C</string>
+         </property>
+         <property name="value">
+          <number>10</number>
+         </property>
+         <property name="displayIntegerBase">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="lbl32">
+         <property name="toolTip">
+          <string>Upper-limit for switching off the Solid-State-Relay (SSR)</string>
+         </property>
+         <property name="text">
+          <string>Hysteresis Upper-Limit Temperature</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QSpinBox" name="sb32">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Upper-limit for switching off the Solid-State-Relay (SSR)</string>
+         </property>
+         <property name="suffix">
+          <string> °C</string>
+         </property>
+         <property name="maximum">
+          <number>150</number>
+         </property>
+         <property name="value">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tab_2">
+    <attribute name="title">
+     <string> Communications</string>
+    </attribute>
+    <widget class="QWidget" name="formLayoutWidget_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>281</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <layout class="QFormLayout" name="formLayout_2">
+      <item row="0" column="0">
+       <widget class="QLabel" name="lblCommCh">
+        <property name="minimumSize">
+         <size>
+          <width>120</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>130</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Select the communication channel with the Ebrew hardware. This is done using Ethernet (preferred) or USB</string>
+        </property>
+        <property name="text">
+         <string>Communication Channel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="cbCommCh">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <item>
+         <property name="text">
+          <string>Ethernet (UDP)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>COM1 (Virtual USB)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>COM2 (Virtual USB)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>COM3 (Virtual USB)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>COM4 (Virtual USB)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>COM5 (Virtual USB)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>COM6 (Virtual USB)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>COM7 (Virtual USB)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>COM8 (Virtual USB)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>COM9 (Virtual USB)</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="lblComPort">
+        <property name="toolTip">
+         <string>Set the communication settings for the virtual COM port, e.g. 38400,N,8,1</string>
+        </property>
+        <property name="text">
+         <string>USB COM Port Settings</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="leComPort">
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Set the communication settings for the virtual COM port, e.g. 38400,N,8,1</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="lblIPaddr">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the IP-address and Port number (8888) for the E-brew hardware, e.g. 192.168.192.105:8888. If you don't know the IP-address, connect to the E-brew hardware with an USB cable and a terminal program. It then lists the IP-address when ethernet mode is enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>E-brew IP-address &amp; Port</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="leIPaddr">
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Set the IP-address and Port number (8888) for the E-brew hardware, e.g. 192.168.192.105:8888. If you don't know the IP-address, connect to the E-brew hardware with an USB cable and a terminal program. It then lists the IP-address when ethernet mode is enabled.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QCheckBox" name="cbDbgLog">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>110</y>
+       <width>251</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox if you want all communications to be written to a log-file (ebrewlog.txt). This applies to both Ethernet and USB communications.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Debug: File-logging of COM-port communication</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tab_3">
+    <attribute name="title">
+     <string>Brew-kettle Sizes</string>
+    </attribute>
+    <widget class="QWidget" name="formLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>231</width>
+       <height>91</height>
+      </rect>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="lblHltVol">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>The total volume of the Hot-Liquid Tun (HLT)</string>
+        </property>
+        <property name="text">
+         <string>HLT Total Volume</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="sbHltVol">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>The total volume of the Hot-Liquid Tun (HLT)</string>
+        </property>
+        <property name="suffix">
+         <string> L</string>
+        </property>
+        <property name="maximum">
+         <number>999</number>
+        </property>
+        <property name="value">
+         <number>200</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="lblMltVol">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The total volume of the Mash-Lauter Tun (MLT)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>MLT Total Volume</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="sbMltVol">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>The total volume of the Mash-Lauter Tun (MLT)</string>
+        </property>
+        <property name="suffix">
+         <string> L</string>
+        </property>
+        <property name="maximum">
+         <number>999</number>
+        </property>
+        <property name="value">
+         <number>110</number>
+        </property>
+        <property name="displayIntegerBase">
+         <number>10</number>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="lblBkVol">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The total volume of the Boil-kettle&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Boil-Kettle Total Volume</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QSpinBox" name="sbBkVol">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The total volume of the Boil-kettle&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="suffix">
+         <string> L</string>
+        </property>
+        <property name="maximum">
+         <number>999</number>
+        </property>
+        <property name="value">
+         <number>140</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <tabstops>
+  <tabstop>rb1</tabstop>
+  <tabstop>rb2</tabstop>
+  <tabstop>rb3</tabstop>
+  <tabstop>sb11</tabstop>
+  <tabstop>sb12</tabstop>
+  <tabstop>sb21</tabstop>
+  <tabstop>sb22</tabstop>
+  <tabstop>sb31</tabstop>
+  <tabstop>sb32</tabstop>
+  <tabstop>cbCommCh</tabstop>
+  <tabstop>leComPort</tabstop>
+  <tabstop>leIPaddr</tabstop>
+  <tabstop>cbDbgLog</tabstop>
+  <tabstop>sbHltVol</tabstop>
+  <tabstop>sbMltVol</tabstop>
+  <tabstop>sbBkVol</tabstop>
+  <tabstop>tabWidget</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>DialogOptionsSystemSettings</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>DialogOptionsSystemSettings</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

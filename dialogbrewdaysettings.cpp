@@ -109,7 +109,6 @@ void DialogBrewDaySettings::on_buttonBox_accepted()
     pEbrew->RegEbrew->setValue("CIP_REST_TIME",ui->sbCip3->value());
     pEbrew->RegEbrew->setValue("CIP_OUT_TIME" ,ui->sbCip4->value());
     pEbrew->RegEbrew->setValue("CIP_INP_TIME" ,ui->sbCip5->value());
-
 }
 
 void DialogBrewDaySettings::on_cbMash1_stateChanged(int arg1)

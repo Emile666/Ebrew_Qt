@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Switch &amp; Fix Variables Dialog</string>
   </property>
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
@@ -931,7 +931,7 @@
     <rect>
      <x>10</x>
      <y>470</y>
-     <width>261</width>
+     <width>264</width>
      <height>25</height>
     </rect>
    </property>
@@ -1070,7 +1070,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -1082,6 +1082,9 @@
    <layout class="QHBoxLayout" name="horizontalLayout_15">
     <item>
      <widget class="QPushButton" name="pbApply">
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Apply the Switches &amp;amp; Fixes and stay in this Dialog Screen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>&amp;Apply</string>
       </property>
@@ -1103,6 +1106,37 @@
    </layout>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>cbHltSp</tabstop>
+  <tabstop>sbHltSp</tabstop>
+  <tabstop>cbHltTemp</tabstop>
+  <tabstop>sbHltTemp</tabstop>
+  <tabstop>cbHltVol</tabstop>
+  <tabstop>sbHltVol</tabstop>
+  <tabstop>cbHltPid</tabstop>
+  <tabstop>sbHltPid</tabstop>
+  <tabstop>cbMltTemp</tabstop>
+  <tabstop>sbMltTemp</tabstop>
+  <tabstop>cbMltVol</tabstop>
+  <tabstop>sbMltVol</tabstop>
+  <tabstop>cbBkSp</tabstop>
+  <tabstop>sbBkSp</tabstop>
+  <tabstop>cbBkTemp</tabstop>
+  <tabstop>sbBkTemp</tabstop>
+  <tabstop>cbBkVol</tabstop>
+  <tabstop>sbBkVol</tabstop>
+  <tabstop>cbBkPid</tabstop>
+  <tabstop>sbBkPid</tabstop>
+  <tabstop>cbTTriac</tabstop>
+  <tabstop>sbTTriac</tabstop>
+  <tabstop>cbMsIdx</tabstop>
+  <tabstop>sbMsIdx</tabstop>
+  <tabstop>cbSpIdx</tabstop>
+  <tabstop>sbSpIdx</tabstop>
+  <tabstop>cbStd</tabstop>
+  <tabstop>comboStd</tabstop>
+  <tabstop>pbApply</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

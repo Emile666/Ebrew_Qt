@@ -186,18 +186,20 @@ protected:
     QPointF   left,top,right,bottom; // coordinates of various points
     QColor    pipeColor;
 };
+
 //------------------------------------------------------------------------------------------
 class Display : public QGraphicsSimpleTextItem
 {
 public:
-    Display(QPointF point, int w, int h);
+    Display(QPointF point);
     void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     QRectF  boundary; // boundary of object
-
+    void    setSubText(QString string);
 protected:
-    QRectF boundingRect() const override { return boundary; }
-    int    width;
-    int    height;
+    QRectF  boundingRect() const override { return boundary; }
+    QString subText;
+    int     width;
+    int     height;
 };
 
 //------------------------------------------------------------------------------------------

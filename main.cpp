@@ -50,8 +50,6 @@
 
 #include <QApplication>
 #include <QGraphicsView>
-#include <QMenuBar>
-#include <QStatusBar>
 #include <QVBoxLayout>
 #include <QThread>
 #include <QTimer>
@@ -76,41 +74,13 @@ int main(int argc, char **argv)
     Q_INIT_RESOURCE(icons);
 
     //------------------------------------------------------
-    // Create the menu-bar with all signals and slots
+    // Initialises the EBrew object. It does the following:
+    // - Create the statusbar at the bottom of the screen
+    // - Create the menu-bar with all signals and slots
+    // - Init. the Registry or create a default one if not found
+    // - Read the Mash Scheme file
     //------------------------------------------------------
-    auto Ebrew      = new MainEbrew;   // Brew controller for HERMS system (QMainWindow)
-    auto menuBar    = new QMenuBar;    // See Examples\Qt-5.14.2\network\torrent
-
-    // File menu
-    auto Fmenu       = new QMenu("&File");
-    Fmenu->addAction(QIcon(":/img/fileopen.png"),"Read Log-File..."); // TODO
-    Fmenu->addSeparator();
-    Fmenu->addAction(QIcon(":/img/exit.png"), "E&xit", Ebrew,SLOT(close()));
-    menuBar->addMenu(Fmenu);
-    // Edit menu
-    auto Emenu       = new QMenu("&Edit");
-    Emenu->addAction(QIcon(":/img/fileedit.png"),"&Mash Scheme...",Ebrew,SLOT(MenuEditMashScheme()));
-    Emenu->addAction(QIcon(":/img/fixparams.png"),"&Fix Parameters...",Ebrew,SLOT(MenuEditFixParameters()));
-    menuBar->addMenu(Emenu);
-    // View menu
-    auto Vmenu       = new QMenu("&View");
-    Vmenu->addAction(QIcon(":/img/progress.png"),"&Mash && Sparge Progress"); // TODO
-    Vmenu->addAction(QIcon(":/img/alarm.png"),"&Status and Alarms");          // TODO
-    Vmenu->addAction(QIcon(":/img/task.png"),"&Task-list and Timings");       // TODO
-    menuBar->addMenu(Vmenu);
-    // Options menu
-    auto Omenu       = new QMenu("&Options");
-    Omenu->addAction(QIcon(":/img/hwsettings.png"),"&System Settings..."); // TODO
-    Omenu->addAction(QIcon(":/img/pidsettings.png"),"&PID Controller Settings...",Ebrew,SLOT(MenuOptionsPidSettings()));
-    Omenu->addAction(QIcon(":/img/cooking.png"),"Brew Day Settings...",Ebrew,SLOT(MenuOptionsBrewDaySettings()));
-    Omenu->addAction(QIcon(":/img/measurements.png"),"Measurements Settings...",Ebrew,SLOT(MenuOptionsMeasurements()));
-    menuBar->addMenu(Omenu);
-    // Help menu
-    auto Hmenu       = new QMenu("&Help");
-    Hmenu->addAction(QIcon(":/img/about.png"),"&About",Ebrew,SLOT(about()));
-    Hmenu->addAction(QIcon(":/img/qt.png"),"About &Qt",qApp,SLOT(aboutQt()));
-    menuBar->addMenu(Hmenu);
-    Ebrew->setMenuBar(menuBar);    // Connect the menuBar to Ebrew
+    auto Ebrew = new MainEbrew;   // Brew controller for HERMS system (QMainWindow)
 
     //------------------------------------------------------
     // Create a new thread with a Timer and a scheduler
@@ -130,8 +100,9 @@ int main(int argc, char **argv)
     Ebrew->connect(mainTimer,SIGNAL(timeout()),scheduler,SLOT(scheduler_isr()));  // runs at 100 msec.
     Ebrew->connect(mainTimer,SIGNAL(timeout()),scheduler,SLOT(dispatch_tasks())); // dispatcher also runs at 100 msec.
     scheduler->add_task("Alive_led" ,  0, 500,Ebrew,SLOT(task_alive_led()));      // TASK 0
+    scheduler->add_task("read_temps",100,2000,Ebrew,SLOT(task_read_temps()));     // TASK 1
     scheduler->add_task("update_std",400,1000,Ebrew,SLOT(task_update_std()));     // TASK 3
-    scheduler->start();  // start scheduler
+    scheduler->add_task("read_flows",600,2000,Ebrew,SLOT(task_read_flows()));     // TASK 5
 
     //------------------------------------------------------
     // Create the HMI screen and connect it to Ebrew
@@ -141,11 +112,13 @@ int main(int argc, char **argv)
     Ebrew->setCentralWidget(frame);
     app.setApplicationName("Ebrew 3.0 Qt: Automating your Home-Brewery!");
     draw_hmi_screen(&scene,Ebrew); // Draw the total Human-Machine Interface on screen
+
     view.showNormal();
     view.fitInView(scene.sceneRect().adjusted(-50, -50, 50, 50), Qt::KeepAspectRatio);
     frame->layout()->addWidget(&view);
     Ebrew->setFixedSize(1100,900);
     Ebrew->showNormal();
+    scheduler->start();  // start scheduler if everything is initialized
 
     return app.exec();
 } // main()

@@ -12,7 +12,8 @@ DialogEditMashScheme::DialogEditMashScheme(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DialogEditMashScheme)
 {
-    QString mash_scheme("maisch.sch");
+    QString mash_scheme(MASHFILE); // Load default maisch.sch
+    pEbrew = dynamic_cast<MainEbrew *>(parent);
 
     ui->setupUi(this);
 
@@ -72,15 +73,20 @@ void DialogEditMashScheme::on_pushButton_2_clicked()
 } // DialogEditMashScheme::on_pushButton_2_clicked()
 
 /*------------------------------------------------------------------
-  Purpose  : This is called when 'Save' is clicked.
+  Purpose  : This is called when 'Save' is clicked. It save the
+             current text into the default MASHFILE and re-initializes
+             the variables from this file. It doesn't update the
+             mash timers, so that you can change the mash scheme in
+             the middle of an on-going mash phase.
   Variables: -
   Returns  : -
   ------------------------------------------------------------------*/
 void DialogEditMashScheme::on_pushButton_3_clicked()
 {
-    QFile file("maisch.sch"); // default Mash Scheme filename
+    QFile file(MASHFILE); // default Mash Scheme filename
     file.open(QFile::WriteOnly | QFile::Text);
     QTextStream out (&file);
     out << ui->plainTextEdit->toPlainText();
     file.close();
+    pEbrew->readMashSchemeFile(NO_INIT_TIMERS); // Read mash scheme, but don't init the mash timers
 } // DialogEditMashScheme::on_pushButton_3_clicked()

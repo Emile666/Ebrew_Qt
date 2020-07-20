@@ -319,9 +319,11 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     Pipe *elbow12 = new Pipe(point,PIPE2_RIGHT_LEFT,len,COLOR_OUT0);
     scene->addItem(elbow12);
 
-    Display *std_text = new Display(QPointF(-700,450),600,35);
+    Display *std_text = new Display(QPointF(-700,450));
     std_text->setText("12. Boiling Finished, wait 1/5 min., prepare Chiller (M)");
+    std_text->setSubText("Connect Chiller, if ready, click \'CFC Prepared, start Chilling\' in toolbar at top of screen");
     scene->addItem(std_text);
+    p->std_text = std_text;
 
     PowerButton *hlt_pid = new PowerButton(-850,200,270,60,"HLT PID Controller");
     scene->addWidget(hlt_pid);
@@ -331,8 +333,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     scene->addWidget(boil_pid);
     p->boil_pid = boil_pid; // add boil_pid reference to MainEbrew
 
-    PowerButton *cip = new PowerButton(-850,340,270,60,"Clean in Place (CIP)");
-    scene->addWidget(cip);
-    cip->hide();
+    p->setKettleNames(); // Init. titles of kettles with volumes found in Registry
+
 } // draw_hmi_screen()
 

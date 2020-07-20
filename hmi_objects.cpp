@@ -537,13 +537,13 @@ void Pipe::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
 } // Pipe::paint()
 //------------------------------------------------------------------------------------------
 
-Display::Display(QPointF point,int w, int h)
+Display::Display(QPointF point)
     : QGraphicsSimpleTextItem()
 {
     QFont font;
 
-    width  = w;
-    height = h;
+    width  = 600;
+    height = 45;
     font.setPointSize(18);
     setFont(font);
     setBrush(QBrush(Qt::red));
@@ -556,9 +556,7 @@ Display::Display(QPointF point,int w, int h)
 
 void Display::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    QPainterPath path;
-    QFont        font;
-    QString      text1,text2 = "";
+    QFont font;
 
     painter->setBrush(Qt::lightGray);
     painter->setPen(Qt::black);
@@ -566,13 +564,17 @@ void Display::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     font.setPointSize(10);
     font.setBold(true);
     painter->setFont(font);
-//    painter->setPen(Qt::yellow);
-//    text2 = QString("yellow sub-text");
-//    painter->drawText(5,35,text2); // Draw text
+    painter->setPen(Qt::yellow);
+    painter->drawText(5,41,subText); // Draw sub-text
     painter->setPen(Qt::black);
     painter->drawText(0,-5,"Current STD state"); // Draw title
     QGraphicsSimpleTextItem::paint(painter,option,widget);
 } // Display::paint()
+
+void Display::setSubText(QString string)
+{
+    subText = string;
+} // Display::setSubText()
 
 //------------------------------------------------------------------------------------------
 Meter::Meter(QPointF point, uint8_t type, QString name)

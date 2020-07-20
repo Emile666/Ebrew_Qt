@@ -16,5 +16,6 @@
         <file>img/alarm.png</file>
         <file>img/progress.png</file>
         <file>img/task.png</file>
+        <file>img/pcb_ebrew.jpg</file>
     </qresource>
 </RCC>

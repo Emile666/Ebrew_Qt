@@ -2,6 +2,7 @@
 #define DIALOGEDITMASHSCHEME_H
 
 #include <QDialog>
+#include "MainEbrew.h"
 
 namespace Ui {
 class DialogEditMashScheme;
@@ -22,6 +23,7 @@ private slots:
 
 private:
     Ui::DialogEditMashScheme *ui;
+    MainEbrew *pEbrew; // pointer to parent (MainEbrew)
 };
 
 #endif // DIALOGEDITMASHSCHEME_H

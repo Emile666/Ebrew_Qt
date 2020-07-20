@@ -48,13 +48,17 @@
 **
 ****************************************************************************/
 
+#include <QApplication>
 #include "MainEbrew.h"
 #include "dialogeditmashscheme.h"
 #include "dialogeditfixparameters.h"
 #include "dialogoptionspidsettings.h"
 #include "dialogoptionsmeasurements.h"
 #include "dialogbrewdaysettings.h"
+#include "dialogoptionssystemsettings.h"
 #include <QStatusBar>
+#include <QMenuBar>
+#include <QToolBar>
 #include <QDebug>
 #include <QFile>
 #include <QLabel>
@@ -62,7 +66,34 @@
 //------------------------------------------------------------------------------------------
 MainEbrew::MainEbrew(void) : QMainWindow()
 {
+    SlopeLimiter *pSlopeLim; // pointer to SlopeLimiter object
+
+    createStatusBar(); // create status bar at the bottom of the screen
+    createMenuBar();   // create menu bar at the top of the screen
     RegEbrew = new QSettings(REGKEY,QSettings::NativeFormat);
+    if (!RegEbrew->contains("BOIL_DETECT"))
+    {   // Windows registry does not exist yet
+        createRegistry(); // create default Registry entries
+        qDebug() << "ebrew Registry was NOT found, init. Registry with default values";
+    } // if
+    readMashSchemeFile(INIT_TIMERS); // Read mash scheme from file and init. all mash timers
+
+    pSlopeLim = new SlopeLimiter();
+    pSlopeLim->setLim(RegEbrew->value("TSET_SLOPE_LIM").toDouble());
+    slopeLimHLT = pSlopeLim; // copy pointer to MainEbrew
+    pSlopeLim  = new SlopeLimiter();
+    pSlopeLim->setLim(RegEbrew->value("TSET_SLOPE_LIM").toDouble());
+    slopeLimBK = pSlopeLim; // copy pointer to MainEbrew
+} // MainEbrew::MainEbrew()
+
+/*------------------------------------------------------------------
+  Purpose  : This function creates the status bar at the bottom of
+             the screen and the toolbar at the top of the screen.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::createStatusBar(void)
+{
     auto statusBar = new QStatusBar;  // Statusbar
 
     //-----------------------------------
@@ -80,6 +111,9 @@ MainEbrew::MainEbrew(void) : QMainWindow()
     statusSpargeVol  = new QLabel(" Sparge Volume: 42 L ");
     statusSpargeVol->setAlignment(Qt::AlignHCenter);
     statusBar->addPermanentWidget(statusSpargeVol);
+    statusBoilTime  = new QLabel(" Boil-time: 120 min. ");
+    statusBoilTime->setAlignment(Qt::AlignHCenter);
+    statusBar->addPermanentWidget(statusBoilTime);
     statusMsIdx      = new QLabel(" Mash index: 0 ");
     statusMsIdx->setAlignment(Qt::AlignHCenter);
     statusBar->addPermanentWidget(statusMsIdx);
@@ -91,92 +125,168 @@ MainEbrew::MainEbrew(void) : QMainWindow()
     statusBar->addPermanentWidget(statusSwRev);
     setStatusBar(statusBar); // connect the statusBar to Ebrew
 
-    if (!RegEbrew->contains("BOIL_DETECT"))
-    {   // Windows registry does not exist yet
-        //------------------------------------
-        // Ebrew Hardware Settings Dialog
-        //------------------------------------
-        RegEbrew->setValue("SYSTEM_MODE",GAS_MODULATING);
-        RegEbrew->setValue("COMM_CHANNEL",0);  // Select Ethernet as Comm. Channel
-        RegEbrew->setValue("COM_PORT_SETTINGS","38400,N,8,1"); // COM port settings
-        RegEbrew->setValue("UDP_IP_PORT","192.168.192.105:8888"); // IP & Port number
-        RegEbrew->setValue("CB_DEBUG_COM_PORT",true);
-        RegEbrew->setValue("CB_SHOW_SENSOR_INFO",true);
+    // Create Toolbar at top of screen
+    auto toolBar = new QToolBar("Toolbar"); // Toolbar at left of screen
+    toolBar->setMovable(false); // fixed at top of screen
+    toolBar->setOrientation(Qt::Horizontal);
+    toolStartCIP = new QCheckBox("Start Clean-In-Place (CIP) Program");
+    toolBar->addWidget(toolStartCIP);
+    toolStartAddMalt = new QCheckBox("Start Adding Malt");
+    toolStartAddMalt->setEnabled(false); // default not enabled
+    toolBar->addWidget(toolStartAddMalt);
+    toolMaltAdded = new QCheckBox("Malt added to MLT");
+    toolMaltAdded->setEnabled(false); // default not enabled
+    toolBar->addWidget(toolMaltAdded);
+    toolBoilStarted = new QCheckBox("Boiling Started");
+    toolBoilStarted->setEnabled(false); // default not enabled
+    toolBar->addWidget(toolBoilStarted);
+    toolStartChilling = new QCheckBox("CFC Prepared, start Chilling");
+    toolStartChilling->setEnabled(false); // default not enabled
+    toolBar->addWidget(toolStartChilling);
+    addToolBar(Qt::TopToolBarArea,toolBar);
+} // MainEbrew::createStatusBar()
 
-        RegEbrew->setValue("GAS_NON_MOD_LLIMIT",30);
-        RegEbrew->setValue("GAS_NON_MOD_HLIMIT",35);
-        RegEbrew->setValue("GAS_MOD_PWM_LLIMIT",2);
-        RegEbrew->setValue("GAS_MOD_PWM_HLIMIT",4);
-        RegEbrew->setValue("TTRIAC_LLIM",65);
-        RegEbrew->setValue("TTRIAC_HLIM",75);
-        RegEbrew->setValue("BOIL_DETECT",99.3);
+/*------------------------------------------------------------------
+  Purpose  : This function creates the menu bar at the top of the screen
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::createMenuBar(void)
+{
+    auto menuBar = new QMenuBar;    // See Examples\Qt-5.14.2\network\torrent
 
-        //------------------------------------
-        // Options -> PID Settings Dialog
-        //------------------------------------
-        RegEbrew->setValue("TS",20.0);            // Set Default sample time
-        RegEbrew->setValue("Kc",80.0);            // Controller gain
-        RegEbrew->setValue("Ti",282.0);           // Ti constant
-        RegEbrew->setValue("Td",20.0);            // Td constant
-        RegEbrew->setValue("TSET_SLOPE_LIM",1.0); // Slope Limit for Temperature Setpoints
+    // File menu
+    auto Fmenu       = new QMenu("&File");
+    Fmenu->addAction(QIcon(":/img/fileopen.png"),"Read Log-File..."); // TODO
+    Fmenu->addSeparator();
+    Fmenu->addAction(QIcon(":/img/exit.png")    , "E&xit", this,SLOT(close()));
+    menuBar->addMenu(Fmenu);
+    // Edit menu
+    auto Emenu       = new QMenu("&Edit");
+    Emenu->addAction(QIcon(":/img/fileedit.png") ,"&Mash Scheme..."   ,this,SLOT(MenuEditMashScheme()));
+    Emenu->addAction(QIcon(":/img/fixparams.png"),"&Fix Parameters...",this,SLOT(MenuEditFixParameters()));
+    menuBar->addMenu(Emenu);
+    // View menu
+    auto Vmenu       = new QMenu("&View");
+    Vmenu->addAction(QIcon(":/img/progress.png"),"&Mash && Sparge Progress"); // TODO
+    Vmenu->addAction(QIcon(":/img/alarm.png")   ,"&Status and Alarms");          // TODO
+    Vmenu->addAction(QIcon(":/img/task.png")    ,"&Task-list and Timings");       // TODO
+    menuBar->addMenu(Vmenu);
+    // Options menu
+    auto Omenu       = new QMenu("&Options");
+    Omenu->addAction(QIcon(":/img/hwsettings.png")  ,"&System Settings..."        ,this,SLOT(MenuOptionsSystemSettings()));
+    Omenu->addAction(QIcon(":/img/pidsettings.png") ,"&PID Controller Settings...",this,SLOT(MenuOptionsPidSettings()));
+    Omenu->addAction(QIcon(":/img/cooking.png")     ,"Brew Day Settings..."       ,this,SLOT(MenuOptionsBrewDaySettings()));
+    Omenu->addAction(QIcon(":/img/measurements.png"),"Measurements Settings..."   ,this,SLOT(MenuOptionsMeasurements()));
+    menuBar->addMenu(Omenu);
+    // Help menu
+    auto Hmenu       = new QMenu("&Help");
+    Hmenu->addAction(QIcon(":/img/about.png"),"&About"   ,this,SLOT(about()));
+    Hmenu->addAction(QIcon(":/img/qt.png")   ,"About &Qt",qApp,SLOT(aboutQt()));
+    menuBar->addMenu(Hmenu);
+    setMenuBar(menuBar);    // Connect the menuBar to Ebrew
+} // MainEbrew::createMenuBar()
 
-        //------------------------------------
-        // Sparge, Mash & Boil Settings Dialog
-        //------------------------------------
-        // Sparge Settings
-        RegEbrew->setValue("SP_BATCHES",5);     // #Sparge Batches
-        RegEbrew->setValue("SP_TIME",12);       // Time between sparge batches
-        RegEbrew->setValue("SP_MPY",2.0);       // Multiply factor for 1st run-off volume to Boil-Kettle
-        // Mash Settings
-        RegEbrew->setValue("ms_idx",MAX_MS);    // init. index in mash scheme TODO
-        RegEbrew->setValue("TOffset0",3.5);     // Compensation for dough-in of malt
-        RegEbrew->setValue("TOffset",1.0);      // Compensation HLT-MLT heat-loss
-        RegEbrew->setValue("TOffset2",-0.5);    // Early start of mash-timer
-        RegEbrew->setValue("PREHEAT_TIME",15);  // PREHEAT_TIME [min.]
-        RegEbrew->setValue("CB_Malt_First",0);  // 1= Add malt first to MLT, then add water
-        RegEbrew->setValue("CB_Mash_Rest",1);   // Mash Rest for 5 minutes after Malt is added
-        RegEbrew->setValue("CB_dpht",1);        // 1= use dynamic preheat timing
-        RegEbrew->setValue("HLT_Bcap",90);      // HLT burner capacity in sec./°C
-        RegEbrew->setValue("CB_pumps_on",1);    // 1= Leave pumps runnings after MLT temp. is reached
-        // Boil Settings
-        RegEbrew->setValue("BOIL_MIN_TEMP",60); // Min. Temp. for Boil-Kettle (Celsius)
-        //RegEbrew->setValue("BOIL_TIME",90);     // Total Boil Time (min.) TODO
-        RegEbrew->setValue("SP_PREBOIL",95);    // Pre-Boil Temperature (Celsius)
-        RegEbrew->setValue("BOIL_DETECT",99.3); // Boiling-Detection minimum Temperature (Celsius)
-        RegEbrew->setValue("SP_BOIL",105);      // Boil Temperature (Celsius)
-        RegEbrew->setValue("LIMIT_BOIL",100);   // Limit output during boil (%)
-        RegEbrew->setValue("CB_Boil_Rest",1);   // Let wort rest for 5 minutes after boiling
-        // Clean in Place (CIP) Settings
-        RegEbrew->setValue("CIP_SP",65);        // CIP Temperature Setpoint (Celsius)
-        RegEbrew->setValue("CIP_CIRC_TIME",300); // CIP Circulating time (seconds)
-        RegEbrew->setValue("CIP_REST_TIME",300); // CIP Rest time (seconds)
-        RegEbrew->setValue("CIP_OUT_TIME",300);  // CIP Circulating time for cleaning outputs (seconds)
-        RegEbrew->setValue("CIP_INP_TIME",300);  // CIP Circulating time for cleaning inputs (seconds)
+/*------------------------------------------------------------------
+  Purpose  : This function creates default entries in the Registry.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::createRegistry(void)
+{
+    //------------------------------------
+    // Options -> System Settings Dialog
+    //------------------------------------
+    // Heating mode
+    RegEbrew->setValue("GAS_MOD_PWM_LLIMIT",2);
+    RegEbrew->setValue("GAS_MOD_PWM_HLIMIT",4);
+    RegEbrew->setValue("GAS_NON_MOD_LLIMIT",30);
+    RegEbrew->setValue("GAS_NON_MOD_HLIMIT",35);
+    RegEbrew->setValue("TTRIAC_LLIM",65);
+    RegEbrew->setValue("TTRIAC_HLIM",75);
+    // Communications
+    RegEbrew->setValue("SYSTEM_MODE",GAS_MODULATING);
+    RegEbrew->setValue("COMM_CHANNEL",0);  // Select Ethernet as Comm. Channel
+    RegEbrew->setValue("COM_PORT_SETTINGS","38400,N,8,1"); // COM port settings
+    RegEbrew->setValue("UDP_IP_PORT","192.168.192.105:8888"); // IP & Port number
+    RegEbrew->setValue("CB_DEBUG_COM_PORT",1);
+    RegEbrew->setValue("CB_SHOW_SENSOR_INFO",1); // TODO
+    // Brew-kettle Sizes
+    RegEbrew->setValue("VHLT_MAX",200);       // Max. HLT volume
+    RegEbrew->setValue("VMLT_MAX",110);       // Max. MLT volume
+    RegEbrew->setValue("VBOIL_MAX",140);      // Max. Boil kettle volume
 
-        //------------------------------------
-        // Options -> Measurements Dialog
-        //------------------------------------
-        RegEbrew->setValue("THLT_OFFSET",0.0);    // Offset for Thlt
-        RegEbrew->setValue("TMLT_OFFSET",0.0);    // Offset for Tmlt
-        RegEbrew->setValue("TBOIL_OFFSET",0.0);   // Offset for Tboil
-        RegEbrew->setValue("TCFC_OFFSET",0.0);    // Offset for Tcfc
+    //------------------------------------
+    // Options -> PID Settings Dialog
+    //------------------------------------
+    RegEbrew->setValue("TS",20.0);            // Set Default sample time
+    RegEbrew->setValue("Kc",80.0);            // Controller gain
+    RegEbrew->setValue("Ti",282.0);           // Ti constant
+    RegEbrew->setValue("Td",20.0);            // Td constant
+    RegEbrew->setValue("TSET_SLOPE_LIM",1.0); // Slope Limit for Temperature Setpoints
 
-        RegEbrew->setValue("VHLT_MAX",200.0);     // Max. HLT volume
-        RegEbrew->setValue("VMLT_MAX",110.0);     // Max. MLT volume
-        RegEbrew->setValue("VBOIL_MAX",140.0);    // Max. Boil kettle volume
-        RegEbrew->setValue("FLOW1_ERR",0);        // Error Correction for FLOW1
-        RegEbrew->setValue("FLOW2_ERR",0);        // Error Correction for FLOW2
-        RegEbrew->setValue("FLOW3_ERR",0);        // Error Correction for FLOW3
-        RegEbrew->setValue("FLOW4_ERR",0);        // Error Correction for FLOW4
-        RegEbrew->setValue("FLOW_TEMP_CORR",1);   // Use Temperature Correction
-        RegEbrew->setValue("MIN_FR_MLT_PERC",10); // Min. Flowrate for MLT Empty detection
-        RegEbrew->setValue("MIN_FR_BOIL_PERC",2); // Min. Flowrate for Boil-Kettle Empty detection
+    //------------------------------------
+    // Options -> Brew Day Settings Dialog
+    //------------------------------------
+    // Sparge Settings
+    RegEbrew->setValue("SP_BATCHES",5);      // #Sparge Batches
+    RegEbrew->setValue("SP_TIME",12);        // Time between sparge batches
+    RegEbrew->setValue("SP_MPY",2.0);        // Multiply factor for 1st run-off volume to Boil-Kettle
+    // Mash Settings
+    //RegEbrew->setValue("ms_idx",MAX_MS);     // init. index in mash scheme TODO
+    RegEbrew->setValue("TOffset0",3.5);      // Compensation for dough-in of malt
+    RegEbrew->setValue("TOffset",1.0);       // Compensation HLT-MLT heat-loss
+    RegEbrew->setValue("TOffset2",-0.5);     // Early start of mash-timer
+    RegEbrew->setValue("PREHEAT_TIME",15);   // PREHEAT_TIME [min.]
+    RegEbrew->setValue("CB_Malt_First",0);   // 1= Add malt first to MLT, then add water
+    RegEbrew->setValue("CB_Mash_Rest",1);    // Mash Rest for 5 minutes after Malt is added
+    RegEbrew->setValue("CB_dpht",1);         // 1= use dynamic preheat timing
+    RegEbrew->setValue("HLT_Bcap",90);       // HLT burner capacity in sec./°C
+    RegEbrew->setValue("CB_pumps_on",1);     // 1= Leave pumps runnings after MLT temp. is reached
+    // Boil Settings
+    RegEbrew->setValue("BOIL_MIN_TEMP",60);  // Min. Temp. for Boil-Kettle (Celsius)
+    RegEbrew->setValue("SP_PREBOIL",95);     // Pre-Boil Temperature (Celsius)
+    RegEbrew->setValue("BOIL_DETECT",99.3);  // Boiling-Detection minimum Temperature (Celsius)
+    RegEbrew->setValue("SP_BOIL",105);       // Boil Temperature (Celsius)
+    RegEbrew->setValue("LIMIT_BOIL",100);    // Limit output during boil (%)
+    RegEbrew->setValue("CB_Boil_Rest",1);    // Let wort rest for 5 minutes after boiling
+    // Clean in Place (CIP) Settings
+    RegEbrew->setValue("CIP_SP",65);         // CIP Temperature Setpoint (Celsius)
+    RegEbrew->setValue("CIP_CIRC_TIME",300); // CIP Circulating time (seconds)
+    RegEbrew->setValue("CIP_REST_TIME",300); // CIP Rest time (seconds)
+    RegEbrew->setValue("CIP_OUT_TIME",300);  // CIP Circulating time for cleaning outputs (seconds)
+    RegEbrew->setValue("CIP_INP_TIME",300);  // CIP Circulating time for cleaning inputs (seconds)
 
-        qDebug() << "ebrew registry was NOT found";
-    } // if
-    else qDebug() << "ebrew registry was found!";
-    readMashSchemeFile(true);
-} // MainEbrew::MainEbrew()
+    //------------------------------------
+    // Options -> Measurements Dialog
+    //------------------------------------
+    // Temperatures
+    RegEbrew->setValue("THLT_OFFSET",0.0);    // Offset for Thlt
+    RegEbrew->setValue("TMLT_OFFSET",0.0);    // Offset for Tmlt
+    RegEbrew->setValue("TBOIL_OFFSET",0.0);   // Offset for Tboil
+    RegEbrew->setValue("TCFC_OFFSET",0.0);    // Offset for Tcfc
+    // Flows
+    RegEbrew->setValue("FLOW1_ERR",0);        // Error Correction for FLOW1
+    RegEbrew->setValue("FLOW2_ERR",0);        // Error Correction for FLOW2
+    RegEbrew->setValue("FLOW3_ERR",0);        // Error Correction for FLOW3
+    RegEbrew->setValue("FLOW4_ERR",0);        // Error Correction for FLOW4
+    RegEbrew->setValue("FLOW_TEMP_CORR",1);   // Use Temperature Correction
+    RegEbrew->setValue("MIN_FR_MLT_PERC",10); // Min. Flowrate for MLT Empty detection
+    RegEbrew->setValue("MIN_FR_BOIL_PERC",2); // Min. Flowrate for Boil-Kettle Empty detection
+} // createRegistry()
+
+/*------------------------------------------------------------------
+  Purpose  : This function sets the kettle names using the volumes
+             found in the Registry.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::setKettleNames(void)
+{
+    hlt->setName(QString("HLT %1 L").arg(RegEbrew->value("VHLT_MAX").toInt()));
+    mlt->setName(QString("MLT %1 L").arg(RegEbrew->value("VMLT_MAX").toInt()));
+    boil->setName(QString("BOIL %1 L").arg(RegEbrew->value("VBOIL_MAX").toInt()));
+} // MainEbrew::SetKettleNames()
 
 /*------------------------------------------------------------------
   Purpose  : This function is the main-entry point for all time-related
@@ -187,10 +297,9 @@ MainEbrew::MainEbrew(void) : QMainWindow()
   ------------------------------------------------------------------*/
 void MainEbrew::T100msecLoop(void)
 {
-    thlt += 0.1;
-    hlt->setValues(thlt,tset_hlt_fx,Vhlt,0.0); // temp, sp, vol, power
+    thlt += 0.01;
+    hlt->setValues(thlt,tset_hlt,Vhlt,gamma_hlt); // temp, sp, vol, power
     hlt->update();
-
 } // MainEbrew::T100msecLoop()
 
 /*------------------------------------------------------------------
@@ -214,12 +323,30 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
        {  // read 3 dummy lines
           line = in.readLine();
        } // while
-       line = in.readLine();
+       line = in.readLine(); // Read mash water volume
        list1 = line.split(':');
-       mash_vol = list1.at(1).toInt();
-       line = in.readLine();
+       if (list1.size() >= 2)
+            mash_vol = list1.at(1).toInt();
+       else mash_vol = 0; // error in maisch.sch
+       sbar.clear();
+       sbar = QString(" Mash: %1 L ").arg(mash_vol);
+       statusMashVol->setText(sbar);
+       line = in.readLine(); // Read sparge water volume
        list1 = line.split(':');
-       sp_vol = list1.at(1).toInt();
+       if (list1.size() >= 2)
+            sp_vol = list1.at(1).toInt();
+       else sp_vol = 0; // error in maisch.sch
+       sbar.clear();
+       sbar = QString(" Sparge: %1 L ").arg(sp_vol);
+       statusSpargeVol->setText(sbar);
+       line = in.readLine(); // Read boiling-time
+       list1 = line.split(':');
+       if (list1.size() >= 2)
+            boil_time = list1.at(1).toInt();
+       else boil_time = 0; // error in maisch.sch
+       sbar.clear();
+       sbar = QString(" Boil: %1 min. ").arg(boil_time);
+       statusBoilTime->setText(sbar);
        i = 0;
        while ((i++ < 3) && !in.atEnd())
        {  // read 3 dummy lines
@@ -281,8 +408,185 @@ void MainEbrew::task_alive_led(void)
   ------------------------------------------------------------------*/
 void MainEbrew::task_update_std(void)
 {
-    //state_machine(); // call state transition diagram
+    uint16_t std_out;     // values of valves
+    uint8_t  pump_bits;   // values of pumps
+
+    std_out = state_machine(); // call the Ebrew STD
+    setStateName();            // update std text on screen
+    if (tset_hlt_sw)
+    {  // Set Temperature Setpoint for HLT to a fixed value
+       tset_hlt = tset_hlt_fx; // fix tset_hlt
+    } // if
+    tset_hlt = slopeLimHLT->slopeLimit(tset_hlt);
+    if (tset_boil_sw)
+    {  // Set Temperature Setpoint for Boil-Kettle to a fixed value
+       tset_boil = tset_boil_fx;
+    } // if
+    tset_boil = slopeLimBK->slopeLimit(tset_boil);
+
+    if (hlt_pid->isChecked() && (tset_hlt < 5.0)) // TODO: move to state_machine()
+    {   // Disable PID controller when sparging is finished
+        hlt_pid->setChecked(false);
+    } // if
+    //-----------------------------------------------------------------
+    // Now output all valve bits to Ebrew hardware.
+    // NOTE: The pump bit is sent using the P0/P1 command
+    //-----------------------------------------------------------------
+    //sprintf(s,"V%d\n",(std_out & ALL_VALVES)); // Output all valves
+    //MainForm->comm_port_write(s); // output Vxxx to Ebrew hardware TODO
+
+    //--------------------------------------------
+    // Send Pump On/Off signals to ebrew hardware.
+    //--------------------------------------------
+    if (std_out & P0b) pump_bits  = 0x01;
+    else               pump_bits  = 0x00;
+    if (std_out & P1b) pump_bits |= 0x02;
+    //sprintf(s,"P%d\n",pump_bits);
+    //MainForm->comm_port_write(s); // Send Px command to ebrew hardware TODO
 } // MainEbrew::task_update_std()
+
+/*-----------------------------------------------------------------------------
+  Purpose    : TASK: Read all 5 Temperature values from hardware
+  Period-Time: 2 seconds
+  Variables: -
+  Returns  : -
+  ---------------------------------------------------------------------------*/
+void MainEbrew::task_read_temps(void)
+{
+    double temp1 = 0.0, temp2 = 0.0, temp3 = 0.0, temp4 = 0.0, temp5 = 0.0;
+
+    //------------------ TEMP1 (LM35) -----------------------------------------
+    ttriac = temp1;
+    if (ttriac_sw)
+    {  // Switch & Fix
+       ttriac = ttriac_fx;
+    } // if
+    //---------------------------------------------------
+    // Triac Temperature Protection: hysteresis function
+    //---------------------------------------------------
+    if (triac_too_hot)
+    { // Reset if temp. < lower-limit
+      triac_too_hot = (ttriac >= RegEbrew->value("TTRIAC_LLIM").toInt());
+    } // if
+    else
+    { // set if temp. >= upper-limit
+      triac_too_hot = (ttriac >= RegEbrew->value("TTRIAC_HLIM").toInt());
+    } // else
+    //------------------ TEMP2 (THLT) -----------------------------------------
+    if (temp2 > SENSOR_VAL_LIM_OK)
+    {
+         //MainForm->Val_Thlt->Font->Color = clLime;
+         thlt = temp2 + thlt_offset; // update THLT with new value
+         //MainForm->sensor_alarm_info &= ~SENS_THLT;      // reset bit in sensor_alarm
+    } // if
+//    else
+//    {
+//         MainForm->Val_Thlt->Font->Color = clRed; // + do NOT update THLT
+//         if ((MainForm->no_sound == ALARM_TEMP_SENSORS) || (MainForm->no_sound == ALARM_TEMP_FLOW_SENSORS))
+//         {
+//              MainForm->comm_port_write("X3\n");
+//              MainForm->sensor_alarm_info |= SENS_THLT;
+//         } // if
+//    } // else
+    if (thlt_sw)
+    {  // Switch & Fix
+       thlt = thlt_fx;
+    } // if
+    //------------------ TEMP3 (TMLT) -----------------------------------------
+    if (temp3 > SENSOR_VAL_LIM_OK)
+    {
+         //MainForm->Val_Tmlt->Font->Color = clLime;
+         tmlt = temp3 + tmlt_offset; // update TMLT with new value
+         //MainForm->sensor_alarm_info &= ~SENS_TMLT;      // reset bit in sensor_alarm
+    } // if
+//    else
+//    {
+//        MainForm->Val_Tmlt->Font->Color = clRed; // + do NOT update TMLT
+//        if ((MainForm->no_sound == ALARM_TEMP_SENSORS) || (MainForm->no_sound == ALARM_TEMP_FLOW_SENSORS))
+//        {
+//             MainForm->comm_port_write("X3\n");
+//             MainForm->sensor_alarm_info |= SENS_TMLT;
+//        } // if
+//    } // else
+    if (tmlt_sw)
+    {  // Switch & Fix
+       tmlt = tmlt_fx;
+    } // if
+    //------------------ TEMP4 (TBOIL) ----------------------------------------
+    if (temp4 > SENSOR_VAL_LIM_OK)
+    {
+         //MainForm->Temp_Boil->Font->Color = clLime;
+         tboil = temp4 + tboil_offset; // update TBOIL with new value
+         //MainForm->sensor_alarm_info &= ~SENS_TBOIL;       // reset bit in sensor_alarm
+    } // if
+//    else
+//    {
+//         MainForm->Temp_Boil->Font->Color = clRed; // + do NOT update TBOIL
+//         if ((MainForm->no_sound == ALARM_TEMP_SENSORS) || (MainForm->no_sound == ALARM_TEMP_FLOW_SENSORS))
+//         {
+//              MainForm->comm_port_write("X3\n");
+//              MainForm->sensor_alarm_info |= SENS_TBOIL;
+//         } // if
+//    } // else
+    if (tboil_sw)
+    {  // Switch & Fix
+       tboil = tboil_fx;
+    } // if
+    //------------------ TEMP5 (TCFC) -----------------------------------------
+    if (temp5 > SENSOR_VAL_LIM_OK)
+    {
+         //MainForm->Temp_CFC->Font->Color = clLime;
+         tcfc = temp5 + tcfc_offset; // update TCFC with new value
+         //MainForm->sensor_alarm_info &= ~SENS_TCFC;      // reset bit in sensor_alarm
+    } // if
+//    else
+//    {
+//         MainForm->Temp_CFC->Font->Color = clRed; // + do NOT update TCFC
+//         if ((MainForm->no_sound == ALARM_TEMP_SENSORS) || (MainForm->no_sound == ALARM_TEMP_FLOW_SENSORS))
+//         {
+//              MainForm->comm_port_write("X3\n");
+//              MainForm->sensor_alarm_info |= SENS_TCFC;
+//         } // if
+//    } // else
+    // No switch/fix needed for TCFC
+} // MainEbrew::task_read_temps()
+
+/*-----------------------------------------------------------------------------
+  Purpose    : TASK: Read all 4 flow sensors from hardware
+  Period-Time: 2 seconds
+  Variables: -
+  Returns  : -
+  ---------------------------------------------------------------------------*/
+void MainEbrew::task_read_flows(void)
+{
+    double err, temp;
+
+    //------------------ FLOW1 ------------------------------------------------
+    if (flow_temp_corr) // TODO
+    {   // Apply correction for increased volume at higher temperatures
+        err = (1.0 + 0.00021 * (thlt - 20.0));
+        Flow_hlt_mlt /= err;
+    } // if
+    // Now apply Calibration error correction
+    Flow_hlt_mlt *= 1.0 + 0.01 * flow1_err; // TODO
+    // Calculate Flow-rate in L per minute ; this task is called once per 2 seconds
+    temp = 30.0 * (Flow_hlt_mlt - Flow_hlt_mlt_old);
+//    if ((temp < 0.1) && flow1_running &&
+//        ((no_sound == ALARM_FLOW_SENSORS) || (no_sound == ALARM_TEMP_FLOW_SENSORS)))
+//    {
+//         MainForm->comm_port_write("X2\n"); // sound alarm
+//         MainForm->sensor_alarm_info |=  SENS_FLOW1;
+//    } // if
+//    else MainForm->sensor_alarm_info &= ~SENS_FLOW1;
+    //Flow_rate_hlt_mlt = moving_average(&MainForm->flow1_ma,temp); TODO
+    // Calculate VHLT volume here
+    //Vhlt = vhlt_max - Flow_hlt_mlt;
+    if (vhlt_sw)
+    {  // Switch & Fix
+       Vhlt = vhlt_fx;
+    } // if
+
+} // task_read_flows()
 
 /*------------------------------------------------------------------
   Purpose  : This function is called whenever in the Menubar
@@ -302,6 +606,108 @@ void MainEbrew::about(void)
                 "Web-site: <a href=\"www.vandelogt.nl\">www.vandelogt.nl</a><br>"
                 "Brewery: Brouwerij de Boezem, The Netherlands");
 } // MainEbrew::about()
+
+/*------------------------------------------------------------------
+  Purpose  : This function updates the std_text on the screen with
+             the new text and subtext for the STD state.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::setStateName(void)
+{
+    QString string;
+
+    switch (ebrew_std)
+    {
+        case S00_INITIALISATION:
+             string = QString("00. Initialisation");
+             std_text->setSubText("Press the HLT PID Powerbutton to advance to the next state");
+             break;
+        case S01_WAIT_FOR_HLT_TEMP:
+             string = QString("01. Wait for HLT Temp. (%1 °C)").arg(tset_hlt,2,'f',1);
+             std_text->setSubText("The HLT temperature is heated to the first temperature of the mash scheme");
+             if (malt_first && !toolMaltAdded->isChecked())
+             {
+                   string.append(" + Add Malt to MLT (M)");
+                   std_text->setSubText("If malt is added, click \'Malt is Added\' on toolbar at top of screen");
+             } // if
+             break;
+        case S02_FILL_MLT:
+             string = QString("02. Fill MLT with %1 L water").arg(mash_vol);
+             std_text->setSubText("The MLT needs to be filled with the required amount of mash water");
+             break;
+        case S03_WAIT_FOR_MLT_TEMP:
+             string = QString("03. Wait for MLT Temperature (%1 °C)").arg(ms[ms_idx].temp + temp_offset2,2,'f',1);
+             std_text->setSubText("If the MLT Temperature is correct, the mashing phase is started");
+             break;
+        case S04_MASH_TIMER_RUNNING:
+             string = QString("04. Mash-Timer Running (%1/%2 min.)").arg(ms[ms_idx].timer/60).arg(ms[ms_idx].time/60.0,2,'f',1);
+             std_text->setSubText("After timeout, HLT is heated to the next temperature");
+             break;
+        case S05_SPARGE_TIMER_RUNNING:
+             string = QString("05. Sparge-Timer Running (%d/%d min.)").arg(timer1/60).arg(sp_time);
+             std_text->setSubText("After timeout, wort is pumped to the boil-kettle");
+             break;
+//        case S06_PUMP_FROM_MLT_TO_BOIL:
+//             sprintf(tmp_str,"06. Pump from MLT to Boil-Kettle (%2.1f L)",std.sp_idx ? sp.sp_vol_batch : sp.sp_vol_batch0);
+//             Std_State->Caption = tmp_str;
+//             break;
+//        case S07_PUMP_FROM_HLT_TO_MLT:
+//             sprintf(tmp_str,"07. Pump fresh water from HLT to MLT (%2.1f L)",sp.sp_vol_batch);
+//             Std_State->Caption = tmp_str;
+//             break;
+//        case S08_DELAY_xSEC:
+//             sprintf(tmp_str,"08. Delay: %d seconds",TMR_DELAY_xSEC);
+//             Std_State->Caption = tmp_str;
+//             break;
+//        case S09_EMPTY_MLT:
+//             Std_State->Caption = "09. Empty MLT";
+//             break;
+//        case S10_WAIT_FOR_BOIL:
+//             Std_State->Caption = "10. Wait for Boil (M)";
+//             break;
+//        case S11_BOILING:
+//             sprintf(tmp_str,"11. Now Boiling (%d/%d min.)",std.timer5/60,sp.boil_time);
+//             Std_State->Caption = tmp_str;
+//             break;
+//        case S12_BOILING_FINISHED:
+//             if (std.boil_rest)
+//             {
+//                if (std.brest_tmr > TMR_BOIL_REST_5_MIN)
+//                     sprintf(tmp_str,"12. Boiling Finished, prepare Chiller (M)");
+//                else sprintf(tmp_str,"12. Boiling Finished, wait %d/%d min., prepare Chiller (M)",std.brest_tmr/60,TMR_BOIL_REST_5_MIN/60);
+//                Std_State->Caption = tmp_str;
+//             } // if
+//             else Std_State->Caption = "12. Boiling Finished, prepare Chiller (M)";
+//             break;
+//        case S13_MASH_PREHEAT_HLT:
+//             sprintf(tmp_str,"13. Mash Preheat HLT (%d/%2.0f min.)",ms[std.ms_idx].timer/60,ms[std.ms_idx].time/60.0);
+//             Std_State->Caption = tmp_str;
+//             break;
+        case S14_PUMP_PREFILL:
+             string = QString("14. Pump Pre-Fill / Priming (%1/%2 sec.)").arg(timer3).arg(TMR_PREFILL_PUMP);
+             std_text->setSubText("The pump needs to be primed for 1 minute, before being switch on");
+             break;
+        case S15_ADD_MALT_TO_MLT:
+             string = QString("15. Add Malt to MLT (M)");
+             std_text->setSubText("If malt is added, click \'Malt is Added\' on toolbar at top of screen");
+             break;
+//        case S16_CHILL_PUMP_FERMENTOR:
+//             Std_State->Caption = "16. Chill && Pump to Fermentation Bin (M)";
+//             break;
+//        case S17_FINISHED:
+//             Std_State->Caption = "17. Finished!";
+//             break;
+//        case S18_MASH_REST_5_MIN:
+//             sprintf(tmp_str,"18. Mash-Rest (%d/%d sec.)",std.mrest_tmr,TMR_MASH_REST_5_MIN);
+//             Std_State->Caption = tmp_str;
+//             break;
+//        case S19_RDY_TO_ADD_MALT:
+//             Std_State->Caption = "19. Ready to add Malt to MLT (M)";
+//             break;
+    } // switch
+    std_text->setText(string);
+} // MainEbrew::SetStateName()
 
 /*------------------------------------------------------------------
   Purpose  : This function is called whenever in the Menubar
@@ -369,6 +775,19 @@ void MainEbrew::MenuOptionsBrewDaySettings(void)
 } // MainEbrew::MenuOptionsBrewDaySettings()
 
 /*------------------------------------------------------------------
+  Purpose  : This function is called whenever in the Menubar
+             Options->System Settings is clicked.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::MenuOptionsSystemSettings(void)
+{
+    auto Dialog = new DialogOptionsSystemSettings(this);
+
+    Dialog->show();
+} // MainEbrew::MenuOptionsSystemSettings()
+
+/*------------------------------------------------------------------
   Purpose  : This function contains the State Transition Diagram (STD)
              for the ebrew program and is called every second.
              First: the new state is calculated based upon the conditions.
@@ -376,9 +795,9 @@ void MainEbrew::MenuOptionsBrewDaySettings(void)
              in 'kleppen'.
   Variables:
   ebrew_std: std state is updated
-  Returns  : -
+  Returns  : kleppen
   ------------------------------------------------------------------*/
-void MainEbrew::state_machine(void)
+uint16_t MainEbrew::state_machine(void)
 {
     //-------------------------------------------------------------------
     //           |----------------------------> Pump 2 for HLT heat-exchanger
@@ -435,7 +854,7 @@ void MainEbrew::state_machine(void)
                       /* 25 */ 0x0124, 0x0000, 0x0142, 0x0122, 0x010A, /* 29 */
                       /* 30 */ 0x0006, 0x0003, 0x0000}; /* 32 */
 
-    unsigned int  klepstand; // Help var. = klepstanden[std->ebrew_std]
+    uint16_t  klepstand; // Help var. = klepstanden[std->ebrew_std]
 
     switch (ebrew_std)
     {
@@ -448,13 +867,12 @@ void MainEbrew::state_machine(void)
             tset_mlt  = ms[ms_idx].temp;         // get temp. from mash-scheme
             tset_hlt  = tset_mlt + temp_offset0; // compensate for dough-in losses
             tset_boil = 0.0;                     // Setpoint Temp. for Boil-Kettle
-            boil_pid->setButtonState(false);     // Disable PID-Controller for Boil-Kettle
+            boil_pid->setButtonState(false);     // Disable PID-Controller button for Boil-Kettle
             if (hlt_pid->getButtonState())       // Is PowerButton pressed for HLT PID controller?
             {  // start with normal brewing states
                 ebrew_std = S01_WAIT_FOR_HLT_TEMP;
-                cip->hide(); // Hide CIP PowerButton
             } // if
-            else if (cip->getButtonState())
+            else if (toolStartCIP->isChecked())  // Is Start CIP checkbox checked at top toolbar?
             {  // Clean-in-Place program
                 ebrew_std = S20_CIP_INIT;
             } // else if
@@ -462,13 +880,19 @@ void MainEbrew::state_machine(void)
 
         //---------------------------------------------------------------------------
         // S01_WAIT_FOR_HLT_TEMP: Thlt < tset_HLT, continue to heat HLT
-        // - If Thlt > Tset_hlt, goto S14_PUMP_PREFILL
+        // If Thlt > Tset_hlt AND
+        //   - Malt First option is selected AND Malt has been added
+        //   - OR Malt First option is NOT selected
+        //  Then goto S14_PUMP_PREFILL
         //---------------------------------------------------------------------------
         case S01_WAIT_FOR_HLT_TEMP:
+            toolStartCIP->setEnabled(false);     // Hide CIP option at toolbar
+            toolStartAddMalt->setEnabled(true);  // Make visible
+            toolMaltAdded->setEnabled(true);     // Make visible
             tset_mlt  = ms[ms_idx].temp;         // get temp. from mash-scheme
             tset_hlt  = tset_mlt + temp_offset0; // compensate for dough-in losses
             tset_boil = 0.0;                     // Setpoint Temp. for Boil-Kettle
-            if ((thlt >= tset_hlt) && (!malt_first /*|| ui & UI_MALT_ADDED_TO_MLT*/))
+            if ((thlt >= tset_hlt) && (!malt_first || toolMaltAdded->isChecked()))
             {   // HLT TEMP is OK
                 Vhlt_old  = Vhlt; // remember old value
                 timer3    = 0;    // init. '1 minute' timer
@@ -542,8 +966,7 @@ void MainEbrew::state_machine(void)
         // - If user presses 'OK' in dialog screen, then goto S15_ADD_MALT_TO_MLT
         //---------------------------------------------------------------------------
         case S19_RDY_TO_ADD_MALT:
-            //if (ui & UI_ADDING_MALT_TO_MLT)
-            ebrew_std = S15_ADD_MALT_TO_MLT;
+            if (toolStartAddMalt->isChecked()) ebrew_std = S15_ADD_MALT_TO_MLT;
             break;
 
         //---------------------------------------------------------------------------
@@ -552,16 +975,16 @@ void MainEbrew::state_machine(void)
         // is done, then goto S04_MASH_TIMER_RUNNING.
         //---------------------------------------------------------------------------
         case S15_ADD_MALT_TO_MLT:
-            //if (ui & UI_MALT_ADDED_TO_MLT)
-        {  // malt is added to MLT, start mash timer
-            ms[ms_idx].timer = 0; // start the corresponding mash timer
-            if (mash_rest)
-            {    // Start with mash rest for 5 min. after malt is added
-                mrest_tmr = 0; // init mash rest timer
-                ebrew_std = S18_MASH_REST_5_MIN;
+            if (toolMaltAdded->isChecked())
+            {  // malt is added to MLT, start mash timer
+               ms[ms_idx].timer = 0; // start the corresponding mash timer
+               if (mash_rest)
+               {   // Start with mash rest for 5 min. after malt is added
+                   mrest_tmr = 0; // init mash rest timer
+                   ebrew_std = S18_MASH_REST_5_MIN;
+               } // if
+               else ebrew_std = S04_MASH_TIMER_RUNNING;
             } // if
-            else ebrew_std = S04_MASH_TIMER_RUNNING;
-        } // if
             break;
 
         //---------------------------------------------------------------------------
@@ -681,7 +1104,7 @@ void MainEbrew::state_machine(void)
                 } // if
                 else
                 {  // Init flowrate low struct with percentage
-                    //init_frl_struct(&frl_empty_mlt,vol->min_flowrate_mlt_perc);
+                    //init_frl_struct(&frl_empty_mlt,vol->min_flowrate_mlt_perc); TODO
                     timer1    = 0;             // reset timer1
                     ebrew_std = S09_EMPTY_MLT; // Finished with Sparging, empty MLT
                 } // else if
@@ -857,8 +1280,8 @@ void MainEbrew::state_machine(void)
             boil_pid->setButtonState(false); // Disable PID-Controller for Boil-Kettle
 //            if (ui & UI_CIP_BOIL_FILLED) // User indicated that Boil-Kettle is filled
 //                ebrew_std = S21_CIP_HEAT_UP;
-//            else if (!cip->getButtonState())
-//                ebrew_std = S00_INITIALISATION;
+              /*else*/ if (!toolStartCIP->isChecked())
+                  ebrew_std = S00_INITIALISATION;
             break;
 
         //---------------------------------------------------------------------------
@@ -915,122 +1338,5 @@ void MainEbrew::state_machine(void)
        if (klepstand & V1b) V1->setStatus(AUTO_ON);
        else                 V1->setStatus(AUTO_OFF);
     } // if
+    return klepstand;
 } // MainEbrew::state_machine()
-
-//------------------------------------------------------------------------------------------
-PidCtrl::PidCtrl(qreal Kc, qreal Ti, qreal Td, qreal Ts)
-{
-    pid_init(Kc, Ti, Td, Ts); // init. pid-controller
-    pid_enable(false);        // disable pid-controller at start-up
-} // PidCtrl::PidCtrl()
-
-/*------------------------------------------------------------------
-  Purpose  : This function initialises the PID controller.
-  Variables: Kc: Proportional value set by user [%/C]
-             Ti: integral time-constant [sec.]
-             Td: differential time-constant [sec.]
-             Ts: sample-time period [sec.]
-
-                   Kc.Ts
-             ki =  -----   (for I-term)
-                    Ti
-
-                       Td
-             kd = Kc . --  (for D-term)
-                       Ts
-
-  Returns  : No values are returned
-  ------------------------------------------------------------------*/
-void PidCtrl::pid_init(qreal Kc, qreal Ti, qreal Td, qreal Ts)
-{
-    kp = Kc;
-    if (Ti < 1e-3)
-         ki = 0.0;
-    else ki = Kc * Ts / Ti;
-    if (Ts < 1e-3)
-         kd = 0.0;
-    else kd = Kc * Td / Ts;
-} // PidCtrl::pid_init()
-
-/*------------------------------------------------------------------
-  Purpose  : This function implements the Takahashi Type C PID
-             controller: the P and D term are no longer dependent
-             on the set-point, only on the setpoint (which is tset).
-             This function should be called once every TS seconds.
-  Variables:
-        xk : The input variable x[k] (= measured temperature)
-        yk : The output variable y[k] (= percentage for power electronics)
-      tset : The setpoint value for the temperature
-  Returns  : y[k], pid-controller output
-  ------------------------------------------------------------------*/
-qreal PidCtrl::pid_control(qreal xk, qreal tset)
-{
-    if (pid_on)
-    {
-       //--------------------------------------------------------------------------------
-       // Takahashi Type C PID controller:
-       //
-       //                                    Kc.Ts        Kc.Td
-       // y[k] = y[k-1] + Kc.(x[k-1]-x[k]) + -----.e[k] + -----.(2.x[k-1]-x[k]-x[k-2])
-       //                                      Ti           Ts
-       //
-       //--------------------------------------------------------------------------------
-       pp = kp * (xk_1 - xk);              // Kc.(x[k-1]-x[k])
-       pi = ki * (tset - xk);              // (Kc.Ts/Ti).e[k]
-       pd = kd * (2.0 * xk_1 - xk - xk_2); // (Kc.Td/Ts).(2.x[k-1]-x[k]-x[k-2])
-       yk  += pp + pi + pd;                // add y[k-1] + P, I & D actions to y[k]
-    } // if
-    else { yk = pp = pi = pd = 0.0; }
-
-    xk_2  = xk_1; // x[k-2] = x[k-1]
-    xk_1  = xk;   // x[k-1] = x[k]
-
-    // limit y[k] to 0 % and 100 %
-    if (yk > 100.0)
-    {
-       yk = 100.0;
-    }
-    else if (yk < 0.0)
-    {
-       yk = 0.0;
-    } // else
-    return yk;
-} // PidCtrl::pid_control()
-
-void PidCtrl::pid_enable(bool enable)
-{
-    pid_on = enable;
-} // PidCtrl::pid_run()
-
-//------------------------------------------------------------------------------------------
-MA::MA(uint8_t N, qreal init_val)
-{
-    ma_init(N, init_val); // init. moving-average filter
-} // PidCtrl::PidCtrl()
-
-void MA::ma_init(uint8_t order, qreal init_val)
-{
-    if (order < MA_MAX_N)
-         N = order;    // order of MA filter
-    else N = MA_MAX_N; // limit max. order
-    index = 0;         // index in cyclic array
-    sum   = init_val;  // running sum
-    for (int i = 0; i < N; i++)
-    {
-       T[i] = init_val / N; // set cyclic array to init. value
-    } // for
-} // MA::ma_init()
-
-qreal MA::moving_average(qreal x)
-{
-    sum -= T[index];  // subtract value to overwrite from running sum
-    T[index] = x / N; // store new value in array
-    sum += T[index];  // update running sum with new value
-    if (++index >= N) // update index in cyclic array
-    {
-       index = 0;     // restore to 1st position
-    } // if
-    return sum;       // return value = filter output
-} // MA::moving_average()
-
-//------------------------------------------------------------------------------------------
