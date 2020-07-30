@@ -89,4 +89,5 @@ void DialogEditMashScheme::on_pushButton_3_clicked()
     out << ui->plainTextEdit->toPlainText();
     file.close();
     pEbrew->readMashSchemeFile(NO_INIT_TIMERS); // Read mash scheme, but don't init the mash timers
+    pEbrew->initBrewDaySettings();              // Update mash, sparge and boil-settings
 } // DialogEditMashScheme::on_pushButton_3_clicked()

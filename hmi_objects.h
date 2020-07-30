@@ -57,16 +57,18 @@
 #include <QMenu>
 #include <QGraphicsSimpleTextItem>
 #include <QPushButton>
+#include "controlobjects.h"
 
 #define HORIZONTAL (0) /* Valve horizontal direction */
 #define VERTICAL   (1) /* Valve vertical direction */
 #define OUT_RIGHT  (0) /* Pump output on right */
-#define OUT_LEFT   (1) /* Pump output on left */
+#define OUT_LEFT   (1) /* TODO Pump output on left */
 
-#define METER_HFLOW (0) /* Meter-type: flow-meter horizontal lay-out */
-#define METER_HTEMP (1) /* Meter-type: temperature-meter horizontal lay-out */
-#define METER_VFLOW (2) /* Meter-type: flow-meter vertical lay-out */
-#define METER_VTEMP (3) /* Meter-type: temperature-meter vertical lay-out */
+#define METER_HFLOW     (0) /* Meter-type: flow-meter horizontal lay-out */
+#define METER_HTEMP     (1) /* Meter-type: temperature-meter horizontal lay-out */
+#define METER_VFLOW     (2) /* Meter-type: flow-meter vertical lay-out */
+#define METER_VTEMP     (3) /* Meter-type: temperature-meter vertical lay-out */
+#define METER_FLOW_MA_N (5) /* Flow-meter moving-average filter order */
 
 #define RPIPE      (10) /* Radius of pipes */
 #define RPUMP      (35) /* Radius of Pump */
@@ -208,11 +210,15 @@ class Meter : public QGraphicsSimpleTextItem
 public:
     Meter(QPointF point, uint8_t type, QString name);
     void    setName(QString name);
-    void    setValue(qreal value);
-    void    setValue(qreal value,qreal dvalue);
+    void    setTempValue(qreal value);
+    void    setFlowValue(qreal value,qreal temp);
+    void    setFlowParameters(uint16_t msec, bool temp_corr, qreal flow_err);
+    qreal   getFlowRate(void); // return the flow-rate in L/min.
     void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     void    setError(bool err);
     QPointF get_coordinate(uint8_t side);
+    void    initFlowRateDetector(uint8_t perc);
+    bool    isFlowRateLow(void);
     QRectF  boundary; // boundary of object
 
 protected:
@@ -220,9 +226,23 @@ protected:
     QPointF left,top,right,bottom;         // coordinates of various points
     QString meterName;
     qreal   meterValue;
+    qreal   meterValueOld;
     qreal   meterdValue;
     uint8_t meterType;
     bool    meterError;
+    // Variables for flowrate calculation
+    qreal   Ts;              // Time in msec. between two setValue() calls
+    bool    tempCorrection;  // true = apply temperature volume correction
+    qreal   flowErr;         // error correction percentage for flowmeter
+    qreal   flowRate;        // Flow-rate in L/min.
+    MA      *pma;            // pointer to moving-average filter for flowrate
+
+    // Variables for flowrate-low detector
+    uint8_t frl_std;         // STD state number
+    uint8_t frl_tmr;         // Timer value
+    double  frl_det_lim;     // Lower-limit for flowrate
+    double  frl_min_det_lim; // Minimum flowrate: sensor-check
+    uint8_t frl_perc;        // Percentage of max flowrate
 };
 //------------------------------------------------------------------------------------------
 

@@ -79,6 +79,8 @@ int main(int argc, char **argv)
     // - Create the menu-bar with all signals and slots
     // - Init. the Registry or create a default one if not found
     // - Read the Mash Scheme file
+    // - Init. Brew-day settings
+    // - Init. slope-limiters
     //------------------------------------------------------
     auto Ebrew = new MainEbrew;   // Brew controller for HERMS system (QMainWindow)
 
@@ -99,10 +101,10 @@ int main(int argc, char **argv)
 
     Ebrew->connect(mainTimer,SIGNAL(timeout()),scheduler,SLOT(scheduler_isr()));  // runs at 100 msec.
     Ebrew->connect(mainTimer,SIGNAL(timeout()),scheduler,SLOT(dispatch_tasks())); // dispatcher also runs at 100 msec.
-    scheduler->add_task("Alive_led" ,  0, 500,Ebrew,SLOT(task_alive_led()));      // TASK 0
-    scheduler->add_task("read_temps",100,2000,Ebrew,SLOT(task_read_temps()));     // TASK 1
-    scheduler->add_task("update_std",400,1000,Ebrew,SLOT(task_update_std()));     // TASK 3
-    scheduler->add_task("read_flows",600,2000,Ebrew,SLOT(task_read_flows()));     // TASK 5
+    scheduler->add_task("Alive_led" ,  0,TS_LED_MSEC  ,Ebrew,SLOT(task_alive_led()));      // TASK 0
+    scheduler->add_task("read_temps",100,TS_TEMPS_MSEC,Ebrew,SLOT(task_read_temps()));     // TASK 1
+    scheduler->add_task("update_std",400,TS_STD_MSEC  ,Ebrew,SLOT(task_update_std()));     // TASK 3
+    scheduler->add_task("read_flows",600,TS_FLOWS_MSEC,Ebrew,SLOT(task_read_flows()));     // TASK 5
 
     //------------------------------------------------------
     // Create the HMI screen and connect it to Ebrew
@@ -117,7 +119,8 @@ int main(int argc, char **argv)
     view.fitInView(scene.sceneRect().adjusted(-50, -50, 50, 50), Qt::KeepAspectRatio);
     frame->layout()->addWidget(&view);
     Ebrew->setFixedSize(1100,900);
-    Ebrew->showNormal();
+    //Ebrew->showNormal();
+    Ebrew->showMaximized();
     scheduler->start();  // start scheduler if everything is initialized
 
     return app.exec();

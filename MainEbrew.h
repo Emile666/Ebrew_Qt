@@ -62,6 +62,17 @@
 #define MASHFILE "maisch.sch"
 #define REGKEY   "HKEY_CURRENT_USER\\Software\\ebrew\\V3"
 
+//----------------------------------
+// Defines for Scheduler tasks
+//----------------------------------
+#define TS_FLOWS_MSEC (2000)
+#define TS_TEMPS_MSEC (2000)
+#define TS_STD_MSEC   (1000)
+#define TS_LED_MSEC    (500)
+
+//----------------------------------
+// Defines for Brew-day Settings
+//----------------------------------
 #define MAX_MS      (10) /* Max. number of mash temp-time pairs */
 #define MAX_SP      (10) /* Max. number of batch sparge sessions */
 #define NOT_STARTED (-1) /* Timer not started */
@@ -123,12 +134,6 @@
 #define TMR_DELAY_xSEC         (10)
 #define TMR_MASH_REST_5_MIN   (300)
 #define TMR_BOIL_REST_5_MIN   (300)
-#define TMR_CIP_CIRC_TIME     (300)
-#define TMR_CIP_REST_TIME     (300)
-#define TMR_CIP_CLEAN_OUTPUTS  (60)
-#define TMR_CIP_CLEAN_INPUTS   (60)
-
-#define CIP_TEMP_SETPOINT     (65.0)
 
 //--------------------------------------------------------------------------
 // #defines for the valves. Each valve can be set manually or automatically
@@ -186,7 +191,7 @@ public:
     Valve       *V7;       // Pointer to valve V7
     Pump        *P1;       // Pointer to pump P1, main brew-pump
     Pump        *P2;       // Pointer to pump P2, pump for HLT heat-exchanger
-    Meter       *F1;       // Flowmeter 1: between HLT and MLT
+    Meter       *F1;       // Flowmeter 1: between HLT-output and pump-input
     Meter       *F2;       // Flowmeter 2: Boil-kettle input
     Meter       *F3;       // Flowmeter 3: CFC-output
     Meter       *F4;       // Flowmeter 4: at MLT top return-manifold
@@ -200,11 +205,13 @@ public:
 
     uint16_t state_machine(void);   // Ebrew State Transition Diagram
     void     readMashSchemeFile(bool initTimers);
-    void     setKettleNames(void);
+    void     setKettleNames(void);  // Set title of kettles with volumes from Registry
     void     createRegistry(void);  // Create default Registry entries for Ebrew
     void     createStatusBar(void); // Creates a status bar at the bottom of the screen
     void     createMenuBar(void);   // Creates a menu bar at the top of the screen
     void     setStateName(void);    // Update state nr and description on screen
+    void     initBrewDaySettings(void); // Update brew-day settings from Registry values
+    void     msgBox(QString title, QString text, QCheckBox *cb);
 
     /* Switches and Fixes for variables */
     bool  tset_hlt_sw  = false;  // Switch value for tset_hlt
@@ -278,21 +285,7 @@ protected:
     qreal Flow_mlt_boil;      // Flow2
     qreal Flow_cfc_out;       // Flow3
     qreal Flow4;              // Flow4: Future Use
-    qreal Flow_hlt_mlt_old;   // previous value of Flow1
-    qreal Flow_mlt_boil_old;  // previous value of Flow2
-    qreal Flow_cfc_out_old;   // previous value of Flow3
-    qreal Flow4_old;          // previous value of Flow4
-    qreal Flow_rate_hlt_mlt;  // Flow1 flow-rate
-    qreal Flow_rate_mlt_boil; // Flow2 flow-rate
-    qreal Flow_rate_cfc_out;  // Flow3 flow-rate
-    qreal Flow_rate4;         // Flow4 flow-rate
     qreal Flow_cfc_out_reset_value;
-    int   min_flowrate_mlt_perc;
-    int   min_flowrate_boil_perc;
-    int   flow1_err;          // Flowsensor 1 error compensation (-5% ... +5%)
-    int   flow2_err;          // Flowsensor 2 error compensation (-5% ... +5%)
-    int   flow3_err;          // Flowsensor 3 error compensation (-5% ... +5%)
-    int   flow4_err;          // Flowsensor 4 error compensation (-5% ... +5%)
     bool  flow1_running;      // True = flowsensor 1 should see a flow
     bool  flow2_running;      // True = flowsensor 2 should see a flow
     bool  flow3_running;      // True = flowsensor 3 should see a flow
@@ -317,17 +310,9 @@ protected:
     int   malt_first = 0;     // 1 = malt is added to MLT first, then water
 
     /* Mash Settings */
-    qreal temp_offset0;    // Offset to add to Tset to compensate for dough-in losses
-    qreal temp_offset;     // Offset to add to Tset to compensate for HLT-MLT losses
-    qreal temp_offset2;    // Offset to add to Tmlt for early start of mash timers
-    int   ph_time;         // Copy of Registry var. PREHEAT_TIME
-    int   use_dpht;        // 1= use Dynamic preheat timing instead of fixed timing
-    int   hlt_bcap;        // HLT Burner Capacity in seconds per °C
-    int   leave_pumps_on;  // After MLT Temp and before malt is added.
+    int   ph_time;         // ph_time in seconds, PREHEAT_TIME in minutes
 
     /* Sparge Settings */
-    int   sp_batches;      // Total number of sparge batches
-    int   sp_time;         // Time between two sparge batches in minutes
     int   mash_vol;        // Total mashing volume in litres (read from maisch.sch)
     int   sp_vol;          // Total sparge volume in litres (read from maisch.sch)
     int   sp_time_ticks;   // sp_time in TS ticks
@@ -336,12 +321,7 @@ protected:
     qreal sp_vol_batch0;   // Sparge volume of first batch
 
     /* Boil Settings */
-    int   boil_min_temp;   // Min. Temp. for Boil-Kettle to enable PID controller
     int   boil_time;       // Total boiling time in minutes (read from maisch.sch)
-    int   sp_preboil;      // Setpoint Preboil Temperature
-    qreal boil_detect;     // Boiling-Detection minimum Temperature (Celsius)
-    int   sp_boil;         // Setpoint Boil Temperature
-    int   limit_boil;      // Limit output during boil
 
     /* Time-stamps for Sparge, Boil and Chilling*/
     char  mlt2boil[MAX_SP][40]; // MAX_SP strings for time-stamp moment of MLT -> BOIL
@@ -372,6 +352,9 @@ private:
     QCheckBox *toolMaltAdded;
     QCheckBox *toolBoilStarted;
     QCheckBox *toolStartChilling;
+    QCheckBox *toolCipInitDone;
+    QCheckBox *toolCipDrainBK;
+    QCheckBox *toolCipHltFilled;
 }; // MainEbrew()
 
 #endif // MAIN_EBREW_H

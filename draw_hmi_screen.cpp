@@ -109,8 +109,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     scene->addItem(elbow2);  // elbow pipe below valve V2
     point = elbow2->get_coordinate(COORD_RIGHT) + QPoint(12,-25);
     Meter *flow1 = new Meter(point,METER_HFLOW,"flow1");
-    flow1->setError(false);  // Init flowmeter 1
-    flow1->setValue(0.0);
+    flow1->setFlowParameters(TS_FLOWS_MSEC,p->RegEbrew->value("FLOW_TEMP_CORR").toInt()==1,p->RegEbrew->value("FLOW1_ERR").toDouble());
     p->F1 = flow1;           // Add flow1 reference to MainEbrew
     point = flow1->get_coordinate(COORD_RIGHT) + QPoint(50,1);
     Pipe *Tpipe1 = new Pipe(point,PIPE3_NO_TOP,50,COLOR_IN0); // T-pipe right of flowmeter 1
@@ -175,8 +174,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     scene->addItem(pipe7);   // horizontal pipe between V6 and V7
     point = pipe7->get_coordinate(COORD_LEFT) + QPoint(-34,-25);
     Meter *flow2 = new Meter(point,METER_HFLOW,"flow2");
-    flow2->setError(false);
-    flow2->setValue(0.0);
+    flow2->setFlowParameters(TS_FLOWS_MSEC,p->RegEbrew->value("FLOW_TEMP_CORR").toInt()==1,p->RegEbrew->value("FLOW2_ERR").toDouble());
     p->F2 = flow2;           // Add flow2 reference to MainEbrew
     point = flow2->get_coordinate(COORD_LEFT) + QPoint(-50,0);
     Pipe *Tpipe4 = new Pipe(point,PIPE3_NO_TOP,50,COLOR_OUT0);
@@ -196,8 +194,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     scene->addItem(pipe8);   // vertical pipe between V6 and CFC
     point = pipe8->get_coordinate(COORD_BOTTOM) + QPoint(-11,-1);
     Meter *flow3 = new Meter(point,METER_VFLOW,"flow3");
-    flow3->setError(false);
-    flow3->setValue(8.33333,5.1234);
+    flow3->setFlowParameters(TS_FLOWS_MSEC,p->RegEbrew->value("FLOW_TEMP_CORR").toInt()==1,p->RegEbrew->value("FLOW3_ERR").toDouble());
     point = flow3->get_coordinate(COORD_BOTTOM) + QPoint(0,48);
     Pipe *elbow5 = new Pipe(point,PIPE2_TOP_RIGHT,50,COLOR_OUT0);
     scene->addItem(elbow5);  // Exit pipe from flow3 to CFC
@@ -264,8 +261,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     // Now calculate flowmeter 4 position, but don't add it yet
     point = elbow8->get_coordinate(COORD_TOP) + QPoint(-11,-47);
     Meter *flow4 = new Meter(point,METER_VFLOW,"flow4");
-    flow4->setError(false);
-    flow4->setValue(8.33333,5.1234);
+    flow4->setFlowParameters(TS_FLOWS_MSEC,p->RegEbrew->value("FLOW_TEMP_CORR").toInt()==1,p->RegEbrew->value("FLOW4_ERR").toDouble());
     // Calculate size for top-left elbow, so that a separate vertical pipe is not needed
     point.setX(elbow8->x()); // set x-coordinate to lower elbow pipe
     point.setY(mlt->get_coordinate(COORD_LEFT_TOP_PIPE).y()); // get y-coordinate of top-left pipe for return-manifold in top

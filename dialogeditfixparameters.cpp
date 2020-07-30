@@ -8,6 +8,28 @@ DialogEditFixParameters::DialogEditFixParameters(QWidget *parent) :
     pEbrew = dynamic_cast<MainEbrew *>(parent);
 
     ui->setupUi(this);
+    ui->cbHltSp->setChecked(pEbrew->tset_hlt_sw);
+    ui->sbHltSp->setValue(pEbrew->tset_hlt_fx);
+    ui->cbHltTemp->setChecked(pEbrew->thlt_sw);
+    ui->sbHltTemp->setValue(pEbrew->thlt_fx);
+    ui->cbHltVol->setChecked(pEbrew->vhlt_sw);
+    ui->sbHltVol->setValue(pEbrew->vhlt_fx);
+    ui->cbHltPid->setChecked(pEbrew->gamma_hlt_sw);
+    ui->sbHltPid->setValue(pEbrew->gamma_hlt_fx);
+
+    ui->cbMltTemp->setChecked(pEbrew->tmlt_sw);
+    ui->sbMltTemp->setValue(pEbrew->tmlt_fx);
+    ui->cbMltVol->setChecked(pEbrew->vmlt_sw);
+    ui->sbMltVol->setValue(pEbrew->vmlt_fx);
+
+    ui->cbBkSp->setChecked(pEbrew->tset_boil_sw);
+    ui->sbBkSp->setValue(pEbrew->tset_boil_fx);
+    ui->cbBkTemp->setChecked(pEbrew->tboil_sw);
+    ui->sbBkTemp->setValue(pEbrew->tboil_fx);
+    ui->cbBkVol->setChecked(pEbrew->vboil_sw);
+    ui->sbBkVol->setValue(pEbrew->vboil_fx);
+    ui->cbBkPid->setChecked(pEbrew->gamma_boil_sw);
+    ui->sbBkPid->setValue(pEbrew->gamma_boil_fx);
 }
 
 DialogEditFixParameters::~DialogEditFixParameters()

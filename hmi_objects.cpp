@@ -589,11 +589,15 @@ Meter::Meter(QPointF point, uint8_t type, QString name)
     setFont(font);
     setPos(point);
     setName(name);
-    setValue(0.0,0.0); // Init. value and derived-value
-    setError(false);
+    setTempValue(0.0); // Init. meterValue
+    setError(false);   // No error => green colour
     meterType = type;
     if ((meterType == METER_HFLOW) || (meterType == METER_VFLOW))
-         setText("F");
+    {
+        MA *p = new MA(METER_FLOW_MA_N,0.0);
+        pma   = p; // save pointer
+        setText("F");
+    } // if
     else setText("T");
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
     //setFlag(QGraphicsItem::ItemIsSelectable,true);
@@ -606,16 +610,39 @@ Meter::Meter(QPointF point, uint8_t type, QString name)
     bottom   = QPointF(+11,48);
 } // Meter::Meter()
 
-void Meter::setValue(qreal value)
+void Meter::setTempValue(qreal value)
 {
     meterValue = value;
-}
+} // Meter::setValue()
 
-void Meter::setValue(qreal value,qreal dvalue)
+void Meter::setFlowParameters(uint16_t msec, bool temp_corr, qreal flow_err)
+{
+    Ts             = msec;
+    if (Ts < 100) Ts = 100; // min. of 100 msec.
+    tempCorrection = temp_corr;
+    flowErr        = flow_err;
+} // Meter::setFlowParameters()
+
+void Meter::setFlowValue(qreal value,qreal temp)
 {
     meterValue  = value;
-    meterdValue = dvalue;
-}
+    if ((meterType == METER_HFLOW) || (meterType == METER_VFLOW))
+    {
+        if (tempCorrection)
+            meterValue /= (1.0 + 0.00021 * (temp - 20.0));
+        // Apply Calibration error correction
+        meterValue *= 1.0 + 0.01 * flowErr;
+        // Calculate Flow-rate in L per minute: Ts [msec.]
+        flowRate = (60000.0 / Ts) * (meterValue - meterValueOld);
+        meterValueOld = meterValue;
+        flowRate = pma->moving_average(flowRate);
+    } // if
+} // Meter::setValue()
+
+qreal Meter::getFlowRate(void)
+{
+    return flowRate;
+} // Meter::getFlowRate()
 
 void Meter::setName(QString name)
 {
@@ -684,6 +711,80 @@ void Meter::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     else painter->drawText(-37,+2,meterName);
     QGraphicsSimpleTextItem::paint(painter,option,widget);
 } // Meter::paint()
+
+/*------------------------------------------------------------------
+  Purpose  : This function initialises the flowrate-low detector.
+             It needs to be called before calling the isFlowRateLow()
+             function.
+  Variables: perc: the percentage of the nominal detected flowrate that
+                   is used for detection of low flowrate
+  Returns  : -
+  ------------------------------------------------------------------*/
+void Meter::initFlowRateDetector(uint8_t perc)
+{
+    frl_std         = 0;    // set state nr to 0
+    frl_tmr         = 0;    // set timer to 0
+    frl_min_det_lim = 1.5;  // Flow-sensor should at least give 1.5 L/min.
+    frl_det_lim     = 0.0;  // set detection limit to 0
+    frl_perc        = perc; // init. percentage value
+} // Meter::initFlowRateDetector()
+
+/*------------------------------------------------------------------
+  Purpose  : This function is used to detect a low flowrate. First,
+             the nominal flowrate is determined. If the flowrate drops
+             below a percentage of this nominal flowrate, the flowrate
+             is considered low and true is returned.
+  Variables:
+   flowRate: the flowrate in L/min. that is used for detection
+  Returns  : true: flowrate is low, false: flow-rate is still high
+  ------------------------------------------------------------------*/
+bool Meter::isFlowRateLow(void)
+{
+    bool retv = false; // return-value
+
+    switch (frl_std)
+    {
+        case 0 : // Give flow-rate time to increase because of the MA-filter
+            // Use 30 seconds which is enough to stabilize the MA-filter
+            if (++frl_tmr > 30)
+            {
+                frl_det_lim = 0.0; // reset detection-limit
+                frl_tmr     = 0;   // reset timer
+                frl_std     = 1;   // goto next state
+            } // if
+            break;
+        case 1 : // Calculate the average flow-rate for the next 30 seconds
+            // Use perc of average flow-rate as detection-limit
+            if (++frl_tmr > 30)
+            {
+                frl_det_lim /= 30.0; // calculate average flow-rate
+                frl_std      = 2;    // goto next state
+            } // if
+            else frl_det_lim += flowRate; // calculate average flowrate
+            break;
+        case 2:  // Now check if average flow-rate is above a minimum. If not, repeat calculations
+            if (frl_det_lim > frl_min_det_lim)
+            {    // average flow-rate > minimum flow-rate?
+                frl_det_lim *= frl_perc; // Percentage of average flowrate
+                frl_det_lim *= 0.01;     // Divide by 100%
+                frl_std = 3;
+            } // if
+            else
+            {
+                frl_tmr = 0; // reset timer
+                frl_std = 0; // repeat measurements
+            } // else
+            break;
+        case 3:  // Now check if flow-rate decreases
+            if (flowRate < frl_det_lim) // flow-rate < percentage of average flow-rate?
+                retv = true;
+            break;
+        default: frl_std = 0;
+                 frl_tmr = 0;
+                 break;
+        } // switch
+    return retv;
+} // Meter::isFlowRateLow()
 
 //------------------------------------------------------------------------------------------
 Base_Valve_Pump::Base_Valve_Pump(QPointF point, QString name)
