@@ -1,4 +1,4 @@
-QT += widgets
+QT += widgets serialport
 
 CONFIG += static
 
@@ -11,6 +11,8 @@ HEADERS = hmi_objects.h \
     dialogoptionsmeasurements.h \
     dialogoptionspidsettings.h \
     dialogoptionssystemsettings.h \
+    dialogviewprogress.h \
+    dialogviewtasklist.h \
     draw_hmi_screen.h \
     scheduler.h
 
@@ -23,6 +25,8 @@ SOURCES = main.cpp hmi_objects.cpp \
     dialogoptionsmeasurements.cpp \
     dialogoptionspidsettings.cpp \
     dialogoptionssystemsettings.cpp \
+    dialogviewprogress.cpp \
+    dialogviewtasklist.cpp \
     draw_hmi_screen.cpp \
     scheduler.cpp
 
@@ -40,4 +44,6 @@ FORMS += \
     dialogeditmashscheme.ui \
     dialogoptionsmeasurements.ui \
     dialogoptionspidsettings.ui \
-    dialogoptionssystemsettings.ui
+    dialogoptionssystemsettings.ui \
+    dialogviewprogress.ui \
+    dialogviewtasklist.ui

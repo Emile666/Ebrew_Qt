@@ -92,9 +92,9 @@
 #define PIPE2_BOTTOM_TOP_NO_ARROW (13)
 
 // These are the possible tank options
-#define TANK_HEAT_EXCHANGER   (1)
+#define TANK_HEAT_EXCHANGER   (1) /* Tank contains heat-exchanger with pipes on the right */
 #define TANK_MANIFOLD_BOTTOM  (2) /* False bottom connecting to TANK_EXIT_BOTTOM */
-#define TANK_MANIFOLD_TOP     (4) /* Return manifold at top of tank */
+#define TANK_MANIFOLD_TOP     (4) /* Return manifold at top-left of tank */
 #define TANK_RETURN_BOTTOM    (8) /* Return pipe at bottom of tank */
 #define TANK_EXIT_BOTTOM     (16) /* One pipe output at tank bottom */
 
@@ -125,6 +125,8 @@
 #define COLOR_IN1  QColor(102,255,255) /* Input pipe color when flow */
 
 //------------------------------------------------------------------------------------------
+// Pushbutton with a green/red LED
+//------------------------------------------------------------------------------------------
 class PowerButton : public QPushButton
 {
     Q_OBJECT
@@ -143,6 +145,8 @@ protected:
     QIcon   icon_on;
 }; // class Powerbutton
 
+//------------------------------------------------------------------------------------------
+// Tank object for HLT, MLT and Boil-kettle
 //------------------------------------------------------------------------------------------
 class Tank : public QGraphicsPolygonItem
 {
@@ -169,8 +173,10 @@ protected:
     QPoint    bottom_pipe2;  /* Coordinate of bottom return pipe at bottom of tank */
     QPoint    right_pipe1;   /* Coordinate of top-right pipe for heat-exchanger in tank */
     QPoint    right_pipe2;   /* Coordinate of bottom-right pipe for heat-exchanger in tank */
-};
+}; // class Tank
 
+//------------------------------------------------------------------------------------------
+// Pipe object
 //------------------------------------------------------------------------------------------
 class Pipe : public QGraphicsPolygonItem
 {
@@ -187,8 +193,10 @@ protected:
     QPolygonF pipePolygon; /* Contains polygon for drawing the pipe */
     QPointF   left,top,right,bottom; // coordinates of various points
     QColor    pipeColor;
-};
+}; // class Pipe
 
+//------------------------------------------------------------------------------------------
+// Text-display object for STD with sub-text
 //------------------------------------------------------------------------------------------
 class Display : public QGraphicsSimpleTextItem
 {
@@ -202,8 +210,10 @@ protected:
     QString subText;
     int     width;
     int     height;
-};
+}; // Class Display
 
+//------------------------------------------------------------------------------------------
+// Meter object for Flow-meter and Temp-meter
 //------------------------------------------------------------------------------------------
 class Meter : public QGraphicsSimpleTextItem
 {
@@ -211,7 +221,7 @@ public:
     Meter(QPointF point, uint8_t type, QString name);
     void    setName(QString name);
     void    setTempValue(qreal value);
-    void    setFlowValue(qreal value,qreal temp);
+    void    setFlowValue(qreal value,qreal temp); /* temp. is needed for temp. correction */
     void    setFlowParameters(uint16_t msec, bool temp_corr, qreal flow_err);
     qreal   getFlowRate(void); // return the flow-rate in L/min.
     void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
@@ -223,13 +233,12 @@ public:
 
 protected:
     QRectF boundingRect() const override { return boundary; }
-    QPointF left,top,right,bottom;         // coordinates of various points
-    QString meterName;
-    qreal   meterValue;
-    qreal   meterValueOld;
-    qreal   meterdValue;
-    uint8_t meterType;
-    bool    meterError;
+    QPointF left,top,right,bottom; // coordinates of various points
+    QString meterName;       // Name of meter, e.g. Flow1
+    qreal   meterValue;      // Actual meter value
+    qreal   meterValueOld;   // Previous meter value
+    uint8_t meterType;       // Flow or Temp. meter
+    bool    meterError;      // true = error (painted red)
     // Variables for flowrate calculation
     qreal   Ts;              // Time in msec. between two setValue() calls
     bool    tempCorrection;  // true = apply temperature volume correction
@@ -243,14 +252,14 @@ protected:
     double  frl_det_lim;     // Lower-limit for flowrate
     double  frl_min_det_lim; // Minimum flowrate: sensor-check
     uint8_t frl_perc;        // Percentage of max flowrate
-};
+}; // Class Meter
+
 //------------------------------------------------------------------------------------------
-
-
-// Base object for Valve and Pump objects
+// Base object for Valves and Pumps
+//------------------------------------------------------------------------------------------
 class Base_Valve_Pump : public QGraphicsPolygonItem
 {
-
+//    Q_OBJECT
 public:
     Base_Valve_Pump(QPointF point, QString name);
     void    setColor(QColor color);
@@ -259,8 +268,14 @@ public:
     uint8_t getStatus(void);
     QPointF get_coordinate(uint8_t side);
     bool    inManualMode(void);
+    void    setActuator(uint16_t& actionBits, uint16_t whichBit);
 
     QRectF  boundary; // boundary of object
+
+//public slots:
+//    void slotManualOff(void);
+//    void slotManualOn(void);
+//    void slotAuto(void);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
@@ -273,17 +288,15 @@ protected:
     QPointF   left,top,right,bottom;         // coordinates of various points
 
 private:
-    void      slotAuto(void);
-    void      slotManualOff(void);
-    void      slotManualOn(void);
     QAction   *setManualOffAction;
     QAction   *setManualOnAction;
     QAction   *setAutoAction;
     QMenu     *contextMenu;
-};
-//------------------------------------------------------------------------------------------
+}; // class Base_Valve_Pump
 
+//------------------------------------------------------------------------------------------
 // Valve object, derived from Base_Valve_Pump
+//------------------------------------------------------------------------------------------
 class Valve : public Base_Valve_Pump
 {
 public:
@@ -295,10 +308,11 @@ protected:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override; // overriding paint()
 
 private:
-};
-//------------------------------------------------------------------------------------------
+}; // class Valve
 
+//------------------------------------------------------------------------------------------
 // Pump object, derived from Base_Valve_Pump
+//------------------------------------------------------------------------------------------
 class Pump : public Base_Valve_Pump
 {
 public:
@@ -310,6 +324,6 @@ protected:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override; // overriding paint()
 
 private:
-};
+}; // class Pump
 
 #endif // HMI_OBJECTS_H

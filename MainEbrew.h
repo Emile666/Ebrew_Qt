@@ -55,20 +55,38 @@
 #include <QSettings>
 #include <QCheckBox>
 #include <QDateTime>
+#include <QSerialPort>
+#include <QSerialPortInfo>
+#include <QFile>
+
 #include "hmi_objects.h"
 #include "controlobjects.h"
+#include "scheduler.h"
 
-#define LOGFILE  "ebrewlog.txt"
-#define MASHFILE "maisch.sch"
-#define REGKEY   "HKEY_CURRENT_USER\\Software\\ebrew\\V3"
+#define COMMDBGFILE "com_port_dbg.txt"
+#define LOGFILE     "ebrewlog.txt"
+#define MASHFILE    "maisch.sch"
+#define REGKEY      "HKEY_CURRENT_USER\\Software\\ebrew\\V3"
+#define EBREW_HW_ID "E-Brew"
+
+//-----------------------------------------------------------
+// Defines for COM Port Communication.
+// The longest task on ebrew HW is the one-wire task,
+// this task lasts max. 22 msec.
+// Set WAIT_READ_TIMEOUT > 22 msec.
+//-----------------------------------------------------------
+#define MAX_READ_RETRIES       (2)
+#define NORMAL_READ_TIMEOUT   (60)
+#define LONG_READ_TIMEOUT    (115)
 
 //----------------------------------
 // Defines for Scheduler tasks
 //----------------------------------
-#define TS_FLOWS_MSEC (2000)
-#define TS_TEMPS_MSEC (2000)
-#define TS_STD_MSEC   (1000)
-#define TS_LED_MSEC    (500)
+#define TS_FLOWS_MSEC (2000) /* Read flowsensors every 2 sec. */
+#define TS_TEMPS_MSEC (2000) /* Read temp. sensors every 2 sec. */
+#define TS_STD_MSEC   (1000) /* Call state-machine every second */
+#define TS_LED_MSEC    (500) /* Alive LED blinking every 1/2 sec. */
+#define TS_WR_LOGFILE (5000) /* Write to logfile every 5 seconds */
 
 //----------------------------------
 // Defines for Brew-day Settings
@@ -165,11 +183,11 @@
 
 typedef struct _mash_schedule
 {
-   qreal time;           /* time (min.) to remain at this temperature */
-   qreal temp;           /* temperature (Celsius) to hold */
-   int   timer;          /* timer, init. to NOT_STARTED */
-   int   preht;          /* preheat timer */
-   char  time_stamp[20]; /* time when timer was started */
+   qreal   time;       /* time (min.) to remain at this temperature */
+   qreal   temp;       /* temperature (Celsius) to hold */
+   int     timer;      /* timer, init. to NOT_STARTED */
+   int     preht;      /* preheat timer */
+   QString time_stamp; /* time when timer was started */
 } mash_schedule;
 
 //------------------------------------------------------------------------------------------
@@ -196,22 +214,27 @@ public:
     Meter       *F3;       // Flowmeter 3: CFC-output
     Meter       *F4;       // Flowmeter 4: at MLT top return-manifold
     Display     *std_text; // STD state description
-    PowerButton *hlt_pid;  // HLT PID on/off button
-    PowerButton *boil_pid; // Boil-kettle PID on/off button
+    PowerButton *hlt_pid;  // HLT PID on/off powerButton
+    PowerButton *boil_pid; // Boil-kettle PID on/off powerButton
     QSettings   *RegEbrew; // Pointer to Registry Ebrew object
+    Scheduler   *schedulerEbrew; // Pointer to scheduler object
+    QSerialPort *serialPort;     // Pointer to serialPort object
+    QFile       *fEbrewLog;      // Pointer to log-file object
+    QFile       *fDbgCom;        // Pointer to com-port debug file object
 
-    SlopeLimiter *slopeLimHLT; // slope-limiter object for tset_hlt
-    SlopeLimiter *slopeLimBK;  // slope-limiter object for tset_boil
-
-    uint16_t state_machine(void);   // Ebrew State Transition Diagram
-    void     readMashSchemeFile(bool initTimers);
-    void     setKettleNames(void);  // Set title of kettles with volumes from Registry
-    void     createRegistry(void);  // Create default Registry entries for Ebrew
-    void     createStatusBar(void); // Creates a status bar at the bottom of the screen
-    void     createMenuBar(void);   // Creates a menu bar at the top of the screen
-    void     setStateName(void);    // Update state nr and description on screen
-    void     initBrewDaySettings(void); // Update brew-day settings from Registry values
-    void     msgBox(QString title, QString text, QCheckBox *cb);
+    uint16_t   state_machine(void);   // Ebrew State Transition Diagram
+    void       readMashSchemeFile(bool initTimers);
+    void       setKettleNames(void);  // Set title of kettles with volumes from Registry
+    void       createRegistry(void);  // Create default Registry entries for Ebrew
+    void       createStatusBar(void); // Creates a status bar at the bottom of the screen
+    void       createMenuBar(void);   // Creates a menu bar at the top of the screen
+    void       setStateName(void);    // Update state nr and description on screen
+    void       initBrewDaySettings(void); // Update brew-day settings from Registry values
+    void       msgBox(QString title, QString text, QCheckBox *cb);
+    void       commPortOpen(void);          // Open communications channel
+    void       commPortClose(void);         // Close the communications channel
+    void       commPortWrite(QByteArray s); // Writes a string to the communications channel
+    void       removeLF(QByteArray& s);     // Removes \n from QByteArray
 
     /* Switches and Fixes for variables */
     bool  tset_hlt_sw  = false;  // Switch value for tset_hlt
@@ -242,21 +265,68 @@ public:
     bool  delayed_start = false; // true = HLT PID controller is started at a fixed time and date
     QDateTime dlyStartTime;      // Holds date and time for delayed-start
 
+    // State Transition Diagram (STD) values
+    int   ebrew_std  = S00_INITIALISATION; // Current state of STD
+    int   ms_tot     = 0;     // total nr. of valid temp & time values
+    int   ms_idx     = 0;     // index in ms[] array
+    int   sp_idx     = 0;     // Sparging index [0..sps->sp_batches-1]
+    int   timer1     = 0;     // Timer for state 'Sparging Rest'
+    int   timer2     = 0;     // Timer for state 'Delay_xSEC'
+    int   timer3     = 0;     // Timer for state 'Pump Pre-Fill'
+    int   mrest_tmr  = 0;     // Timer for state 'Mast Rest 5 Min.'
+    int   brest_tmr  = 0;     // Timer for state 'Boiling finished, prepare Chiller'
+    int   timer5     = 0;     // Timer for state 'Boiling'
+    int   mash_rest  = 0;     // 1 = mash rest after malt is added
+    int   cip_tmr1   = 0;     // Timer for CIP process
+    int   cip_circ   = 0;     // Counter for CIP circulations
+    int   boil_rest  = 0;     // 1 = let wort rest after malt is added
+    int   malt_first = 0;     // 1 = malt is added to MLT first, then water
+
+    /* Mash Settings */
+    int   ph_time;         // ph_time in seconds, PREHEAT_TIME in minutes
+
+    /* Sparge Settings */
+    int   mash_vol;        // Total mashing volume in litres (read from maisch.sch)
+    int   sp_vol;          // Total sparge volume in litres (read from maisch.sch)
+    int   sp_time_ticks;   // sp_time in TS ticks
+    int   boil_time_ticks; // boil_time in TS ticks
+    qreal sp_vol_batch;    // Sparge volume of 1 batch = sp_vol / sp_batches
+    qreal sp_vol_batch0;   // Sparge volume of first batch
+
+    /* Boil Settings */
+    int   boil_time;       // Total boiling time in minutes (read from maisch.sch)
+
+    mash_schedule ms[MAX_MS];    // struct containing mash schedule
+    SlopeLimiter  *slopeLimHLT;  // slope-limiter object for tset_hlt
+    SlopeLimiter  *slopeLimBK;   // slope-limiter object for tset_boil
+    PidCtrl       *PidCtrlHlt;   // PID-controller object for HLT
+    PidCtrl       *PidCtrlBk;    // PID-controller object for Boil-kettle
+
+    bool     ReadDataAvailable;
+    QByteArray ReadData;
+
 public slots:
-    void     T100msecLoop(void);               // This is the main-loop that is executed every 100 msec.
     void     task_alive_led(void);             // 500 msec. task for blinking alive LED
-    void     task_update_std(void);            // 1 sec. task for call to STD
     void     task_read_temps(void);            // 2 sec. task for reading all temperatures
+    void     task_pid_control(void);           // TS sec. task for PID-controllers
+    void     task_update_std(void);            // 1 sec. task for call to STD
     void     task_read_flows(void);            // 2 sec. task for reading all flow-sensors
+    void     task_write_logfile(void);         // 5 sec. task for writing info into logfile
     void     about(void);                      // About() screen of MainEbrew
     void     MenuEditMashScheme(void);         // Edit->Mash Scheme dialog screen
     void     MenuEditFixParameters(void);      // Edit->Fix Parameters dialog screen
+    void     MenuViewProgress(void);           // View->Mash & Sparge Progress dialog screen
+    void     MenuViewTaskList(void);           // View->Task-list and Timings dialog screen
     void     MenuOptionsPidSettings(void);     // Options->PID Settings dialog screen
     void     MenuOptionsMeasurements(void);    // Options->Measurements Settings dialog screen
     void     MenuOptionsBrewDaySettings(void); // Options->Brew Day Settings dialog screen
     void     MenuOptionsSystemSettings(void);  // Options->System Settings dialog screen
+    void     commPortRead2(void);    // Reads a string from the communications channel
+    void     sleep(uint16_t msec);             // Sleep msec milliseconds
 
 protected:
+    void  closeEvent(QCloseEvent *event);
+
     // Temperature, Volume and pid-output values
 	qreal thlt;             // HLT actual temperature
 	qreal thlt_offset;      // Offset to add to Thlt measurement
@@ -292,50 +362,13 @@ protected:
     bool  flow_temp_corr;     // true = compensate flowsensor readings for higher temperatures
     int   no_sound;           // 0: disable audible alarm, 1: alarm on T-sensors, 2: alarm on F-sensors
 
-    // State Transition Diagram (STD) values
-    int   ebrew_std  = S00_INITIALISATION;        // Current state of STD
-    int   ms_tot     = 0;     // total nr. of valid temp & time values
-    int   ms_idx     = 0;     // index in ms[] array
-    int   sp_idx     = 0;     // Sparging index [0..sps->sp_batches-1]
-    int   timer1     = 0;     // Timer for state 'Sparging Rest'
-    int   timer2     = 0;     // Timer for state 'Delay_xSEC'
-    int   timer3     = 0;     // Timer for state 'Pump Pre-Fill'
-    int   mrest_tmr  = 0;     // Timer for state 'Mast Rest 5 Min.'
-    int   brest_tmr  = 0;     // Timer for state 'Boiling finished, prepare Chiller'
-    int   timer5     = 0;     // Timer for state 'Boiling'
-    int   mash_rest  = 0;     // 1 = mash rest after malt is added
-    int   cip_tmr1   = 0;     // Timer for CIP process
-    int   cip_circ   = 0;     // Counter for CIP circulations
-    int   boil_rest  = 0;     // 1 = let wort rest after malt is added
-    int   malt_first = 0;     // 1 = malt is added to MLT first, then water
-
-    /* Mash Settings */
-    int   ph_time;         // ph_time in seconds, PREHEAT_TIME in minutes
-
-    /* Sparge Settings */
-    int   mash_vol;        // Total mashing volume in litres (read from maisch.sch)
-    int   sp_vol;          // Total sparge volume in litres (read from maisch.sch)
-    int   sp_time_ticks;   // sp_time in TS ticks
-    int   boil_time_ticks; // boil_time in TS ticks
-    qreal sp_vol_batch;    // Sparge volume of 1 batch = sp_vol / sp_batches
-    qreal sp_vol_batch0;   // Sparge volume of first batch
-
-    /* Boil Settings */
-    int   boil_time;       // Total boiling time in minutes (read from maisch.sch)
-
-    /* Time-stamps for Sparge, Boil and Chilling*/
-    char  mlt2boil[MAX_SP][40]; // MAX_SP strings for time-stamp moment of MLT -> BOIL
-    char  hlt2mlt[MAX_SP][40];  // MAX_SP strings for time-stamp moment of HLT -> MLT
-    char  Boil[2][40];          // Boil-start and Boil-End time-stamps
-    char  Chill[2][40];         // Chill-start and Chill-End time-stamps
-
-    mash_schedule ms[MAX_MS];   // struct containing mash schedule
-
     bool  toggle_led;           // Indicator for Alive LED
     bool  power_up_flag;        // true = power-up in progress
     bool  triac_too_hot;        // true = SSR too hot
+    bool  comPortIsOpen;        // true = communication channel is opened
 
     QString ebrew_revision = "$Revision: 3.00 $";
+    QString line1MashScheme;    // Title line in mash-scheme file
 
 private:
     // Pointers to Labels in Statusbar at bottom of screen

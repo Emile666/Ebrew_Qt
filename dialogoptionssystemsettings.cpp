@@ -1,11 +1,14 @@
 #include "dialogoptionssystemsettings.h"
 #include "ui_dialogoptionssystemsettings.h"
 #include <QString>
+#include <QtSerialPort/QSerialPort>
+#include <QtSerialPort/QSerialPortInfo>
 
 DialogOptionsSystemSettings::DialogOptionsSystemSettings(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DialogOptionsSystemSettings)
 {
+    QString string;
     pEbrew = dynamic_cast<MainEbrew *>(parent);
 
     ui->setupUi(this);
@@ -28,6 +31,13 @@ DialogOptionsSystemSettings::DialogOptionsSystemSettings(QWidget *parent) :
     //-------------------------
     // Communications
     //-------------------------
+    const auto infos = QSerialPortInfo::availablePorts();
+    string = "Available COM Ports:\n";
+    for (const QSerialPortInfo &info : infos)
+    {
+        string.append(info.portName() + ": " + info.description() + "\n");
+    } // for
+    ui->lblAvailable->setText(string);
     ui->cbCommCh->setCurrentIndex(pEbrew->RegEbrew->value("COMM_CHANNEL").toInt());
     ui->leComPort->setText(pEbrew->RegEbrew->value("COM_PORT_SETTINGS").toString());
     ui->leIPaddr->setText(pEbrew->RegEbrew->value("UDP_IP_PORT").toString());
@@ -46,6 +56,7 @@ DialogOptionsSystemSettings::DialogOptionsSystemSettings(QWidget *parent) :
         ui->leIPaddr->setEnabled(false);
     } // else
     ui->cbDbgLog->setChecked(pEbrew->RegEbrew->value("CB_DEBUG_COM_PORT").toInt() == 1);
+
     //-------------------------
     // Brew-kettle Sizes
     //-------------------------

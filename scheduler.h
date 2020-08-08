@@ -57,9 +57,10 @@ public slots:
 public:
 	Scheduler(void);
     uint8_t add_task(const char *Name, uint16_t delay, uint16_t period, const QObject *receiver,const char *method);
-    uint8_t set_task_time_period(quint16 Period, char *Name);
+    uint8_t set_task_time_period(quint16 Period, const char *Name);
 	uint8_t enable_task(char *Name);
 	uint8_t disable_task(char *Name);
+    uint8_t updateDuration(const char *Name, uint16_t duration); // Needed for signal/slot workaround
     QString list_all_tasks(void);
     void    start(void);              // start running the scheduler
     void    stop(void);               // stop running the scheduler

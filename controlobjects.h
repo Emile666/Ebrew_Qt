@@ -52,6 +52,9 @@
 #include <QObject>
 
 #define MA_MAX_N (20) /* Max. order N for moving_average filter */
+#define PID_OFF  (0)  /* PID-controller is OFF */
+#define PID_ON   (1)  /* PID-controller is ON */
+#define PID_FFC   (2)  /* PID-controller in feed-forward mode */
 
 //------------------------------------------------------------------------------------------
 class PidCtrl : public QObject
@@ -60,21 +63,25 @@ class PidCtrl : public QObject
 
 public:
     PidCtrl(qreal Kc, qreal Ti, qreal Td, qreal Ts);
-    qreal pid_control(qreal xk, qreal tset);
-    void  pid_init(qreal Kc, qreal Ti, qreal Td, qreal Ts);
-    void  pid_enable(bool enable);
+    qreal   pidControl(qreal xk, qreal tset);
+    void    pidInit(qreal Kc, qreal Ti, qreal Td, qreal Ts);
+    void    pidEnable(uint8_t enable);
+    void    pidSetLimits(qreal min, qreal max);
+    uint8_t pidGetStatus(void);
 
 protected:
-    bool  pid_on; // true = pid-controller is enabled
-    qreal xk_2;   // x[k-2], previous value of x[k-1] (= measured temperature)
-    qreal xk_1;   // x[k-1], previous value of the input variable x[k] (= measured temperature)
-    qreal yk;     // y[k], pid-controller output (%)
-    qreal kp;     // = Kc
-    qreal ki;     // = Kc*Ts/Ti
-    qreal kd;     // = Kc*Ti/Td
-    qreal pp;     // output of P-action
-    qreal pi;     // output of I-action
-    qreal pd;     // output of D-action
+    uint8_t pid_on; // true = pid-controller is enabled
+    qreal   xk_2;   // x[k-2], previous value of x[k-1] (= measured temperature)
+    qreal   xk_1;   // x[k-1], previous value of the input variable x[k] (= measured temperature)
+    qreal   yk;     // y[k], pid-controller output (%)
+    qreal   kp;     // = Kc
+    qreal   ki;     // = Kc*Ts/Ti
+    qreal   kd;     // = Kc*Ti/Td
+    qreal   pp;     // output of P-action
+    qreal   pi;     // output of I-action
+    qreal   pd;     // output of D-action
+    qreal   ykmin;  // Minimum value for output yk
+    qreal   ykmax;  // Maximum value for output yk
 }; // class PidCtrl
 
 //------------------------------------------------------------------------------------------

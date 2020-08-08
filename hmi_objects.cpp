@@ -56,6 +56,7 @@
 #include <QFont>
 #include <QGraphicsSceneMouseEvent>
 #include <QTextStream>
+#include <QDebug>
 
 //------------------------------------------------------------------------------------------
 PowerButton::PowerButton(int x, int y, int width, int height, QString name)
@@ -106,6 +107,8 @@ Tank::Tank(int x, int y, int width, int height, uint8_t options, QString name)
     : QGraphicsPolygonItem()
 {
     setPos(x,y);
+    setValues(0.0,0.0,0.0,0.0); // init. temp., setpoint temp., volume and power
+
     setOrientation(width,height,options);
     setName(name);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
@@ -589,7 +592,6 @@ Meter::Meter(QPointF point, uint8_t type, QString name)
     setFont(font);
     setPos(point);
     setName(name);
-    setTempValue(0.0); // Init. meterValue
     setError(false);   // No error => green colour
     meterType = type;
     if ((meterType == METER_HFLOW) || (meterType == METER_VFLOW))
@@ -599,6 +601,7 @@ Meter::Meter(QPointF point, uint8_t type, QString name)
         setText("F");
     } // if
     else setText("T");
+    setFlowValue(0.0,20.0); // init values
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
     //setFlag(QGraphicsItem::ItemIsSelectable,true);
     if ((meterType == METER_HFLOW) || (meterType == METER_HTEMP))
@@ -687,7 +690,7 @@ void Meter::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     if ((meterType == METER_HFLOW) || (meterType == METER_VFLOW))
     {
         text1 = QString("%1 L").arg(meterValue,1,'f',1);
-        text2 = QString("%1 L/min.").arg(meterdValue,1,'f',1);
+        text2 = QString("%1 L/min.").arg(flowRate,1,'f',1);
     } // if
     else
     {
@@ -696,12 +699,12 @@ void Meter::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     if ((meterType == METER_HFLOW) || (meterType == METER_HTEMP))
     {    // horizontal lay-out
          painter->drawText(-14,62,text1);
-         if (meterdValue > 0.0) painter->drawText(-14,77,text2);
+         if (flowRate > 0.01) painter->drawText(-14,77,text2);
     } // if
     else
     {   // vertical lay-out
         painter->drawText(+40,25,text1);
-        if (meterdValue) painter->drawText(+40,40,text2);
+        if (flowRate > 0.01) painter->drawText(+40,40,text2);
     } // else
     font.setPointSize(10);
     font.setBold(true);
@@ -797,6 +800,17 @@ Base_Valve_Pump::Base_Valve_Pump(QPointF point, QString name)
     //setFlag(QGraphicsItem::ItemIsSelectable,true);
     //setFlag(QGraphicsItem::ItemIsMovable,true);
     left = top = right = bottom = QPoint(0,0); // init. all coordinates
+
+    setAutoAction = new QAction("Auto");
+    //QObject::connect(setAutoAction,SIGNAL(triggered()),this,SLOT(slotAuto()));
+    setManualOffAction = new QAction("OFF (M)");
+    //QObject::connect(setManualOffAction,SIGNAL(triggered()),this,SLOT(slotManualOff()));
+    setManualOnAction = new QAction("ON (M)");
+    //QObject::connect(setManualOnAction,SIGNAL(triggered()),this,SLOT(slotManualOn()));
+    contextMenu = new QMenu();
+    contextMenu->addAction(setAutoAction);
+    contextMenu->addAction(setManualOffAction);
+    contextMenu->addAction(setManualOnAction);
 } // Base_Valve_Pump()
 
 // This function returns the parent coordinate of top, right, left or bottom of pipe
@@ -832,6 +846,7 @@ void Base_Valve_Pump::setStatus(uint8_t status)
     if ((valveStatus == MANUAL_OFF) || (valveStatus == AUTO_OFF))
          setColor(Qt::red);
     else setColor(Qt::green);
+    update();
 }
 
 bool Base_Valve_Pump::inManualMode(void)
@@ -850,44 +865,64 @@ void Base_Valve_Pump::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
     if (mouseEvent->button() == Qt::LeftButton)
     {
-        mouseEvent->accept();
-        if (++valveStatus > AUTO_ON) valveStatus = MANUAL_OFF;
+        if ((valveStatus == AUTO_ON) || (valveStatus == AUTO_OFF))
+        {
+            valveStatus = MANUAL_OFF;
+        }
+        else if (valveStatus == MANUAL_OFF)
+             valveStatus = MANUAL_ON;
+        else valveStatus = AUTO_OFF;
         setStatus(valveStatus);
+        mouseEvent->accept();
+        qDebug() << "valveStatus=" << valveStatus;
     }
     else if (mouseEvent->button() == Qt::RightButton)
     {
         mouseEvent->accept();
-        setAutoAction = new QAction("Auto");
-        //connect(setAutoAction,SIGNAL(triggered()),this,SLOT(slotAuto()));
-        setManualOffAction = new QAction("OFF (M)");
-        //QObject::connect(setManualOffAction,SIGNAL(triggered()),0,SLOT(slotManualOff()));
-        setManualOnAction = new QAction("ON (M)");
-        //QObject::connect(setManualOnAction,SIGNAL(triggered()),0,SLOT(slotManualOn()));
-        contextMenu = new QMenu();
-        contextMenu->addAction(setAutoAction);
-        contextMenu->addAction(setManualOffAction);
-        contextMenu->addAction(setManualOnAction);
         contextMenu->exec(QCursor::pos());
-        delete contextMenu;
-        contextMenu = NULL;
     } // if
     QGraphicsPolygonItem::mousePressEvent(mouseEvent);
 }
 
-void Base_Valve_Pump::slotManualOff(void)
-{
-    setStatus(MANUAL_OFF);
-}
+//void Base_Valve_Pump::slotManualOff(void)
+//{
+//    setStatus(MANUAL_OFF);
+//}
 
-void Base_Valve_Pump::slotManualOn(void)
-{
-   setStatus(MANUAL_ON);
-}
+//void Base_Valve_Pump::slotManualOn(void)
+//{
+//   setStatus(MANUAL_ON);
+//}
 
-void Base_Valve_Pump::slotAuto(void)
+//void Base_Valve_Pump::slotAuto(void)
+//{
+//    setStatus(AUTO_OFF);
+//}
+
+/*------------------------------------------------------------------
+  Purpose  : This function sets actionBits to the proper setting (on,off)
+             indicated by whichBit in case Manual mode is selected.
+             In Auto mode, the object status is set to the value in
+             actionBits.
+  Variables:
+ actionBits: every actuator has its own defined bitvalue here
+   whichBit: a bitdefine for the specific actuator (e.g. V1b = 0x0001)
+  Returns  : -
+  ------------------------------------------------------------------*/
+void Base_Valve_Pump::setActuator(uint16_t& actionBits, uint16_t whichBit)
 {
-    setStatus(AUTO_OFF);
-}
+    if (!inManualMode())
+    { // not in Manual Override mode
+        if (actionBits & whichBit) setStatus(AUTO_ON);
+        else                       setStatus(AUTO_OFF);
+    }
+    else
+    {  // manual Override mode
+       if (getStatus() == MANUAL_ON)
+            actionBits |=  whichBit;
+       else actionBits &= ~whichBit;
+    } // else
+} // Base_Valve_Pump::setActuator()
 
 //------------------------------------------------------------------------------------------
 Valve::Valve(QPointF point, bool orientation, QString name)

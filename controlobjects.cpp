@@ -53,8 +53,9 @@
 //------------------------------------------------------------------------------------------
 PidCtrl::PidCtrl(qreal Kc, qreal Ti, qreal Td, qreal Ts)
 {
-    pid_init(Kc, Ti, Td, Ts); // init. pid-controller
-    pid_enable(false);        // disable pid-controller at start-up
+    pidInit(Kc, Ti, Td, Ts); // init. pid-controller
+    pidEnable(PID_OFF);      // disable pid-controller at start-up
+    pidSetLimits(0.0,100.0); // output between 0% and 100%
 } // PidCtrl::PidCtrl()
 
 /*------------------------------------------------------------------
@@ -74,7 +75,7 @@ PidCtrl::PidCtrl(qreal Kc, qreal Ti, qreal Td, qreal Ts)
 
   Returns  : No values are returned
   ------------------------------------------------------------------*/
-void PidCtrl::pid_init(qreal Kc, qreal Ti, qreal Td, qreal Ts)
+void PidCtrl::pidInit(qreal Kc, qreal Ti, qreal Td, qreal Ts)
 {
     kp = Kc;
     if (Ti < 1e-3)
@@ -96,9 +97,9 @@ void PidCtrl::pid_init(qreal Kc, qreal Ti, qreal Td, qreal Ts)
       tset : The setpoint value for the temperature
   Returns  : y[k], pid-controller output
   ------------------------------------------------------------------*/
-qreal PidCtrl::pid_control(qreal xk, qreal tset)
+qreal PidCtrl::pidControl(qreal xk, qreal tset)
 {
-    if (pid_on)
+    if (pid_on == PID_ON)
     {
        //--------------------------------------------------------------------------------
        // Takahashi Type C PID controller:
@@ -113,27 +114,51 @@ qreal PidCtrl::pid_control(qreal xk, qreal tset)
        pd = kd * (2.0 * xk_1 - xk - xk_2); // (Kc.Td/Ts).(2.x[k-1]-x[k]-x[k-2])
        yk  += pp + pi + pd;                // add y[k-1] + P, I & D actions to y[k]
     } // if
+    else if (pid_on == PID_FFC)
+    {   // Feed-forward mode
+        if (tset > xk) yk = 100.0;
+        else           yk =   0.0;
+    } // else pid_on == PID_OFF
     else { yk = pp = pi = pd = 0.0; }
 
     xk_2  = xk_1; // x[k-2] = x[k-1]
     xk_1  = xk;   // x[k-1] = x[k]
 
     // limit y[k] to 0 % and 100 %
-    if (yk > 100.0)
+    if (yk > ykmax)
     {
-       yk = 100.0;
+       yk = ykmax;
     }
-    else if (yk < 0.0)
+    else if (yk < ykmin)
     {
-       yk = 0.0;
+       yk = ykmin;
     } // else
     return yk;
 } // PidCtrl::pid_control()
 
-void PidCtrl::pid_enable(bool enable)
+void PidCtrl::pidEnable(uint8_t enable)
 {
-    pid_on = enable;
+    pid_on = enable; // PID_OFF, PID_ON, PID_FFC
 } // PidCtrl::pid_run()
+
+void PidCtrl::pidSetLimits(qreal min, qreal max)
+{
+    if (max > min)
+    {
+        ykmax = max;
+        ykmin = min;
+    }
+    else
+    {
+        ykmax = 100.0;
+        ykmin =   0.0;
+    } // else
+} // PidCtrl::pid_run()
+
+uint8_t PidCtrl::pidGetStatus(void)
+{
+    return pid_on; // PID_OFF, PID_ON, PID_FFC
+} // pidGetStatus()
 
 //------------------------------------------------------------------------------------------
 MA::MA(uint8_t N, qreal init_val)

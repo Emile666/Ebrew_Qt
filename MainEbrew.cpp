@@ -49,24 +49,39 @@
 ****************************************************************************/
 
 #include <QApplication>
-#include "MainEbrew.h"
-#include "dialogeditmashscheme.h"
-#include "dialogeditfixparameters.h"
-#include "dialogoptionspidsettings.h"
-#include "dialogoptionsmeasurements.h"
-#include "dialogbrewdaysettings.h"
-#include "dialogoptionssystemsettings.h"
 #include <QStatusBar>
 #include <QMenuBar>
 #include <QToolBar>
 #include <QDebug>
-#include <QFile>
 #include <QLabel>
+#include <QElapsedTimer>
+#include <QStringList>
+#include <QString>
+#include <QList>
+#include <QCloseEvent>
+#include <QThread>
+
+#include "MainEbrew.h"
+#include "dialogeditmashscheme.h"
+#include "dialogeditfixparameters.h"
+#include "dialogviewprogress.h"
+#include "dialogviewtasklist.h"
+#include "dialogoptionspidsettings.h"
+#include "dialogoptionsmeasurements.h"
+#include "dialogbrewdaysettings.h"
+#include "dialogoptionssystemsettings.h"
 
 //------------------------------------------------------------------------------------------
+
+/*------------------------------------------------------------------
+  Purpose  : This is the main constructor for MainEbrew.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
 MainEbrew::MainEbrew(void) : QMainWindow()
 {
     SlopeLimiter *pSlopeLim; // pointer to SlopeLimiter object
+    PidCtrl      *ppid;      // pointer to PidCtrl object
 
     createStatusBar(); // create status bar at the bottom of the screen
     createMenuBar();   // create menu bar at the top of the screen
@@ -85,7 +100,111 @@ MainEbrew::MainEbrew(void) : QMainWindow()
     pSlopeLim  = new SlopeLimiter();
     pSlopeLim->setLim(RegEbrew->value("TSET_SLOPE_LIM").toDouble());
     slopeLimBK = pSlopeLim; // copy pointer to MainEbrew
+
+    ppid = new PidCtrl(RegEbrew->value("Kc").toDouble(),RegEbrew->value("Ti").toDouble(),
+                       RegEbrew->value("Td").toDouble(),RegEbrew->value("Ts").toDouble());
+    PidCtrlHlt = ppid; // copy pointer to MainEbrew
+    ppid = new PidCtrl(RegEbrew->value("Kc").toDouble(),RegEbrew->value("Ti").toDouble(),
+                       RegEbrew->value("Td").toDouble(),RegEbrew->value("Ts").toDouble());
+    PidCtrlBk = ppid; // copy pointer to MainEbrew
+
+    //-------------------------------------------------------------
+    // Wake up Ebrew hardware and try to get a decent S0 response
+    //-------------------------------------------------------------
+    QString srev = "SW r" + ebrew_revision.mid(11,4);
+    srev.append(" HW r");
+    commPortOpen();      // try to open communication channel
+    int  count = 10;     // Number of retries for S0 response
+    bool found = false;
+    ReadDataAvailable = false;
+    while (!ReadDataAvailable && (count-- > 0) && !found)
+    {
+        commPortWrite("S0"); // retry
+        sleep(100);          // wait until data available
+        if (ReadDataAvailable)
+        {
+            found = (ReadData.indexOf(EBREW_HW_ID,0) != -1);
+            ReadDataAvailable = false;
+            qDebug() << "Found(" << found << "): " << ReadData;
+        } // if
+    } // while
+    if (found)
+    {
+        srev.append(ReadData.right(4));
+        qDebug() << "ReadData = " << ReadData;
+    } // if
+    else
+    {
+        srev.append("?.?");
+        qDebug() << "S0 Timeout";
+    } // else
+    statusSwRev->setText(srev);
+
+    //---------------------------------------------------
+    // Open Ebrew log-file
+    //---------------------------------------------------
+    QFile *f = new QFile(LOGFILE); // open ebrew log-file
+    if (f->open(QIODevice::WriteOnly | QIODevice::Append))
+    {
+        QString d = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss");
+        fEbrewLog = f; // copy pointer to MainEbrew
+        QTextStream stream(f);
+        stream << "\nDate of Brewing  : " << d << "\n";
+        stream << "Mash-volume      : " << mash_vol << " L, Sparge-volume: " << sp_vol << " L, boil-time: " << boil_time << " min.\n";
+        stream << "Mash-scheme      : "<< statusMashScheme->text() << "\n";
+        stream << "HW + SW version  : " << srev << "\n";
+        stream << line1MashScheme << "\n";
+        stream << "ms_tot: " << ms_tot << "\n";
+        stream << "Another line\n";
+        stream << " Time    TsetM TsetH  Thlt  Tmlt Telc  Vmlt s m st  GmaH  Vhlt VBoil TBoil  Tcfc GmaB\n";
+        stream << "[h:m:s]   [\xB0\C]  [\xB0\C]  [\xB0\C]  [\xB0\C] [\xB0\C]   [L] p s  d   [%]   [L]   [L]  [\xB0\C]  [\xB0\C]  [%]\n";
+        stream << "-------------------------------------------------------------------------------------\n";
+    } // if
+    else fEbrewLog = nullptr;
 } // MainEbrew::MainEbrew()
+
+/*------------------------------------------------------------------
+  Purpose  : This function creates a millisecond delay. Use this
+             function only during power-up and not in time-critical
+             loops!
+  Variables: msec: the number of milliseconds to sleep
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::sleep(uint16_t msec)
+{
+    QTime dieTime = QTime::currentTime().addMSecs(msec);
+    while(QTime::currentTime() < dieTime)
+    {
+        QApplication::processEvents(QEventLoop::AllEvents, 100);
+    } // while
+} // MainEbrew:: sleep()
+
+/*------------------------------------------------------------------
+  Purpose  : This function is called when File->Exit is pressed.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::closeEvent(QCloseEvent *event)
+{
+    schedulerEbrew->stop(); // stop all tasks
+
+    commPortWrite("B0"); // Disable Boil-kettle gas-burner
+    commPortWrite("H0"); // Disable HLT gas-burner
+    commPortWrite("L0"); // Disable Alive-LED
+    commPortWrite("P0"); // Disable Pump
+    commPortWrite("V0"); // Disable All Valves
+
+    if (comPortIsOpen)
+    {
+        commPortClose(); // close the communications port
+    } // if
+    if (fEbrewLog)
+    {
+        fEbrewLog->flush(); // flush the log-file
+        fEbrewLog->close(); // close the log-file
+    } // if
+    event->accept(); // Accept and continue with the close-event
+} // MainEbrew::closeEvent()
 
 /*------------------------------------------------------------------
   Purpose  : This function creates the status bar at the bottom of
@@ -181,9 +300,9 @@ void MainEbrew::createMenuBar(void)
     menuBar->addMenu(Emenu);
     // View menu
     auto Vmenu       = new QMenu("&View");
-    Vmenu->addAction(QIcon(":/img/progress.png"),"&Mash && Sparge Progress"); // TODO slot voor Mash Sparge Progress
+    Vmenu->addAction(QIcon(":/img/progress.png"),"&Mash && Sparge Progress",this,SLOT(MenuViewProgress()));
     Vmenu->addAction(QIcon(":/img/alarm.png")   ,"&Status and Alarms");          // TODO slot voor Status and Alarms
-    Vmenu->addAction(QIcon(":/img/task.png")    ,"&Task-list and Timings");       // TODO slot voor Tasklist and Timings
+    Vmenu->addAction(QIcon(":/img/task.png")    ,"&Task-list and Timings"  ,this,SLOT(MenuViewTaskList()));
     menuBar->addMenu(Vmenu);
     // Options menu
     auto Omenu       = new QMenu("&Options");
@@ -223,7 +342,6 @@ void MainEbrew::createRegistry(void)
     RegEbrew->setValue("COM_PORT_SETTINGS","38400,N,8,1");    // COM port settings
     RegEbrew->setValue("UDP_IP_PORT","192.168.192.105:8888"); // IP & Port number
     RegEbrew->setValue("CB_DEBUG_COM_PORT",1);
-    RegEbrew->setValue("CB_SHOW_SENSOR_INFO",1); // TODO remove CB_SHOW_SENSOR_INFO
     // Brew-kettle Sizes
     RegEbrew->setValue("VHLT_MAX",200);       // Max. HLT volume
     RegEbrew->setValue("VMLT_MAX",110);       // Max. MLT volume
@@ -232,7 +350,7 @@ void MainEbrew::createRegistry(void)
     //------------------------------------
     // Options -> PID Settings Dialog
     //------------------------------------
-    RegEbrew->setValue("TS",20.0);            // Set Default sample time
+    RegEbrew->setValue("TS",20.0);            // Set Default sample time [sec.]
     RegEbrew->setValue("Kc",80.0);            // Controller gain
     RegEbrew->setValue("Ti",282.0);           // Ti constant
     RegEbrew->setValue("Td",20.0);            // Td constant
@@ -246,7 +364,7 @@ void MainEbrew::createRegistry(void)
     RegEbrew->setValue("SP_TIME",12);        // Time between sparge batches
     RegEbrew->setValue("SP_MPY",2.0);        // Multiply factor for 1st run-off volume to Boil-Kettle
     // Mash Settings
-    //RegEbrew->setValue("ms_idx",MAX_MS);     // init. index in mash scheme TODO remove ms_idx from Registry
+    RegEbrew->setValue("ms_idx",MAX_MS);     // init. index in mash scheme
     RegEbrew->setValue("TOffset0",3.5);      // Compensation for dough-in of malt
     RegEbrew->setValue("TOffset",1.0);       // Compensation HLT-MLT heat-loss
     RegEbrew->setValue("TOffset2",-0.5);     // Early start of mash-timer
@@ -302,18 +420,6 @@ void MainEbrew::setKettleNames(void)
 } // MainEbrew::SetKettleNames()
 
 /*------------------------------------------------------------------
-  Purpose  : This function is the main-entry point for all time-related
-             functions. It is called every 100 msec. from a QTimer in
-             a separate thread.
-  Variables: -
-  Returns  : -
-  ------------------------------------------------------------------*/
-void MainEbrew::T100msecLoop(void)
-{
-    //thlt += 0.01;
-} // MainEbrew::T100msecLoop()
-
-/*------------------------------------------------------------------
   Purpose  : This function reads a Mash Scheme from a .sch file and
              updates the statusbar with the new temp-time pairs.
              This function is called after the Registry has been
@@ -332,8 +438,10 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
     if (inputFile.open(QIODevice::ReadOnly))
     {
        QTextStream in(&inputFile);
-       while ((i++ < 3) && !in.atEnd())
-       {  // read 3 dummy lines
+       if (!in.atEnd()) line1MashScheme = in.readLine();
+       line1MashScheme.remove(0,3); // remove the '// ' characters
+       while ((i++ < 2) && !in.atEnd())
+       {  // read 2 dummy lines
           line = in.readLine();
        } // while
        line = in.readLine(); // Read mash water volume
@@ -378,7 +486,7 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
               if (initTimers)
               {
                  ms[ms_tot].timer         = NOT_STARTED; /* init. timer to not started */
-                 ms[ms_tot].time_stamp[0] = '\0';        /* init. time-stamp to empty string */
+                 ms[ms_tot].time_stamp.clear();          /* init. time-stamp to empty string */
               } // if
               if (!sbar.isEmpty()) sbar.append(", ");
               sbar.append(QString("%1 °C(%2 min.)").arg(ms[ms_tot].temp,2,'f',0).arg(ms[ms_tot].time/60.0,2,'f',0));
@@ -422,7 +530,7 @@ void MainEbrew::initBrewDaySettings(void)
     // Now calculate the internal values for the timers. Since the
     // State Transition Diagram is called every second, every 'tick'
     // is a second.
-    // From Registry: SP_TIME [min.]
+    // From Registry        : SP_TIME   [min.]
     // From mash-scheme file: boil_time [min.]
     //--------------------------------------------------------------
     sp_time_ticks   = 60 * RegEbrew->value("SP_TIME").toInt();
@@ -437,27 +545,29 @@ void MainEbrew::initBrewDaySettings(void)
   ---------------------------------------------------------------------------*/
 void MainEbrew::task_alive_led(void)
 {
-    char   s[20];
+    QElapsedTimer timer;
+    QString       string;
 
-   //------------------------------------------------------------------
-   // Toggle alive toggle bit to see if this routine is still alive
-   //------------------------------------------------------------------
-   if (toggle_led)
-        strcpy(s,"L1\n");
-   else strcpy(s,"L0\n");
-   toggle_led = !toggle_led;
+    timer.start();
 
-   gamma_hlt = 0.0;
-   hlt->setValues(thlt,tset_hlt,Vhlt,gamma_hlt); // temp, sp, vol, power
-   hlt->update();
+    gamma_hlt = 0.0;
+    hlt->setValues(thlt,tset_hlt,Vhlt,gamma_hlt); // temp, sp, vol, power
+    hlt->update();
 
-   mlt->setValues(tmlt,0.0,Vmlt,0.0);
-   mlt->update();
+    mlt->setValues(tmlt,0.0,Vmlt,0.0);
+    mlt->update();
 
-   gamma_boil = 0.0;
-   boil->setValues(tboil,tset_boil,Vboil,gamma_boil); // temp, sp, vol, power
-   boil->update();
-   //MainForm->comm_port_write(s); // Send L1/L0 command to ebrew hardware
+    gamma_boil = 0.0;
+    boil->setValues(tboil,tset_boil,Vboil,gamma_boil); // temp, sp, vol, power
+    boil->update();
+
+    //------------------------------------------------------------------
+    // Toggle alive toggle bit to see if this routine is still alive
+    //------------------------------------------------------------------
+    toggle_led = !toggle_led;
+    string = QString("L%1").arg(toggle_led ? 1 : 0); // send Alive Led to ebrew hardware
+    commPortWrite(string.toUtf8());
+    schedulerEbrew->updateDuration("aliveLed",timer.nsecsElapsed()/1000);
 } // task_alive_led()
 
 /*------------------------------------------------------------------
@@ -468,11 +578,13 @@ void MainEbrew::task_alive_led(void)
   ------------------------------------------------------------------*/
 void MainEbrew::task_update_std(void)
 {
-    uint16_t std_out;     // values of valves
-    uint8_t  pump_bits;   // values of pumps
+    QElapsedTimer timer;
+    QString       string;
+    uint16_t      std_out;     // values of valves
+    uint8_t       pump_bits;   // values of pumps
     //static int i=0;
 
-    //qDebug() << "task_update_std(" << i++ << ")";
+    timer.start(); // Task time-measurement
     std_out = state_machine(); // call the Ebrew STD
     setStateName();            // update std text on screen
     if (tset_hlt_sw)
@@ -486,16 +598,12 @@ void MainEbrew::task_update_std(void)
     } // if
     tset_boil = slopeLimBK->slopeLimit(tset_boil);
 
-    if (hlt_pid->isChecked() && (tset_hlt < 5.0)) // TODO: move to state_machine()
-    {   // Disable PID controller when sparging is finished
-        hlt_pid->setChecked(false);
-    } // if
-    //-----------------------------------------------------------------
-    // Now output all valve bits to Ebrew hardware.
-    // NOTE: The pump bit is sent using the P0/P1 command
-    //-----------------------------------------------------------------
-    //sprintf(s,"V%d\n",(std_out & ALL_VALVES)); // Output all valves
-    //MainForm->comm_port_write(s); // TODO output Vxxx to Ebrew hardware
+    //---------------------------------------------------------------------
+    // Now output all valve bits to the Ebrew hardware with the Vx command.
+    // The pump bits are sent using the P0/P1 command.
+    //---------------------------------------------------------------------
+    string = QString("V%1").arg(std_out & ALL_VALVES); // Output all valves
+    commPortWrite(string.toUtf8());
 
     //--------------------------------------------
     // Send Pump On/Off signals to ebrew hardware.
@@ -503,9 +611,39 @@ void MainEbrew::task_update_std(void)
     if (std_out & P0b) pump_bits  = 0x01;
     else               pump_bits  = 0x00;
     if (std_out & P1b) pump_bits |= 0x02;
-    //sprintf(s,"P%d\n",pump_bits);
-    //MainForm->comm_port_write(s); // TODO Send Px command to ebrew hardware
+    string = QString("P%1").arg(pump_bits); // Output all pumps
+    commPortWrite(string.toUtf8());
+    schedulerEbrew->updateDuration("updateStd",timer.nsecsElapsed()/1000);
 } // MainEbrew::task_update_std()
+
+/*-----------------------------------------------------------------------------
+  Purpose    : TASK: PID-controller
+  Period-Time: TS seconds
+  Variables  : -
+  Returns    : -
+  ---------------------------------------------------------------------------*/
+void MainEbrew::task_pid_control(void)
+{
+    QElapsedTimer timer;
+    QString       string;
+
+    timer.start(); // Task time-measurement
+
+    PidCtrlHlt->pidEnable(hlt_pid->getButtonState());     // PID is enabled if PowerButton state is ON
+    gamma_hlt = PidCtrlHlt->pidControl(thlt,tset_hlt);    // run pid-controller for HLT
+    if (gamma_hlt_sw) gamma_hlt = gamma_hlt_fx;
+    string = QString("H%1").arg(gamma_hlt,1,'f',0);       // PID-Output [0%..100%]
+    commPortWrite(string.toUtf8());
+
+    if (PidCtrlBk->pidGetStatus() != PID_FFC)             // PID_FFC is set by the STD
+        PidCtrlBk->pidEnable(boil_pid->getButtonState()); // PID is enabled if PowerButton state is ON
+    gamma_boil = PidCtrlBk->pidControl(tboil,tset_boil);  // run pid-controller for Boil-kettle
+    if (gamma_boil_sw) gamma_boil = gamma_boil_fx;
+
+    string = QString("B%1").arg(gamma_boil,1,'f',0);      // PID-Output [0%..100%]
+    commPortWrite(string.toUtf8());
+    schedulerEbrew->updateDuration("pidControl",timer.nsecsElapsed()/1000);
+} // MainEbrew::task_pid_control()
 
 /*-----------------------------------------------------------------------------
   Purpose    : TASK: Read all 5 Temperature values from hardware
@@ -515,10 +653,37 @@ void MainEbrew::task_update_std(void)
   ---------------------------------------------------------------------------*/
 void MainEbrew::task_read_temps(void)
 {
-    double temp1 = 0.0, temp2 = 0.0, temp3 = 0.0, temp4 = 0.0, temp5 = 0.0;
+    QElapsedTimer  timer;
+    QByteArray     ba;
+    QByteArrayList list;
+    int            count = 0;
 
+    timer.start();
+    commPortWrite("A0"); // A0 = Read all temperature values from Ebrew hardware
+    while (!ReadDataAvailable && (count++ < MAX_READ_RETRIES))
+    {
+        sleep(NORMAL_READ_TIMEOUT);
+    } // while
+    // Check string received for header and length "T=0.00,0.00,0.00,0.00,0.00"
+    if ((ReadData.indexOf("T=") != -1) && (ReadData.size() >= 26))
+    {
+        list = ReadData.split(','); // split array in sub-arrays
+        if (list.size() >= 5)
+        {   // at least 5 temperature values
+            ba = list.at(0);
+            ba.remove(0,2); // remove "T=" in 1st byte-array
+            ttriac  = ba.toDouble();
+            thlt    = list.at(1).toDouble();
+            tmlt    = list.at(2).toDouble();
+            tboil   = list.at(3).toDouble();
+            tcfc    = list.at(4).toDouble();
+        } // if
+    } // if
+    else
+    {   // error
+        qDebug() << "task_read_temps() error: " << ReadData;
+    } // else
     //------------------ TEMP1 (LM35) -----------------------------------------
-    ttriac = temp1;
     if (ttriac_sw)
     {  // Switch & Fix
        ttriac = ttriac_fx;
@@ -535,11 +700,11 @@ void MainEbrew::task_read_temps(void)
       triac_too_hot = (ttriac >= RegEbrew->value("TTRIAC_HLIM").toInt());
     } // else
     //------------------ TEMP2 (THLT) -----------------------------------------
-    if (temp2 > SENSOR_VAL_LIM_OK)
+    if (thlt > SENSOR_VAL_LIM_OK)
     {
-         //MainForm->Val_Thlt->Font->Color = clLime;
-         thlt = temp2 + thlt_offset; // update THLT with new value
-         //MainForm->sensor_alarm_info &= ~SENS_THLT;      // reset bit in sensor_alarm
+         //MainForm->Val_Thlt->Font->Color = clLime; // TODO: sound alarm for temp
+         thlt += RegEbrew->value("THLT_OFFSET").toDouble(); // update THLT with calibration value
+         //sensor_alarm_info &= ~SENS_THLT;      // reset bit in sensor_alarm
     } // if
 //    else
 //    {
@@ -555,10 +720,10 @@ void MainEbrew::task_read_temps(void)
        thlt = thlt_fx;
     } // if
     //------------------ TEMP3 (TMLT) -----------------------------------------
-    if (temp3 > SENSOR_VAL_LIM_OK)
+    if (tmlt > SENSOR_VAL_LIM_OK)
     {
          //MainForm->Val_Tmlt->Font->Color = clLime;
-         tmlt = temp3 + tmlt_offset; // update TMLT with new value
+         tmlt += RegEbrew->value("TMLT_OFFSET").toDouble(); // update TMLT with calibration value
          //MainForm->sensor_alarm_info &= ~SENS_TMLT;      // reset bit in sensor_alarm
     } // if
 //    else
@@ -575,10 +740,10 @@ void MainEbrew::task_read_temps(void)
        tmlt = tmlt_fx;
     } // if
     //------------------ TEMP4 (TBOIL) ----------------------------------------
-    if (temp4 > SENSOR_VAL_LIM_OK)
+    if (tboil > SENSOR_VAL_LIM_OK)
     {
          //MainForm->Temp_Boil->Font->Color = clLime;
-         tboil = temp4 + tboil_offset; // update TBOIL with new value
+         tboil += RegEbrew->value("TBOIL_OFFSET").toDouble(); // update TBOIL with calibration value
          //MainForm->sensor_alarm_info &= ~SENS_TBOIL;       // reset bit in sensor_alarm
     } // if
 //    else
@@ -595,10 +760,10 @@ void MainEbrew::task_read_temps(void)
        tboil = tboil_fx;
     } // if
     //------------------ TEMP5 (TCFC) -----------------------------------------
-    if (temp5 > SENSOR_VAL_LIM_OK)
+    if (tcfc > SENSOR_VAL_LIM_OK)
     {
          //MainForm->Temp_CFC->Font->Color = clLime;
-         tcfc = temp5 + tcfc_offset; // update TCFC with new value
+         tcfc += RegEbrew->value("TCFC_OFFSET").toDouble(); // update TCFC with calibration value
          //MainForm->sensor_alarm_info &= ~SENS_TCFC;      // reset bit in sensor_alarm
     } // if
 //    else
@@ -611,6 +776,7 @@ void MainEbrew::task_read_temps(void)
 //         } // if
 //    } // else
     // No switch/fix needed for TCFC
+    schedulerEbrew->updateDuration("readTemps",timer.nsecsElapsed()/1000);
 } // MainEbrew::task_read_temps()
 
 /*-----------------------------------------------------------------------------
@@ -621,7 +787,35 @@ void MainEbrew::task_read_temps(void)
   ---------------------------------------------------------------------------*/
 void MainEbrew::task_read_flows(void)
 {
-    Flow_hlt_mlt = Flow_mlt_boil = Flow_cfc_out = Flow4 = 0.0; // TODO reading flows from hardware
+    QElapsedTimer  timer;
+    QByteArray     ba;
+    QByteArrayList list;
+    int            count = 0;
+
+    timer.start();
+    commPortWrite("A9"); // Read all flowsensor values from Ebrew hardware
+    while (!ReadDataAvailable && (count++ < MAX_READ_RETRIES))
+    {
+        sleep(NORMAL_READ_TIMEOUT);
+    } // while
+    // Check string received for header and length "F=0.00,0.00,0.00,0.00"
+    if ((ReadData.indexOf("F=") != -1) && (ReadData.size() >= 21))
+    {
+        list = ReadData.split(','); // split array in sub-arrays
+        if (list.size() >= 4)
+        {   // at least 4 flowsensors
+            ba = list.at(0);
+            ba.remove(0,2); // remove "F=" in 1st byte-array
+            Flow_hlt_mlt  = ba.toDouble();
+            Flow_mlt_boil = list.at(1).toDouble();
+            Flow_cfc_out  = list.at(2).toDouble();
+            Flow4         = list.at(3).toDouble();
+        } // if
+    } // if
+    else
+    {   // error
+        qDebug() << "task_read_flows() error: " << ReadData;
+    } // else
 
     F1->setFlowValue(Flow_hlt_mlt ,thlt);
     F2->setFlowValue(Flow_mlt_boil,tmlt);
@@ -632,7 +826,7 @@ void MainEbrew::task_read_flows(void)
 //    if ((F1->getFlowRate() < 0.1) && flow1_running &&
 //        ((no_sound == ALARM_FLOW_SENSORS) || (no_sound == ALARM_TEMP_FLOW_SENSORS)))
 //    {
-//         MainForm->comm_port_write("X2\n"); // sound alarm
+//         MainForm->comm_port_write("X2\n"); // TODO sound alarm for flow
 //         MainForm->sensor_alarm_info |=  SENS_FLOW1;
 //    } // if
 //    else MainForm->sensor_alarm_info &= ~SENS_FLOW1;
@@ -678,7 +872,43 @@ void MainEbrew::task_read_flows(void)
 //         MainForm->sensor_alarm_info |=  SENS_FLOW4;
 //    } // if
 //    else MainForm->sensor_alarm_info &= ~SENS_FLOW4;
+    schedulerEbrew->updateDuration("readFlows",timer.nsecsElapsed()/1000);
 } // task_read_flows()
+
+/*-----------------------------------------------------------------------------
+  Purpose    : TASK: Write all relevant data to a log-file.
+  Period-Time: 5 seconds
+  Variables: -
+  Returns  : -
+  ---------------------------------------------------------------------------*/
+void MainEbrew::task_write_logfile()
+{
+    QString string;
+
+    if (fEbrewLog != nullptr)
+    {   // Ebrew log-file is opened
+        QTextStream stream(fEbrewLog);
+        QTime       d = QTime::currentTime();
+
+        string = QString("%1,%2,%3,%4,%5,%6,%7,%8,%9,%10,%11,%12,%13,%14,%15")
+                         .arg(tset_mlt,5,'f',2)    /* Setpoint temperature for MLT */
+                         .arg(tset_hlt,5,'f',2)    /* Setpoint temperature for HLT */
+                         .arg(thlt,5,'f',2)        /* HLT actual temperature */
+                         .arg(tmlt,5,'f',2)        /* MLT actual temperature */
+                         .arg(ttriac,4,'f',1)      /* Temperature of power-electronics */
+                         .arg(Vmlt,5,'f',1)        /* MLT actual volume */
+                         .arg(sp_idx)              /* current sparge-index */
+                         .arg(ms_idx)              /* current mash-index */
+                         .arg(ebrew_std,2)         /* Current state of STD */
+                         .arg(gamma_hlt,5,'f',1)   /* PID output for HLT */
+                         .arg(Vhlt,5,'f',1)        /* HLT actual volume */
+                         .arg(Vboil,5,'f',1)       /* boil-kettle actual volume */
+                         .arg(tboil,5,'f',1)       /* boil-kettle actual temperature */
+                         .arg(tcfc,4,'f',1)        /* CFC actual temperature */
+                         .arg(gamma_boil,5,'f',1); /* PID output for boil-kettle */
+        stream << d.toString("hh:mm:ss") << "," << string << "\n";
+    } // if
+} // MainEbrew::task_write_logfile()
 
 /*------------------------------------------------------------------
   Purpose  : This function is called whenever in the Menubar
@@ -694,7 +924,7 @@ void MainEbrew::about(void)
                 " dedicated hardware solution, based around an Arduino Nano<br><br>"
                 "This version is a redesign from Ebrew 2.0, that was created"
                 " with Borland C++ Builder and was in use from 2003 - 2020. It's latest revision was r1.99.<br><br>"
-                "This version (Ebrew 3.0 Qt) is a complete redesign and is built with Qt 5.<br><br>"
+                "This version (Ebrew 3.0 Qt) is a complete redesign and is built with Qt 5.14<br><br>"
                 "Web-site: <a href=\"www.vandelogt.nl\">www.vandelogt.nl</a><br>"
                 "Brewery: Brouwerij de Boezem, The Netherlands");
 } // MainEbrew::about()
@@ -705,7 +935,7 @@ void MainEbrew::about(void)
   Variables: -
   Returns  : -
   ------------------------------------------------------------------*/
-void MainEbrew::setStateName(void)
+void MainEbrew::setStateName(void) // TODO integrate setStateName() with state_machine()
 {
     QString string;
 
@@ -890,6 +1120,32 @@ void MainEbrew::MenuEditFixParameters(void)
 
 /*------------------------------------------------------------------
   Purpose  : This function is called whenever in the Menubar
+             View->Mash & Sparge Progress is clicked.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::MenuViewProgress(void)
+{
+    auto Dialog = new DialogViewProgress(this);
+
+    Dialog->show();
+} // MainEbrew::MenuViewProgress()
+
+/*------------------------------------------------------------------
+  Purpose  : This function is called whenever in the Menubar
+             View->Task-list and Timing is clicked.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::MenuViewTaskList(void)
+{
+    auto Dialog = new DialogViewTaskList(this);
+
+    Dialog->show();
+} // MainEbrew::MenuViewTaskList()
+
+/*------------------------------------------------------------------
+  Purpose  : This function is called whenever in the Menubar
              Options->PID Controller Settings is clicked.
   Variables: -
   Returns  : -
@@ -961,6 +1217,180 @@ void MainEbrew::msgBox(QString title, QString text, QCheckBox *cb)
         } // if
     } // if
 } // MainEbrew::msgBox()
+
+/*------------------------------------------------------------------
+  Purpose  : This function opens a communication channel. This can be
+             either an Ethernet UDP or a virtual COM port over USB.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::commPortOpen(void)
+{
+    int x = RegEbrew->value("COMM_CHANNEL").toInt();
+    QSerialPort::Parity y;
+    QString      string = RegEbrew->value("COM_PORT_SETTINGS").toString();
+    QStringList  list   = string.split(',');
+    QSerialPort *p      = new QSerialPort;
+
+    serialPort = p; // copy pointer to MainEbrew
+    comPortIsOpen = false;
+
+    if (x > 0)
+    {   // Any of the Virtual USB COM ports
+        p->setPortName(QString("COM%1").arg(x));
+        if (p->open(QIODevice::ReadWrite))
+        {   //Now the serial port is open. Try to set configuration
+            comPortIsOpen = true;
+            if (list.size() != 4)
+               qDebug() << "COM_PORT_SETTINGS not set correctly: " << string;
+            else
+            {
+                if (!p->setBaudRate(list.at(0).toInt()))
+                    qDebug() << p->errorString();
+                switch (toupper(list.at(1).toInt()))
+                {
+                    case 'N': y = QSerialPort::NoParity  ; break;
+                    case 'O': y = QSerialPort::EvenParity; break;
+                    case 'E': y = QSerialPort::OddParity ; break;
+                    default : y = QSerialPort::NoParity  ; break;
+                } // switch
+                if(!p->setParity(y))
+                    qDebug() << p->errorString();
+                if(!p->setDataBits((QSerialPort::DataBits)list.at(2).toInt()))
+                    qDebug() << p->errorString();
+                if(!p->setStopBits((QSerialPort::StopBits)list.at(3).toInt()))
+                    qDebug() << p->errorString();
+                if(!p->setFlowControl(QSerialPort::NoFlowControl))
+                    qDebug() << p->errorString();
+                connect(p, &QSerialPort::readyRead,this,&MainEbrew::commPortRead2);
+            } // else
+        } // if
+        else qDebug()<<"Serial port"<< p->portName() << " not opened. Error: " << p->errorString();
+    } // if
+    else
+    {   // Ethernet UDP connection
+
+    } // else
+    if (RegEbrew->value("CB_DEBUG_COM_PORT").toInt())
+    {
+        QFile *f = new QFile(COMMDBGFILE); // open comm debug log file
+        if (f->open(QIODevice::WriteOnly | QIODevice::Append))
+        {
+            QString d = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss");
+            fDbgCom = f; // copy pointer to MainEbrew
+            QTextStream stream(f);
+            stream << "----------------------------------------------------------------------\n" <<
+                      "File opened: " << d << " ";
+            if (x > 0) stream << p->portName();
+            else       stream << "Ethernet: " << RegEbrew->value("UDP_IP_PORT").toByteArray();
+            stream << "\n";
+        } // if
+        else fDbgCom = nullptr;
+    } // if
+    else fDbgCom = nullptr;
+} // MainEbrew::commPortOpen()
+
+/*------------------------------------------------------------------
+  Purpose  : This function closes the communications channel. This can
+             be an Ethernet UDP or a virtual COM port over USB.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::commPortClose(void)
+{
+    if (RegEbrew->value("COMM_CHANNEL").toInt() > 0)
+    {   // Any of the Virtual USB COM ports
+        if (comPortIsOpen)
+        {
+            serialPort->flush(); // send data in buffers to serial port
+            serialPort->close(); // close the serial port
+        } // if
+    } // if
+    if (fDbgCom != nullptr)
+    {
+        QString d = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss");
+        QTextStream stream(fDbgCom);
+        stream << "\nFile closed: " << d << "\n" <<
+                  "----------------------------------------------------------------------\n\n";
+        fDbgCom->flush();
+        fDbgCom->close();
+    } // if
+    // TODO: ms_idx MAX_MS restore settings
+} // MainEbrew::commPortClose()
+
+/*------------------------------------------------------------------
+  Purpose  : This function writes a string to the communications channel.
+             This can be an Ethernet UDP or a virtual COM port over USB.
+  Variables: s: the string to write to the communications channel.
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::commPortWrite(QByteArray s)
+{
+    if (RegEbrew->value("COMM_CHANNEL").toInt() > 0)
+    {   // Any of the Virtual USB COM ports
+        ReadDataAvailable = false;
+        ReadData.clear();
+        serialPort->write(s + "\n"); // add newline character
+        if (!serialPort->waitForBytesWritten(100))
+            qDebug() << "CommPortWrite() timeout";
+    } // if
+    else
+    {   // Ethernet UDP connection
+
+    } // else
+    if (fDbgCom != nullptr)
+    {   // comm. debug-logging is enabled
+        QTime d = QTime::currentTime();
+        QTextStream stream(fDbgCom);
+        stream << "\nW" << d.toString("ss") << "." << d.toString("zzz") << "[" << s << "]";
+    } // if
+} // MainEbrew::commPortWrite()
+
+/*------------------------------------------------------------------
+  Purpose  : This function reads a string from the communications channel.
+             This can be an Ethernet UDP or a virtual COM port over USB.
+             For the Virtual COM port, this routine is used in a
+             signal-slot combination. Signal is readyRead() from the
+             SerialPort, slot is this function.
+  Variables: ReadData         : the data read from the Virtual COM port
+             ReadDataAvailable: true = new data is available
+  Returns  : the string read from the communications channel.
+  ------------------------------------------------------------------*/
+void MainEbrew::commPortRead2(void)
+{
+    if (RegEbrew->value("COMM_CHANNEL").toInt() > 0)
+    {   // Any of the Virtual USB COM ports
+        ReadData = serialPort->readAll();
+        removeLF(ReadData); // remove \n
+        ReadDataAvailable = true;
+    } // if
+    else
+    {   // Ethernet UDP connection
+
+    } // else
+
+    if (fDbgCom != nullptr)
+    {   // comm. debug-logging is enabled
+        QTime d = QTime::currentTime();
+        QTextStream stream(fDbgCom);
+        stream << " R" << d.toString("ss") << "." << d.toString("zzz") << "[" << ReadData << "]";
+        if (serialPort->error() == QSerialPort::ReadError) stream << " Read-error: " << serialPort->errorString();
+    } // if
+} // MainEbrew::commPortRead2()
+
+/*------------------------------------------------------------------
+  Purpose  : This function removes all newline (\n) chars from a string.
+  Variables: s: the string with the \n in it.
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::removeLF(QByteArray &s)
+{
+    int i;
+    while (!s.isEmpty() && ((i = s.indexOf('\n',0)) > -1))
+    {
+        s.remove(i,1); // remove \n
+    } // while
+} // MainEbrew::removeLF()
 
 /*------------------------------------------------------------------
   Purpose  : This function contains the State Transition Diagram (STD)
@@ -1370,7 +1800,8 @@ uint16_t MainEbrew::state_machine(void)
         //---------------------------------------------------------------------------
         case S09_EMPTY_MLT:
             tset_mlt  = ms[ms_idx].temp;
-            tset_hlt  = 0.0;      // Disable HLT PID-Controller
+            tset_hlt  = 0.0;                // Disable HLT PID-Controller
+            hlt_pid->setButtonState(false); // Disable PID-controller for HLT
             tset_boil = RegEbrew->value("SP_BOIL").toDouble();  // Boil Temperature Setpoint
             boil_pid->setButtonState(true); // Enable PID-Controller for Boil-Kettle
             if (F2->isFlowRateLow())
@@ -1434,8 +1865,8 @@ uint16_t MainEbrew::state_machine(void)
         case S16_CHILL_PUMP_FERMENTOR:
             tset_boil = 0.0;  // Boil Temperature Setpoint
             boil_pid->setButtonState(false); // Disable PID-Controller for Boil-Kettle
-            if (F3->isFlowRateLow()) // flowRate of CFC-output
             //if ((ui & UI_CHILLING_FINISHED) || (flow_rate_low(vol->Flow_rate_cfc_out,&frl_empty_boil)))
+            if (F3->isFlowRateLow()) // flowRate of CFC-output
             {
                 ebrew_std = S17_FINISHED;
             } // if
@@ -1476,8 +1907,9 @@ uint16_t MainEbrew::state_machine(void)
         //---------------------------------------------------------------------------
         case S21_CIP_HEAT_UP:
              tset_boil = RegEbrew->value("CIP_SP").toDouble(); // Boil-Kettle Temperature Setpoint
-             //pid_ctrl_boil_on = 2;           // TODO: Enable Feed-Forward for Boil-Kettle
-             if (tboil > tset_boil - 5.0) // Almost at setpoint temperature
+             PidCtrlBk->pidEnable(PID_FFC);  // Enable Feed-forward control for Boil-kettle
+             boil_pid->setButtonState(true); // Enabled PID-Controller Power-button
+             if (tboil > tset_boil - 5.0)    // Almost at setpoint temperature
              {
                 cip_tmr1  = 0;        // Init. CIP timer
                 ebrew_std = S22_CIP_CIRC_5_MIN;
@@ -1491,7 +1923,8 @@ uint16_t MainEbrew::state_machine(void)
          //---------------------------------------------------------------------------
          case S22_CIP_CIRC_5_MIN:
               tset_boil = RegEbrew->value("CIP_SP").toDouble(); // Boil-Kettle Temperature Setpoint
-              boil_pid->setButtonState(true);    // Enable PID-Controller for Boil-Kettle
+              PidCtrlBk->pidEnable(PID_ON);      // Enable normal control for Boil-kettle
+              boil_pid->setButtonState(true);    // Enable PID-Controller Power-button
               if (++cip_tmr1 >= RegEbrew->value("CIP_CIRC_TIME").toInt())
               {
                  cip_tmr1  = 0;        // Reset CIP timer
@@ -1660,47 +2093,15 @@ uint16_t MainEbrew::state_machine(void)
     // Now calculate the proper settings for the valves
     //-------------------------------------------------
     klepstand = klepstanden[ebrew_std];
-    if (!(P2->inManualMode()))
-    {  // Pump 2 not in Manual Override mode
-       if (klepstand & P1b) P2->setStatus(AUTO_ON);
-       else                 P2->setStatus(AUTO_OFF);
-    } // if
-    if (!(P1->inManualMode()))
-    {  // Pump 1 (Main brew pump) not in Manual Override mode
-       if (klepstand & P0b) P1->setStatus(AUTO_ON);
-       else                 P1->setStatus(AUTO_OFF);
-    } // if
-    // V8: Future Use
-    if (!(V7->inManualMode()))
-    {  // Valve 7 not in Manual Override mode
-       if (klepstand & V7b) V7->setStatus(AUTO_ON);
-       else                 V7->setStatus(AUTO_OFF);
-    } // if
-    if (!(V6->inManualMode()))
-    {  // Valve 6 not in Manual Override mode
-       if (klepstand & V6b) V6->setStatus(AUTO_ON);
-       else                 V6->setStatus(AUTO_OFF);
-    } // if
-    // V5: Future Use
-    if (!(V4->inManualMode()))
-    {  // Valve 4 not in Manual Override mode
-       if (klepstand & V4b) V4->setStatus(AUTO_ON);
-       else                 V4->setStatus(AUTO_OFF);
-    } // if
-    if (!(V3->inManualMode()))
-    {  // Valve 3 not in Manual Override mode
-       if (klepstand & V3b) V3->setStatus(AUTO_ON);
-       else                 V3->setStatus(AUTO_OFF);
-    } // if
-    if (!(V2->inManualMode()))
-    {  // Valve 2 not in Manual Override mode
-       if (klepstand & V2b) V2->setStatus(AUTO_ON);
-       else                 V2->setStatus(AUTO_OFF);
-    } // if
-    if (!(V1->inManualMode()))
-    {  // Valve 1 not in Manual Override mode
-       if (klepstand & V1b) V1->setStatus(AUTO_ON);
-       else                 V1->setStatus(AUTO_OFF);
-    } // if
+    P2->setActuator(klepstand,P1b); // Main pump
+    P1->setActuator(klepstand,P0b); // Pump for HLT heat-exchanger
+    // V8: Future use
+    V7->setActuator(klepstand,V7b); // Input valve for boil-kettle
+    V6->setActuator(klepstand,V6b); // Output valve for CFC
+    // V5: Future use
+    V4->setActuator(klepstand,V4b); // Valve between HLT heat-exchanger and MLT return at top
+    V3->setActuator(klepstand,V3b); // Output valve of boil-kettle
+    V2->setActuator(klepstand,V2b); // Output valve of HLT
+    V1->setActuator(klepstand,V1b); // Output valve of MLT
     return klepstand;
 } // MainEbrew::state_machine()

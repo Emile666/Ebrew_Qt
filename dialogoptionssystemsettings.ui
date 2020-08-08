@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Systems Settings Dialog</string>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
@@ -39,7 +39,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -60,7 +60,7 @@
      <property name="title">
       <string>Brew-system Heating Mode</string>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -417,9 +417,9 @@
     <widget class="QWidget" name="formLayoutWidget_2">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>0</x>
        <y>20</y>
-       <width>281</width>
+       <width>291</width>
        <height>81</height>
       </rect>
      </property>
@@ -450,58 +450,58 @@
        <widget class="QComboBox" name="cbCommCh">
         <property name="maximumSize">
          <size>
-          <width>100</width>
+          <width>160</width>
           <height>16777215</height>
          </size>
         </property>
         <item>
          <property name="text">
-          <string>Ethernet (UDP)</string>
+          <string>ETH: Ethernet (UDP)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>COM1 (Virtual USB)</string>
+          <string>COM1:</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>COM2 (Virtual USB)</string>
+          <string>COM2:</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>COM3 (Virtual USB)</string>
+          <string>COM3:</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>COM4 (Virtual USB)</string>
+          <string>COM4:</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>COM5 (Virtual USB)</string>
+          <string>COM5:</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>COM6 (Virtual USB)</string>
+          <string>COM6:</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>COM7 (Virtual USB)</string>
+          <string>COM7:</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>COM8 (Virtual USB)</string>
+          <string>COM8:</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>COM9 (Virtual USB)</string>
+          <string>COM9:</string>
          </property>
         </item>
        </widget>
@@ -520,7 +520,7 @@
        <widget class="QLineEdit" name="leComPort">
         <property name="maximumSize">
          <size>
-          <width>150</width>
+          <width>160</width>
           <height>16777215</height>
          </size>
         </property>
@@ -543,7 +543,7 @@
        <widget class="QLineEdit" name="leIPaddr">
         <property name="maximumSize">
          <size>
-          <width>150</width>
+          <width>160</width>
           <height>16777215</height>
          </size>
         </property>
@@ -557,7 +557,7 @@
     <widget class="QCheckBox" name="cbDbgLog">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>0</x>
        <y>110</y>
        <width>251</width>
        <height>17</height>
@@ -568,6 +568,43 @@
      </property>
      <property name="text">
       <string>Debug: File-logging of COM-port communication</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblAvailable">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>130</y>
+       <width>151</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+       <horstretch>10</horstretch>
+       <verstretch>10</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="sizeIncrement">
+      <size>
+       <width>10</width>
+       <height>10</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::AutoText</enum>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
      </property>
     </widget>
    </widget>

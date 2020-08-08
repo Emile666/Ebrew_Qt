@@ -107,14 +107,14 @@ void Scheduler::scheduler_isr(void)
 void Scheduler::dispatch_tasks(void)
 {
     uint8_t index = 0;
-    QElapsedTimer timer;
+    //QElapsedTimer timer;
 
     //go through the active tasks
     while(task_list[index].Period)
     {
         if((task_list[index].Status & (TASK_READY | TASK_ENABLED)) == (TASK_READY | TASK_ENABLED))
         {
-            timer.start();
+            //timer.start(); // start the elapsed timer
             switch (index)
             {   // send signal for specific task
                 case 0 : emit signal_task0(); break;
@@ -130,11 +130,11 @@ void Scheduler::dispatch_tasks(void)
             } // switch
             task_list[index].Status &= ~TASK_READY; // reset the task when finished
             task_list[index].Counter = task_list[index].Period; // reset counter
-            task_list[index].Duration = (uint16_t)(timer.elapsed()); // duration in milliseconds
-            if (task_list[index].Duration > task_list[index].Duration_Max)
-            {   // determine max. duration
-                task_list[index].Duration_Max = task_list[index].Duration;
-            } // if
+//            task_list[index].Duration = (uint16_t)(timer.nsecsElapsed()); // duration in milliseconds
+//            if (task_list[index].Duration > task_list[index].Duration_Max)
+//            {   // determine max. duration
+//                task_list[index].Duration_Max = task_list[index].Duration;
+//            } // if
         } // if
         index++; // next task
     } // while
@@ -223,6 +223,39 @@ uint8_t Scheduler::enable_task(char *Name)
 } // Scheduler::enable_task()
 
 /*-----------------------------------------------------------------------------
+  Purpose  : Manually update a duration for a task.
+  Variables: Name: Name of task to enable
+  Returns  : error [NO_ERR, ERR_NAME, ERR_EMPTY]
+  ---------------------------------------------------------------------------*/
+uint8_t Scheduler::updateDuration(const char *Name, uint16_t duration)
+{
+    uint8_t index = 0;
+    uint8_t found = false;
+
+    //go through the active tasks
+    if(task_list[index].Period != 0)
+    {
+        while ((task_list[index].Period != 0) && !found)
+        {
+            if (!strcmp(task_list[index].Name,Name))
+            {
+                task_list[index].Duration = duration;
+                if (task_list[index].Duration > task_list[index].Duration_Max)
+                {   // determine max. duration
+                    task_list[index].Duration_Max = task_list[index].Duration;
+                } // if
+                found = true;
+            } // if
+            index++;
+        } // while
+    } // if
+    else return ERR_EMPTY;
+    if (!found)
+         return ERR_NAME;
+    else return NO_ERR;
+} // Scheduler::updateDuration()
+
+/*-----------------------------------------------------------------------------
   Purpose  : Disable a task.
   Variables: Name: Name of task to disable
   Returns  : error [NO_ERR, ERR_NAME, ERR_EMPTY]
@@ -257,7 +290,7 @@ uint8_t Scheduler::disable_task(char *Name)
              name: the name of the task to set the time for
   Returns  : error [NO_ERR, ERR_NAME, ERR_EMPTY]
   ---------------------------------------------------------------------------*/
-uint8_t Scheduler::set_task_time_period(uint16_t Period, char *Name)
+uint8_t Scheduler::set_task_time_period(uint16_t Period, const char *Name)
 {
 	uint8_t index = 0;
     uint8_t found = false;
@@ -291,18 +324,18 @@ QString Scheduler::list_all_tasks(void)
     uint8_t index = 0;
     QString fd;
 
-    fd  = "Task-Name      T(ms) Stat T(ms) M(ms)\n";
+    fd  = "Task-Name      T(ms) Stat T(μs) M(μs)\n";
     fd += "-------------------------------------\n";
     //go through the active tasks
     if(task_list[index].Period != 0)
     {
         while (task_list[index].Period != 0)
         {
-            fd += QString("%1 %2 0x%3 %4 %5").arg(task_list[index].Name,14)
-                                             .arg(task_list[index].Period * 1000 / TICKS_PER_SEC,5)
-                                             .arg(task_list[index].Status,3,16)
-                                             .arg(task_list[index].Duration,3)
-                                             .arg(task_list[index].Duration_Max,3);
+            fd += QString("%1 %2 0x%3 %4 %5\n").arg(task_list[index].Name,14)
+                                               .arg(task_list[index].Period * 1000 / TICKS_PER_SEC,5)
+                                               .arg(task_list[index].Status,2,16,QLatin1Char('0'))
+                                               .arg(task_list[index].Duration,5)
+                                               .arg(task_list[index].Duration_Max,5);
             index++;
         } // while
     } // if

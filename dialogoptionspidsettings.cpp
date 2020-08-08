@@ -37,6 +37,10 @@ void DialogOptionsPidSettings::on_buttonBox_accepted()
     pEbrew->RegEbrew->setValue("Ti",ui->sbTi->value());
     pEbrew->RegEbrew->setValue("Td",ui->sbTd->value());
     pEbrew->RegEbrew->setValue("TSET_SLOPE_LIM",ui->sbSlpL->value());
+    pEbrew->PidCtrlHlt->pidInit(ui->sbKc->value(),ui->sbTi->value(),ui->sbTd->value(),ui->sbTs->value());
+    pEbrew->PidCtrlBk->pidInit(ui->sbKc->value(),ui->sbTi->value(),ui->sbTd->value(),ui->sbTs->value());
+    // Now update schedule task for PID-controller with new task-time
+    pEbrew->schedulerEbrew->set_task_time_period((uint16_t)(1000 * ui->sbTs->value()),"pidControl");
     if (ui->cbDStart->isChecked())
     {
         pEbrew->delayed_start = true;

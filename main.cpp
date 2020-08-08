@@ -92,19 +92,23 @@ int main(int argc, char **argv)
     QTimer    *mainTimer  = new QTimer(0); // 0 is needed here
     Scheduler *scheduler  = new Scheduler();
 
+    mainTimer->setTimerType(Qt::PreciseTimer); // set to millisecond accuracy
     mainTimer->setInterval(100); // set to 100 msec.
     mainTimer->moveToThread(mainThread);
-    QObject::connect(mainTimer,SIGNAL(timeout()),Ebrew,SLOT(T100msecLoop()));
+    //QObject::connect(mainTimer,SIGNAL(timeout()),Ebrew,SLOT(T100msecLoop()));
     // Make sure the timer gets started from mainThread.
     mainTimer->connect(mainThread,SIGNAL(started()),SLOT(start()));
     mainThread->start(); // start the thread
 
     Ebrew->connect(mainTimer,SIGNAL(timeout()),scheduler,SLOT(scheduler_isr()));  // runs at 100 msec.
     Ebrew->connect(mainTimer,SIGNAL(timeout()),scheduler,SLOT(dispatch_tasks())); // dispatcher also runs at 100 msec.
-    scheduler->add_task("Alive_led" ,  0,TS_LED_MSEC  ,Ebrew,SLOT(task_alive_led()));      // TASK 0
-    scheduler->add_task("read_temps",100,TS_TEMPS_MSEC,Ebrew,SLOT(task_read_temps()));     // TASK 1
-    scheduler->add_task("update_std",400,TS_STD_MSEC  ,Ebrew,SLOT(task_update_std()));     // TASK 3
-    scheduler->add_task("read_flows",600,TS_FLOWS_MSEC,Ebrew,SLOT(task_read_flows()));     // TASK 5
+    scheduler->add_task("aliveLed"  ,   0,TS_LED_MSEC  ,Ebrew,SLOT(task_alive_led()));      // TASK 0
+    scheduler->add_task("readTemps" , 100,TS_TEMPS_MSEC,Ebrew,SLOT(task_read_temps()));     // TASK 1
+    scheduler->add_task("pidControl", 300,(uint16_t)(1000*Ebrew->RegEbrew->value("TS").toInt()),Ebrew,SLOT(task_pid_control())); // TASK 2
+    scheduler->add_task("updateStd" , 400,TS_STD_MSEC  ,Ebrew,SLOT(task_update_std()));     // TASK 3
+    scheduler->add_task("readFlows" , 600,TS_FLOWS_MSEC,Ebrew,SLOT(task_read_flows()));     // TASK 5
+    scheduler->add_task("wrLogFile" ,1600,TS_WR_LOGFILE,Ebrew,SLOT(task_write_logfile()));  // TASK 6
+    Ebrew->schedulerEbrew = scheduler; // copy pointer to scheduler to MainEbrew
 
     //------------------------------------------------------
     // Create the HMI screen and connect it to Ebrew
