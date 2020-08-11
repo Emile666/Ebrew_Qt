@@ -117,7 +117,7 @@ MainEbrew::MainEbrew(void) : QMainWindow()
     int  count = 10;     // Number of retries for S0 response
     bool found = false;
     ReadDataAvailable = false;
-    while (!ReadDataAvailable && (count-- > 0) && !found)
+    while (comPortIsOpen && !ReadDataAvailable && (count-- > 0) && !found)
     {
         commPortWrite("S0"); // retry
         sleep(100);          // wait until data available
@@ -131,12 +131,10 @@ MainEbrew::MainEbrew(void) : QMainWindow()
     if (found)
     {
         srev.append(ReadData.right(4));
-        qDebug() << "ReadData = " << ReadData;
     } // if
     else
     {
         srev.append("?.?");
-        qDebug() << "S0 Timeout";
     } // else
     statusSwRev->setText(srev);
 
@@ -157,7 +155,7 @@ MainEbrew::MainEbrew(void) : QMainWindow()
         stream << "ms_tot: " << ms_tot << "\n";
         stream << "Another line\n";
         stream << " Time    TsetM TsetH  Thlt  Tmlt Telc  Vmlt s m st  GmaH  Vhlt VBoil TBoil  Tcfc GmaB\n";
-        stream << "[h:m:s]   [\xB0\C]  [\xB0\C]  [\xB0\C]  [\xB0\C] [\xB0\C]   [L] p s  d   [%]   [L]   [L]  [\xB0\C]  [\xB0\C]  [%]\n";
+        stream << "[h:m:s]   [\xB0""C]  [\xB0""C]  [\xB0""C]  [\xB0""C] [\xB0""C]   [L] p s  d   [%]   [L]   [L]  [\xB0""C]  [\xB0""C]  [%]\n";
         stream << "-------------------------------------------------------------------------------------\n";
     } // if
     else fEbrewLog = nullptr;
@@ -175,7 +173,7 @@ void MainEbrew::sleep(uint16_t msec)
     QTime dieTime = QTime::currentTime().addMSecs(msec);
     while(QTime::currentTime() < dieTime)
     {
-        QApplication::processEvents(QEventLoop::AllEvents, 100);
+        QApplication::processEvents(QEventLoop::AllEvents);
     } // while
 } // MainEbrew:: sleep()
 
@@ -537,52 +535,90 @@ void MainEbrew::initBrewDaySettings(void)
     boil_time_ticks = 60 * boil_time;
 } // MainEbrew::initBrewDaySettings()
 
+/*------------------------------------------------------------------
+  Purpose  : This function handles the key-press events
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::keyPressEvent(QKeyEvent *event)
+{
+    switch (event->key())
+    {
+        case     Qt::Key_1: V1->setNextStatus(); break;
+        case     Qt::Key_2: V2->setNextStatus(); break;
+        case     Qt::Key_3: V3->setNextStatus(); break;
+        case     Qt::Key_4: V4->setNextStatus(); break;
+        case     Qt::Key_6: V6->setNextStatus(); break;
+        case     Qt::Key_7: V7->setNextStatus(); break;
+        case     Qt::Key_P: P1->setNextStatus(); break; // main pump
+        case     Qt::Key_Q: P2->setNextStatus(); break; // pump for HLT heat-exchanger
+        case     Qt::Key_A: V1->setStatus(AUTO_OFF);
+                            V2->setStatus(AUTO_OFF);
+                            V3->setStatus(AUTO_OFF);
+                            V4->setStatus(AUTO_OFF);
+                            V6->setStatus(AUTO_OFF);
+                            V7->setStatus(AUTO_OFF);
+                            P1->setStatus(AUTO_OFF);
+                            P2->setStatus(AUTO_OFF);
+                            break;
+        case     Qt::Key_R: commPortWrite("R0"); // reset all flows to 0.0 L in ebrew hardware
+                            break;
+        case     Qt::Key_S: // toggle between various alarms or no alarm
+                            if (++alarmSound > ALARM_TEMP_FLOW_SENSORS) alarmSound = ALARM_OFF;
+                            switch (alarmSound)
+                            {
+                                 case ALARM_OFF:               statusAlarm->setText(" Sensor Alarm: OFF ")      ; break;
+                                 case ALARM_TEMP_SENSORS:      statusAlarm->setText(" Sensor Alarm: TEMP ")     ; break;
+                                 case ALARM_FLOW_SENSORS:      statusAlarm->setText(" Sensor Alarm: FLOW ")     ; break;
+                                 case ALARM_TEMP_FLOW_SENSORS: statusAlarm->setText(" Sensor Alarm: TEMP+FLOW "); break;
+                            } // switch
+                            break;
+        default:            break;
+    } // switch
+} // MainEbrew::keyPressEvent()
+
 /*-----------------------------------------------------------------------------
   Purpose    : TASK: ALIVE Led toggle
   Period-Time: 0.5 second
-  Variables  : -
-  Returns    : -
   ---------------------------------------------------------------------------*/
 void MainEbrew::task_alive_led(void)
 {
     QElapsedTimer timer;
-    QString       string;
 
     timer.start();
 
-    gamma_hlt = 0.0;
     hlt->setValues(thlt,tset_hlt,Vhlt,gamma_hlt); // temp, sp, vol, power
     hlt->update();
 
     mlt->setValues(tmlt,0.0,Vmlt,0.0);
     mlt->update();
 
-    gamma_boil = 0.0;
     boil->setValues(tboil,tset_boil,Vboil,gamma_boil); // temp, sp, vol, power
     boil->update();
+
+    T3->setTempValue(tcfc); // Separate temp. sensor for Tcfc
+    T3->update();
 
     //------------------------------------------------------------------
     // Toggle alive toggle bit to see if this routine is still alive
     //------------------------------------------------------------------
     toggle_led = !toggle_led;
-    string = QString("L%1").arg(toggle_led ? 1 : 0); // send Alive Led to ebrew hardware
+    QString string = QString("L%1").arg(toggle_led ? 1 : 0); // send Alive Led to ebrew hardware
     commPortWrite(string.toUtf8());
     schedulerEbrew->updateDuration("aliveLed",timer.nsecsElapsed()/1000);
 } // task_alive_led()
 
 /*------------------------------------------------------------------
-  Purpose  : This function is called every seconds from the scheduler.
-             It calles the Ebrew State Transition Diagram (STD).
-  Variables: -
-  Returns  : -
+  Purpose    : TASK: Ebrew State Transition Diagram (STD).
+  Period-Time: 1.0 second
   ------------------------------------------------------------------*/
 void MainEbrew::task_update_std(void)
 {
     QElapsedTimer timer;
     QString       string;
+    QColor        color;
     uint16_t      std_out;     // values of valves
     uint8_t       pump_bits;   // values of pumps
-    //static int i=0;
 
     timer.start(); // Task time-measurement
     std_out = state_machine(); // call the Ebrew STD
@@ -599,28 +635,152 @@ void MainEbrew::task_update_std(void)
     tset_boil = slopeLimBK->slopeLimit(tset_boil);
 
     //---------------------------------------------------------------------
-    // Now output all valve bits to the Ebrew hardware with the Vx command.
-    // The pump bits are sent using the P0/P1 command.
+    // Output all valve bits to the Ebrew hardware with the Vx command.
     //---------------------------------------------------------------------
     string = QString("V%1").arg(std_out & ALL_VALVES); // Output all valves
     commPortWrite(string.toUtf8());
 
-    //--------------------------------------------
-    // Send Pump On/Off signals to ebrew hardware.
-    //--------------------------------------------
+    //---------------------------------------------------------------------
+    // Send Pump On/Off signals to ebrew hardware with the Px command.
+    //---------------------------------------------------------------------
     if (std_out & P0b) pump_bits  = 0x01;
     else               pump_bits  = 0x00;
     if (std_out & P1b) pump_bits |= 0x02;
     string = QString("P%1").arg(pump_bits); // Output all pumps
     commPortWrite(string.toUtf8());
+
+    //---------------------------------------------------------------------
+    // Calculate if there's any flow running and if so, set the proper
+    // colours for the pipes.
+    //---------------------------------------------------------------------
+    bool anyInputOn  = (std_out & (V1b | V2b | V3b)) > 0x0000;
+    bool anyOutputOn = (std_out & (V4b | V6b | V7b)) > 0x0000;
+    bool pumpP1On    = (std_out & (P0b)) > 0x0000;
+
+    //-------------------------------------------------
+    // Is there output-flow from Pump P1?
+    //-------------------------------------------------
+    if (pumpP1On && anyInputOn && anyOutputOn)
+         color = COLOR_OUT1; // flow running
+    else color = COLOR_OUT0; // no flow
+    elbow6->setColor(color);
+    Tpipe3->setColor(color);
+
+    //-------------------------------------------------
+    // Output pump -> HLT heat-exchanger -> MLT return
+    //-------------------------------------------------
+    if (pumpP1On && anyInputOn && (std_out & V4b))
+    {
+         color        = COLOR_OUT1; // flow running
+         flow4Running = true;       // flow4 should see a flowrate
+    } // if
+    else
+    {
+        color        = COLOR_OUT0; // no flow
+        flow4Running = false;      // flow4 is not running
+    } // else
+    pipeH5->setColor(color);
+    elbow10->setColor(color);
+    pipeV3->setColor(color);
+    pipeV2->setColor(color);
+    elbow11->setColor(color);
+    pipeH9->setColor(color);
+    elbow8->setColor(color);
+    elbow9->setColor(color);
+
+    //-------------------------------------------------
+    // Is there output-flow to either V6 or V7?
+    //-------------------------------------------------
+    if (pumpP1On && anyInputOn && (std_out & (V6b | V7b)))
+         color = COLOR_OUT1; // flow running
+    else color = COLOR_OUT0; // no flow
+    pipeH6->setColor(color);
+    Tpipe4->setColor(color);
+
+    //-------------------------------------------------
+    // Is there output-flow to V6?
+    //-------------------------------------------------
+    if (pumpP1On && anyInputOn && (std_out & V6b))
+    {
+        color        = COLOR_OUT1; // flow running
+        flow3Running = true;       // flow3 (CFC-output) should see a flowrate
+    } // if
+    else
+    {
+        color        = COLOR_OUT0; // no flow
+        flow3Running = false;      // flow3 is not running
+    } // else
+    pipeV4->setColor(color);
+    elbow5->setColor(color);
+    pipeH7->setColor(color);
+
+    //-------------------------------------------------
+    // Is there output-flow to V7?
+    //-------------------------------------------------
+    if (pumpP1On && anyInputOn && (std_out & V7b))
+    {
+        color = COLOR_OUT1;  // flow running
+        flow2Running = true; // flow2 (BK-input) should see a flowrate
+    } // if
+    else
+    {
+        color = COLOR_OUT0;   // no flow
+        flow2Running = false; // flow2 is not running
+    } // else
+    pipeH8->setColor(color);
+    elbow4->setColor(color);
+    pipeV5->setColor(color);
+
+    //-------------------------------------------------
+    // Is there input-flow to Pump P1?
+    //-------------------------------------------------
+    if (pumpP1On && anyOutputOn && (std_out & (V1b | V2b | V3b)))
+         color = COLOR_IN1; // flow running
+    else color = COLOR_IN0; // no flow
+    pipeH4->setColor(color);
+    elbow7->setColor(color);
+    pipeV1->setColor(color);
+    Tpipe1->setColor(color);
+
+    //-------------------------------------------------
+    // Is there input-flow from Valve 2 (HLT)?
+    //-------------------------------------------------
+    if (pumpP1On && anyOutputOn && (std_out & V2b))
+    {
+        color        = COLOR_IN1; // flow running
+        flow1Running = true;      // FLOW1 HLT->MLT should see a flowrate
+    } // if
+    else
+    {
+        color        = COLOR_IN0; // no flow
+        flow1Running = false;     // FLOW1 HLT->MLT is not running
+    } // else
+    elbow2->setColor(color);
+
+    //---------------------------------------------------------------
+    // Is there input-flow from either Valve 1 (MLT) or Valve 3 (BK)?
+    //---------------------------------------------------------------
+    if (pumpP1On && anyOutputOn && (std_out & (V1b | V3b)))
+         color = COLOR_IN1; // flow running
+    else color = COLOR_IN0; // no flow
+    pipeH2->setColor(color);
+    Tpipe2->setColor(color);
+
+    //-------------------------------------------------
+    // Is there input-flow from Valve 3 (BK)?
+    //-------------------------------------------------
+    if (pumpP1On && anyOutputOn && (std_out & V3b))
+         color = COLOR_IN1; // flow running
+    else color = COLOR_IN0; // no flow
+    pipeH3->setColor(color);
+    elbow3->setColor(color);
+
     schedulerEbrew->updateDuration("updateStd",timer.nsecsElapsed()/1000);
 } // MainEbrew::task_update_std()
 
 /*-----------------------------------------------------------------------------
   Purpose    : TASK: PID-controller
   Period-Time: TS seconds
-  Variables  : -
-  Returns    : -
   ---------------------------------------------------------------------------*/
 void MainEbrew::task_pid_control(void)
 {
@@ -646,31 +806,27 @@ void MainEbrew::task_pid_control(void)
 } // MainEbrew::task_pid_control()
 
 /*-----------------------------------------------------------------------------
-  Purpose    : TASK: Read all 5 Temperature values from hardware
+  Purpose    : TASK: Read all temperature values from Ebrew hardware
   Period-Time: 2 seconds
-  Variables: -
-  Returns  : -
   ---------------------------------------------------------------------------*/
 void MainEbrew::task_read_temps(void)
 {
     QElapsedTimer  timer;
-    QByteArray     ba;
-    QByteArrayList list;
     int            count = 0;
 
     timer.start();
     commPortWrite("A0"); // A0 = Read all temperature values from Ebrew hardware
-    while (!ReadDataAvailable && (count++ < MAX_READ_RETRIES))
+    while (comPortIsOpen && !ReadDataAvailable && (count++ < MAX_READ_RETRIES))
     {
         sleep(NORMAL_READ_TIMEOUT);
     } // while
     // Check string received for header and length "T=0.00,0.00,0.00,0.00,0.00"
-    if ((ReadData.indexOf("T=") != -1) && (ReadData.size() >= 26))
+    if (ReadDataAvailable && (ReadData.indexOf("T=") != -1) && (ReadData.size() >= 26))
     {
-        list = ReadData.split(','); // split array in sub-arrays
+        QByteArrayList list = ReadData.split(','); // split array in sub-arrays
         if (list.size() >= 5)
         {   // at least 5 temperature values
-            ba = list.at(0);
+            QByteArray ba = list.at(0);
             ba.remove(0,2); // remove "T=" in 1st byte-array
             ttriac  = ba.toDouble();
             thlt    = list.at(1).toDouble();
@@ -679,10 +835,8 @@ void MainEbrew::task_read_temps(void)
             tcfc    = list.at(4).toDouble();
         } // if
     } // if
-    else
-    {   // error
-        qDebug() << "task_read_temps() error: " << ReadData;
-    } // else
+    else qDebug() << "task_read_temps() error: " << ReadData; // error
+
     //------------------ TEMP1 (LM35) -----------------------------------------
     if (ttriac_sw)
     {  // Switch & Fix
@@ -702,19 +856,17 @@ void MainEbrew::task_read_temps(void)
     //------------------ TEMP2 (THLT) -----------------------------------------
     if (thlt > SENSOR_VAL_LIM_OK)
     {
-         //MainForm->Val_Thlt->Font->Color = clLime; // TODO: sound alarm for temp
          thlt += RegEbrew->value("THLT_OFFSET").toDouble(); // update THLT with calibration value
-         //sensor_alarm_info &= ~SENS_THLT;      // reset bit in sensor_alarm
+         sensorAlarmInfo &= ~SENS_THLT;      // reset bit in sensor_alarm
     } // if
-//    else
-//    {
-//         MainForm->Val_Thlt->Font->Color = clRed; // + do NOT update THLT
-//         if ((MainForm->no_sound == ALARM_TEMP_SENSORS) || (MainForm->no_sound == ALARM_TEMP_FLOW_SENSORS))
-//         {
-//              MainForm->comm_port_write("X3\n");
-//              MainForm->sensor_alarm_info |= SENS_THLT;
-//         } // if
-//    } // else
+    else
+    {
+         if ((alarmSound == ALARM_TEMP_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS))
+         {
+              commPortWrite("X3");
+              sensorAlarmInfo |= SENS_THLT;
+         } // if
+    } // else
     if (thlt_sw)
     {  // Switch & Fix
        thlt = thlt_fx;
@@ -722,19 +874,17 @@ void MainEbrew::task_read_temps(void)
     //------------------ TEMP3 (TMLT) -----------------------------------------
     if (tmlt > SENSOR_VAL_LIM_OK)
     {
-         //MainForm->Val_Tmlt->Font->Color = clLime;
          tmlt += RegEbrew->value("TMLT_OFFSET").toDouble(); // update TMLT with calibration value
-         //MainForm->sensor_alarm_info &= ~SENS_TMLT;      // reset bit in sensor_alarm
+         sensorAlarmInfo &= ~SENS_TMLT; // reset bit in sensor_alarm
     } // if
-//    else
-//    {
-//        MainForm->Val_Tmlt->Font->Color = clRed; // + do NOT update TMLT
-//        if ((MainForm->no_sound == ALARM_TEMP_SENSORS) || (MainForm->no_sound == ALARM_TEMP_FLOW_SENSORS))
-//        {
-//             MainForm->comm_port_write("X3\n");
-//             MainForm->sensor_alarm_info |= SENS_TMLT;
-//        } // if
-//    } // else
+    else
+    {
+        if ((alarmSound == ALARM_TEMP_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS))
+        {
+             commPortWrite("X3\n");
+             sensorAlarmInfo |= SENS_TMLT;
+        } // if
+    } // else
     if (tmlt_sw)
     {  // Switch & Fix
        tmlt = tmlt_fx;
@@ -742,19 +892,17 @@ void MainEbrew::task_read_temps(void)
     //------------------ TEMP4 (TBOIL) ----------------------------------------
     if (tboil > SENSOR_VAL_LIM_OK)
     {
-         //MainForm->Temp_Boil->Font->Color = clLime;
          tboil += RegEbrew->value("TBOIL_OFFSET").toDouble(); // update TBOIL with calibration value
-         //MainForm->sensor_alarm_info &= ~SENS_TBOIL;       // reset bit in sensor_alarm
+         sensorAlarmInfo &= ~SENS_TBOIL; // reset bit in sensor_alarm
     } // if
-//    else
-//    {
-//         MainForm->Temp_Boil->Font->Color = clRed; // + do NOT update TBOIL
-//         if ((MainForm->no_sound == ALARM_TEMP_SENSORS) || (MainForm->no_sound == ALARM_TEMP_FLOW_SENSORS))
-//         {
-//              MainForm->comm_port_write("X3\n");
-//              MainForm->sensor_alarm_info |= SENS_TBOIL;
-//         } // if
-//    } // else
+    else
+    {
+         if ((alarmSound == ALARM_TEMP_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS))
+         {
+              commPortWrite("X3\n");
+              sensorAlarmInfo |= SENS_TBOIL;
+         } // if
+    } // else
     if (tboil_sw)
     {  // Switch & Fix
        tboil = tboil_fx;
@@ -762,49 +910,43 @@ void MainEbrew::task_read_temps(void)
     //------------------ TEMP5 (TCFC) -----------------------------------------
     if (tcfc > SENSOR_VAL_LIM_OK)
     {
-         //MainForm->Temp_CFC->Font->Color = clLime;
          tcfc += RegEbrew->value("TCFC_OFFSET").toDouble(); // update TCFC with calibration value
-         //MainForm->sensor_alarm_info &= ~SENS_TCFC;      // reset bit in sensor_alarm
+         sensorAlarmInfo &= ~SENS_TCFC;      // reset bit in sensor_alarm
     } // if
-//    else
-//    {
-//         MainForm->Temp_CFC->Font->Color = clRed; // + do NOT update TCFC
-//         if ((MainForm->no_sound == ALARM_TEMP_SENSORS) || (MainForm->no_sound == ALARM_TEMP_FLOW_SENSORS))
-//         {
-//              MainForm->comm_port_write("X3\n");
-//              MainForm->sensor_alarm_info |= SENS_TCFC;
-//         } // if
-//    } // else
+    else
+    {
+         if ((alarmSound == ALARM_TEMP_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS))
+         {
+              commPortWrite("X3\n");
+              sensorAlarmInfo |= SENS_TCFC;
+         } // if
+    } // else
     // No switch/fix needed for TCFC
     schedulerEbrew->updateDuration("readTemps",timer.nsecsElapsed()/1000);
 } // MainEbrew::task_read_temps()
 
 /*-----------------------------------------------------------------------------
-  Purpose    : TASK: Read all 4 flow sensors from hardware
+  Purpose    : TASK: Read all flow sensors from Ebrew hardware
   Period-Time: 2 seconds
-  Variables: -
-  Returns  : -
   ---------------------------------------------------------------------------*/
 void MainEbrew::task_read_flows(void)
 {
     QElapsedTimer  timer;
-    QByteArray     ba;
-    QByteArrayList list;
     int            count = 0;
 
     timer.start();
     commPortWrite("A9"); // Read all flowsensor values from Ebrew hardware
-    while (!ReadDataAvailable && (count++ < MAX_READ_RETRIES))
-    {
+    while (comPortIsOpen && !ReadDataAvailable && (count++ < MAX_READ_RETRIES))
+    {   // give E-brew hardware time to react
         sleep(NORMAL_READ_TIMEOUT);
     } // while
     // Check string received for header and length "F=0.00,0.00,0.00,0.00"
-    if ((ReadData.indexOf("F=") != -1) && (ReadData.size() >= 21))
+    if (ReadDataAvailable && (ReadData.indexOf("F=") != -1) && (ReadData.size() >= 21))
     {
-        list = ReadData.split(','); // split array in sub-arrays
+        QByteArrayList list = ReadData.split(','); // split array in sub-arrays
         if (list.size() >= 4)
         {   // at least 4 flowsensors
-            ba = list.at(0);
+            QByteArray ba = list.at(0);
             ba.remove(0,2); // remove "F=" in 1st byte-array
             Flow_hlt_mlt  = ba.toDouble();
             Flow_mlt_boil = list.at(1).toDouble();
@@ -823,13 +965,18 @@ void MainEbrew::task_read_flows(void)
     F4->setFlowValue(Flow4        ,thlt);
 
     //------------------ FLOW1 ------------------------------------------------
-//    if ((F1->getFlowRate() < 0.1) && flow1_running &&
-//        ((no_sound == ALARM_FLOW_SENSORS) || (no_sound == ALARM_TEMP_FLOW_SENSORS)))
-//    {
-//         MainForm->comm_port_write("X2\n"); // TODO sound alarm for flow
-//         MainForm->sensor_alarm_info |=  SENS_FLOW1;
-//    } // if
-//    else MainForm->sensor_alarm_info &= ~SENS_FLOW1;
+    if ((F1->getFlowRate(FLOWRATE_RAW) < 0.1) && flow1Running &&
+        ((alarmSound == ALARM_FLOW_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS)))
+    {
+         commPortWrite("X2\n");
+         sensorAlarmInfo |=  SENS_FLOW1;
+         F1->setError(true);
+    } // if
+    else
+    {
+        sensorAlarmInfo &= ~SENS_FLOW1;
+        F1->setError(false);
+    } // else
     Vhlt = RegEbrew->value("VHLT_MAX").toDouble()- Flow_hlt_mlt;
     if (vhlt_sw)
     {  // Switch & Fix
@@ -837,13 +984,18 @@ void MainEbrew::task_read_flows(void)
     } // if
 
     //------------------ FLOW2 ------------------------------------------------
-//    if ((F2->getFlowRate() < 0.1) && flow2_running &&
-//        ((no_sound == ALARM_FLOW_SENSORS) || (no_sound == ALARM_TEMP_FLOW_SENSORS)))
-//    {
-//         MainForm->comm_port_write("X2\n"); // sound alarm
-//         MainForm->sensor_alarm_info |=  SENS_FLOW2;
-//    } // if
-//    else MainForm->sensor_alarm_info &= ~SENS_FLOW2;
+    if ((F2->getFlowRate(FLOWRATE_RAW) < 0.1) && flow2Running &&
+        ((alarmSound == ALARM_FLOW_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS)))
+    {
+         commPortWrite("X2\n"); // sound alarm
+         sensorAlarmInfo |=  SENS_FLOW2;
+         F2->setError(true);
+    } // if
+    else
+    {
+        sensorAlarmInfo &= ~SENS_FLOW2;
+        F2->setError(false);
+    } // else
     Vmlt = Flow_hlt_mlt - Flow_mlt_boil;
     if (vmlt_sw)
     {  // Switch & Fix
@@ -851,13 +1003,18 @@ void MainEbrew::task_read_flows(void)
     } // if
 
     //------------------ FLOW3 ------------------------------------------------
-//    if ((F3->gtFlowRate() < 0.1) && flow3_running &&
-//        ((no_sound == ALARM_FLOW_SENSORS) || (no_sound == ALARM_TEMP_FLOW_SENSORS)))
-//    {
-//         MainForm->comm_port_write("X2\n"); // sound alarm
-//         MainForm->sensor_alarm_info |=  SENS_FLOW3;
-//    } // if
-//    else MainForm->sensor_alarm_info &= ~SENS_FLOW3;
+    if ((F3->getFlowRate(FLOWRATE_RAW) < 0.1) && flow3Running &&
+        ((alarmSound == ALARM_FLOW_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS)))
+    {
+         commPortWrite("X2\n"); // sound alarm
+         sensorAlarmInfo |=  SENS_FLOW3;
+         F3->setError(true);
+    } // if
+    else
+    {
+        sensorAlarmInfo &= ~SENS_FLOW3;
+        F3->setError(false);
+    } // else
     Vboil = Flow_mlt_boil - Flow_cfc_out;
     if (vboil_sw)
     {  // Switch & Fix
@@ -865,26 +1022,32 @@ void MainEbrew::task_read_flows(void)
     } // if
 
     //------------------ FLOW4 ------------------------------------------------
-//    if ((F4->getFlowRate() < 0.1) && flow3_running &&
-//        ((no_sound == ALARM_FLOW_SENSORS) || (no_sound == ALARM_TEMP_FLOW_SENSORS)))
-//    {
-//         MainForm->comm_port_write("X2\n"); // sound alarm
-//         MainForm->sensor_alarm_info |=  SENS_FLOW4;
-//    } // if
-//    else MainForm->sensor_alarm_info &= ~SENS_FLOW4;
+    if ((F4->getFlowRate(FLOWRATE_RAW) < 0.1) && flow4Running &&
+        ((alarmSound == ALARM_FLOW_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS)))
+    {
+         commPortWrite("X2\n"); // sound alarm
+         sensorAlarmInfo |=  SENS_FLOW4;
+         F4->setError(true);
+    } // if
+    else
+    {
+        sensorAlarmInfo &= ~SENS_FLOW4;
+        F4->setError(false);
+    } // else
+
     schedulerEbrew->updateDuration("readFlows",timer.nsecsElapsed()/1000);
 } // task_read_flows()
 
 /*-----------------------------------------------------------------------------
   Purpose    : TASK: Write all relevant data to a log-file.
   Period-Time: 5 seconds
-  Variables: -
-  Returns  : -
   ---------------------------------------------------------------------------*/
 void MainEbrew::task_write_logfile()
 {
-    QString string;
+    QString        string;
+    QElapsedTimer  timer;
 
+    timer.start(); // Start time-measurement
     if (fEbrewLog != nullptr)
     {   // Ebrew log-file is opened
         QTextStream stream(fEbrewLog);
@@ -908,6 +1071,7 @@ void MainEbrew::task_write_logfile()
                          .arg(gamma_boil,5,'f',1); /* PID output for boil-kettle */
         stream << d.toString("hh:mm:ss") << "," << string << "\n";
     } // if
+    schedulerEbrew->updateDuration("wrLogFile",timer.nsecsElapsed()/1000);
 } // MainEbrew::task_write_logfile()
 
 /*------------------------------------------------------------------
@@ -943,7 +1107,7 @@ void MainEbrew::setStateName(void) // TODO integrate setStateName() with state_m
     {
         case S00_INITIALISATION:
              string = QString("00. Initialisation");
-             std_text->setSubText("Press the HLT PID Powerbutton to advance to the next state");
+             std_text->setSubText("Press the HLT PID Controller button to advance to the next state");
              break;
         case S01_WAIT_FOR_HLT_TEMP:
              string = QString("01. Wait for HLT Temp. (%1 °C)").arg(tset_hlt,2,'f',1);
@@ -1262,7 +1426,7 @@ void MainEbrew::commPortOpen(void)
                     qDebug() << p->errorString();
                 if(!p->setFlowControl(QSerialPort::NoFlowControl))
                     qDebug() << p->errorString();
-                connect(p, &QSerialPort::readyRead,this,&MainEbrew::commPortRead2);
+                connect(p, &QSerialPort::readyRead,this,&MainEbrew::commPortRead);
             } // else
         } // if
         else qDebug()<<"Serial port"<< p->portName() << " not opened. Error: " << p->errorString();
@@ -1281,7 +1445,12 @@ void MainEbrew::commPortOpen(void)
             QTextStream stream(f);
             stream << "----------------------------------------------------------------------\n" <<
                       "File opened: " << d << " ";
-            if (x > 0) stream << p->portName();
+            if (x > 0)
+            {
+                stream << p->portName() << " ";
+                if (comPortIsOpen) stream << "open for read/write.";
+                else               stream << "NOT opened.";
+            } // if
             else       stream << "Ethernet: " << RegEbrew->value("UDP_IP_PORT").toByteArray();
             stream << "\n";
         } // if
@@ -1304,6 +1473,9 @@ void MainEbrew::commPortClose(void)
         {
             serialPort->flush(); // send data in buffers to serial port
             serialPort->close(); // close the serial port
+            comPortIsOpen = false;
+            ReadDataAvailable = false;
+            ReadData.clear();
         } // if
     } // if
     if (fDbgCom != nullptr)
@@ -1328,11 +1500,15 @@ void MainEbrew::commPortWrite(QByteArray s)
 {
     if (RegEbrew->value("COMM_CHANNEL").toInt() > 0)
     {   // Any of the Virtual USB COM ports
-        ReadDataAvailable = false;
-        ReadData.clear();
-        serialPort->write(s + "\n"); // add newline character
-        if (!serialPort->waitForBytesWritten(100))
-            qDebug() << "CommPortWrite() timeout";
+        if (comPortIsOpen)
+        {
+            ReadDataAvailable = false;
+            ReadData.clear();
+            serialPort->write(s + "\n"); // add newline character
+            if (!serialPort->waitForBytesWritten(100))
+                qDebug() << "CommPortWrite() timeout";
+        } // if
+        else qDebug() << "CommPortWrite(): COM port not open";
     } // if
     else
     {   // Ethernet UDP connection
@@ -1356,11 +1532,11 @@ void MainEbrew::commPortWrite(QByteArray s)
              ReadDataAvailable: true = new data is available
   Returns  : the string read from the communications channel.
   ------------------------------------------------------------------*/
-void MainEbrew::commPortRead2(void)
+void MainEbrew::commPortRead(void)
 {
     if (RegEbrew->value("COMM_CHANNEL").toInt() > 0)
     {   // Any of the Virtual USB COM ports
-        ReadData = serialPort->readAll();
+        ReadData.append(serialPort->readAll());
         removeLF(ReadData); // remove \n
         ReadDataAvailable = true;
     } // if
@@ -1376,7 +1552,7 @@ void MainEbrew::commPortRead2(void)
         stream << " R" << d.toString("ss") << "." << d.toString("zzz") << "[" << ReadData << "]";
         if (serialPort->error() == QSerialPort::ReadError) stream << " Read-error: " << serialPort->errorString();
     } // if
-} // MainEbrew::commPortRead2()
+} // MainEbrew::commPortRead()
 
 /*------------------------------------------------------------------
   Purpose  : This function removes all newline (\n) chars from a string.

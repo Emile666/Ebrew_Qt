@@ -107,6 +107,8 @@ Tank::Tank(int x, int y, int width, int height, uint8_t options, QString name)
     : QGraphicsPolygonItem()
 {
     setPos(x,y);
+
+    QPoint point(100,100);
     setValues(0.0,0.0,0.0,0.0); // init. temp., setpoint temp., volume and power
 
     setOrientation(width,height,options);
@@ -129,6 +131,7 @@ void Tank::setOrientation(int width, int height, uint8_t options)
     tankHeight  = height;
     tankOptions = options;
 
+    // Draw the walls of the tank with a thickness of TANK_WALL
     setBrush(Qt::gray);
     path.moveTo(-width>>1,-height);
     path.lineTo(-width>>1,0);
@@ -160,13 +163,22 @@ void Tank::setOrientation(int width, int height, uint8_t options)
 
 void Tank::setValues(qreal temp, qreal sp, qreal vol, qreal power)
 {
-    tankTemp     = temp;
+    if (temp > SENSOR_VAL_LIM_OK)
+    {   // valid
+        tankTemp    = temp;
+        tankTempErr = false;
+    } // if
+    else
+    {   // faulty or not connected
+        tankTemp    = 0.00;
+        tankTempErr = true;
+    } // else
     tankSetPoint = sp;
     tankVolume   = vol;
     tankPower    = power;
 } // Tank::setValues()
 
-QPointF Tank::get_coordinate(int which)
+QPointF Tank::getCoordinates(int which)
 {
     QPointF point = pos();
 
@@ -182,7 +194,7 @@ QPointF Tank::get_coordinate(int which)
     default:                      point  = QPoint(0,0); break;
     } // which
     return point;
-} // Tank::get_coordinate()
+} // Tank::getCoordinates()
 
 void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
@@ -195,6 +207,7 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     font.setPointSize(24); // assume 150 width
     font.setBold(true);
     painter->setFont(font);
+    painter->setPen(QPen(Qt::blue));
     painter->drawText(-75,-tankHeight,tankName);
 
     painter->save();
@@ -268,6 +281,20 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     painter->drawText(5-(tankWidth>>2),yb+40-tankHeight,text); // Draw Setpoint temperature
     painter->setPen(Qt::black);
     painter->drawText(5-(tankWidth>>2),yb-tankHeight,"Temperature"); // Draw title
+
+    painter->setPen(Qt::black);
+    if (tankTempErr)
+         painter->setBrush(Qt::red);
+    else painter->setBrush(Qt::green);
+    QPoint point(145-(tankWidth>>2),yb+25-tankHeight); // coord. for pseudo temp. meter
+    font.setPointSize(20);
+    font.setBold(true);
+    painter->setFont(font);
+    painter->drawEllipse(point,20,20);
+    point += QPoint(-7,10);
+    painter->drawText(point,"T");
+    painter->setBrush(Qt::lightGray);
+
     //-------------------------------------
     // Volume Display
     //-------------------------------------
@@ -283,7 +310,8 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     font.setBold(true);
     painter->setFont(font);
     painter->setPen(Qt::black);
-    painter->drawText(5-(tankWidth>>2),yb-tankHeight,"Volume"); // Draw title
+    painter->drawText(5-(tankWidth>>2),yb-tankHeight,"Actual Volume"); // Draw title
+
     //-------------------------------------
     // Actual Power Display
     //-------------------------------------
@@ -325,7 +353,7 @@ Pipe::Pipe(QPointF point, uint8_t type, uint16_t length, QColor color)
 } // Pipe()
 
 // This function returns the parent coordinate of top, right, left or bottom of pipe
-QPointF Pipe::get_coordinate(uint8_t side)
+QPointF Pipe::getCoordinates(uint8_t side)
 {
     QPointF point = pos();
 
@@ -338,7 +366,7 @@ QPointF Pipe::get_coordinate(uint8_t side)
     default:               point  = QPoint(0,0); break;
     } // which
     return point;
-} // Pipe::get_coordinate()
+} // Pipe::getCoordinates()
 
 void Pipe::setColor(QColor color)
 {
@@ -502,35 +530,34 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
 
 void Pipe::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    QPainterPath path;
     QPen pen;
 
     pen.setColor(Qt::black);
     pen.setWidth(3);
     painter->setPen(pen);
     if (pipeType == PIPE2_LEFT_RIGHT)
-    {
+    {   // draw arrow from left to right
         painter->drawLine(bottom + QPoint(-20,20), bottom + QPoint(10,20));
         painter->drawLine(bottom + QPoint(10,20) , bottom + QPoint( 5,15));
         painter->drawLine(bottom + QPoint( 5,15) , bottom + QPoint( 5,25));
         painter->drawLine(bottom + QPoint( 5,25) , bottom + QPoint(10,20));
     } // if
     else if (pipeType == PIPE2_RIGHT_LEFT)
-    {
+    {   // draw arrow from right to left
         painter->drawLine(bottom + QPoint(20,20) , bottom + QPoint(-10,20));
         painter->drawLine(bottom + QPoint(-10,20), bottom + QPoint(-5,15));
         painter->drawLine(bottom + QPoint(- 5,15), bottom + QPoint(-5,25));
         painter->drawLine(bottom + QPoint(- 5,25), bottom + QPoint(-10,20));
     } // if
     else if (pipeType == PIPE2_TOP_BOTTOM)
-    {
+    {   // draw arrow from top to bottom
         painter->drawLine(right + QPoint(20,-10), right + QPoint(20,20));
         painter->drawLine(right + QPoint(20,20) , right + QPoint(25,15));
         painter->drawLine(right + QPoint(25,15) , right + QPoint(15,15));
         painter->drawLine(right + QPoint(15,15) , right + QPoint(20,20));
     } // if
     else if (pipeType == PIPE2_BOTTOM_TOP)
-    {
+    {   // draw arrow from bottom to top
         painter->drawLine(right + QPoint(20,+20), right + QPoint(20,-10));
         painter->drawLine(right + QPoint(20,-10), right + QPoint(25,-5));
         painter->drawLine(right + QPoint(25,-5) , right + QPoint(15,-5));
@@ -538,8 +565,8 @@ void Pipe::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     } // if
     QGraphicsPolygonItem::paint(painter,option,widget);
 } // Pipe::paint()
-//------------------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------------------
 Display::Display(QPointF point)
     : QGraphicsSimpleTextItem()
 {
@@ -599,13 +626,19 @@ Meter::Meter(QPointF point, uint8_t type, QString name)
         MA *p = new MA(METER_FLOW_MA_N,0.0);
         pma   = p; // save pointer
         setText("F");
+        setFlowParameters(1000,false,0.0); // set defaults to 1 sec, no temp. correction
+        meterValueOld = 0.0;
+        setFlowValue(meterValueOld,TEMP_DEFAULT); // init values for flowrate measurement
     } // if
-    else setText("T");
-    setFlowValue(0.0,20.0); // init values
+    else
+    {
+        setText("T");
+        setTempValue(TEMP_DEFAULT); // default temperature
+    } // else
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
     //setFlag(QGraphicsItem::ItemIsSelectable,true);
     if ((meterType == METER_HFLOW) || (meterType == METER_HTEMP))
-         boundary = QRectF(-14,-15,50,80);  // horizontal lay-out
+         boundary = QRectF(-15,-15,70,80);  // horizontal lay-out
     else boundary = QRectF(-35,-10,160,60); // vertical lay-out
     left     = QPointF(-13,+24);
     right    = QPointF(+34,+24);
@@ -615,15 +648,24 @@ Meter::Meter(QPointF point, uint8_t type, QString name)
 
 void Meter::setTempValue(qreal value)
 {
-    meterValue = value;
+    if (value > SENSOR_VAL_LIM_OK)
+    {   // valid
+        meterValue = value;
+        meterError = false;
+    } // if
+    else
+    {   // faulty or not connected
+        meterValue = TEMP_DEFAULT;
+        meterError = true;
+    } // else
 } // Meter::setValue()
 
 void Meter::setFlowParameters(uint16_t msec, bool temp_corr, qreal flow_err)
 {
-    Ts             = msec;
-    if (Ts < 100) Ts = 100; // min. of 100 msec.
-    tempCorrection = temp_corr;
-    flowErr        = flow_err;
+    Ts                 = msec;
+    if (Ts < 100.0) Ts = 100.0; // min. of 100 msec.
+    tempCorrection     = temp_corr;
+    flowErr            = flow_err;
 } // Meter::setFlowParameters()
 
 void Meter::setFlowValue(qreal value,qreal temp)
@@ -636,15 +678,18 @@ void Meter::setFlowValue(qreal value,qreal temp)
         // Apply Calibration error correction
         meterValue *= 1.0 + 0.01 * flowErr;
         // Calculate Flow-rate in L per minute: Ts [msec.]
-        flowRate = (60000.0 / Ts) * (meterValue - meterValueOld);
+        flowRateRaw = (60000.0 / Ts) * (meterValue - meterValueOld);
         meterValueOld = meterValue;
-        flowRate = pma->moving_average(flowRate);
+        flowRate = pma->moving_average(flowRateRaw);
     } // if
+    update();
 } // Meter::setValue()
 
-qreal Meter::getFlowRate(void)
+qreal Meter::getFlowRate(uint8_t fil)
 {
-    return flowRate;
+    if (fil == FLOWRATE_FIL)
+         return flowRate;    // filtered flowrate
+    else return flowRateRaw; // unfiltered flowrate
 } // Meter::getFlowRate()
 
 void Meter::setName(QString name)
@@ -657,7 +702,7 @@ void Meter::setError(bool err)
     meterError = err;
 }
 
-QPointF Meter::get_coordinate(uint8_t side)
+QPointF Meter::getCoordinates(uint8_t side)
 {
     QPointF point = pos();
 
@@ -670,7 +715,7 @@ QPointF Meter::get_coordinate(uint8_t side)
         default:           point  = QPoint(0,0); break;
     } // which
     return point;
-} // Pipe::get_coordinate()
+} // Pipe::getCoordinates()
 
 void Meter::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
@@ -694,12 +739,12 @@ void Meter::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     } // if
     else
     {
-        text1 = QString("%1 °C").arg(meterValue);
+        text1 = QString("%1 °C").arg(meterValue,1,'f',2);
     } // else
     if ((meterType == METER_HFLOW) || (meterType == METER_HTEMP))
     {    // horizontal lay-out
-         painter->drawText(-14,62,text1);
-         if (flowRate > 0.01) painter->drawText(-14,77,text2);
+         painter->drawText(-14,63,text1);
+         if (flowRate > 0.01) painter->drawText(-14,78,text2);
     } // if
     else
     {   // vertical lay-out
@@ -814,7 +859,7 @@ Base_Valve_Pump::Base_Valve_Pump(QPointF point, QString name)
 } // Base_Valve_Pump()
 
 // This function returns the parent coordinate of top, right, left or bottom of pipe
-QPointF Base_Valve_Pump::get_coordinate(uint8_t side)
+QPointF Base_Valve_Pump::getCoordinates(uint8_t side)
 {
     QPointF point = pos();
 
@@ -827,7 +872,7 @@ QPointF Base_Valve_Pump::get_coordinate(uint8_t side)
     default:               point  = QPoint(0,0); break;
     } // which
     return point;
-} // Base_Valve_Pump::get_coordinate()
+} // Base_Valve_Pump::getCoordinates()
 
 void Base_Valve_Pump::setColor(QColor color)
 {
@@ -849,6 +894,19 @@ void Base_Valve_Pump::setStatus(uint8_t status)
     update();
 }
 
+// MANUAL_OFF -> MANUAL_ON -> AUTO_OFF -> MANUAL_OFF
+void Base_Valve_Pump::setNextStatus(void)
+{
+    if ((valveStatus == AUTO_ON) || (valveStatus == AUTO_OFF))
+    {
+        valveStatus = MANUAL_OFF;
+    } // if
+    else if (valveStatus == MANUAL_OFF)
+         valveStatus = MANUAL_ON;
+    else valveStatus = AUTO_OFF; // MANUAL_ON -> AUTO_OFF
+    setStatus(valveStatus);
+} // Base_Valve_Pump::setNextStatus()
+
 bool Base_Valve_Pump::inManualMode(void)
 {
     if ((valveStatus == MANUAL_OFF) || (valveStatus == MANUAL_ON))
@@ -865,14 +923,7 @@ void Base_Valve_Pump::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
     if (mouseEvent->button() == Qt::LeftButton)
     {
-        if ((valveStatus == AUTO_ON) || (valveStatus == AUTO_OFF))
-        {
-            valveStatus = MANUAL_OFF;
-        }
-        else if (valveStatus == MANUAL_OFF)
-             valveStatus = MANUAL_ON;
-        else valveStatus = AUTO_OFF;
-        setStatus(valveStatus);
+        setNextStatus(); // set next possible state
         mouseEvent->accept();
         qDebug() << "valveStatus=" << valveStatus;
     }
@@ -966,7 +1017,7 @@ void Valve::setOrientation(bool orientation)
         bottom = QPoint(0,VALVE_SIZE>>1);
         top    = -bottom;
         // set boundary with enough room for drawText() in paint()
-        boundary = QRectF(-60-(VALVE_SIZE>>1),2-(VALVE_SIZE>>1),60+VALVE_SIZE,0+VALVE_SIZE); // extra space left for title and status
+        boundary = QRectF(-60-(VALVE_SIZE>>1),3-(VALVE_SIZE>>1),60+VALVE_SIZE,0+VALVE_SIZE); // extra space left for title and status
     } // else
     valvePolygon = path.toFillPolygon();
     setPolygon(valvePolygon);

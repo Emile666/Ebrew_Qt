@@ -69,6 +69,8 @@
 #define METER_VFLOW     (2) /* Meter-type: flow-meter vertical lay-out */
 #define METER_VTEMP     (3) /* Meter-type: temperature-meter vertical lay-out */
 #define METER_FLOW_MA_N (5) /* Flow-meter moving-average filter order */
+#define FLOWRATE_RAW    (0) /* get unfiltered flow-rate */
+#define FLOWRATE_FIL    (1) /* get filtered flow-rate */
 
 #define RPIPE      (10) /* Radius of pipes */
 #define RPUMP      (35) /* Radius of Pump */
@@ -120,9 +122,13 @@
 
 // Color-definitions for input and output pipes, with and without flow
 #define COLOR_OUT0 QColor(  0,  0,255) /* Output pipe color when no flow */
-#define COLOR_OUT1 QColor(  0,128,255) /* Output pipe color when flow */
+#define COLOR_OUT1 QColor(  0,220,255) /* Output pipe color when flow */
 #define COLOR_IN0  QColor(102,153,255) /* Input pipe color when no flow */
 #define COLOR_IN1  QColor(102,255,255) /* Input pipe color when flow */
+
+// Value returned from Ebrew hardware when a temperaturesensor is faulty or not connected
+#define SENSOR_VAL_LIM_OK (-99.9)
+#define TEMP_DEFAULT       (20.0)
 
 //------------------------------------------------------------------------------------------
 // Pushbutton with a green/red LED
@@ -146,17 +152,61 @@ protected:
 }; // class Powerbutton
 
 //------------------------------------------------------------------------------------------
+// Meter object for Flow-meter and Temp-meter
+//------------------------------------------------------------------------------------------
+class Meter : public QGraphicsSimpleTextItem
+{
+public:
+    Meter(QPointF point, uint8_t type, QString name);
+    void    setName(QString name);
+    void    setTempValue(qreal value);
+    void    setFlowValue(qreal value,qreal temp); /* temp. is needed for temp. correction */
+    void    setFlowParameters(uint16_t msec, bool temp_corr, qreal flow_err);
+    qreal   getFlowRate(uint8_t fil); // return the (un)filtered flow-rate in L/min.
+    void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    void    setError(bool err);
+    QPointF getCoordinates(uint8_t side);
+    void    initFlowRateDetector(uint8_t perc);
+    bool    isFlowRateLow(void);
+    QRectF  boundary; // boundary of object
+
+protected:
+    QRectF boundingRect() const override { return boundary; }
+    QPointF left,top,right,bottom; // coordinates of various points
+    QString meterName;       // Name of meter, e.g. Flow1
+    qreal   meterValue;      // Actual meter value
+    qreal   meterValueOld;   // Previous meter value
+    uint8_t meterType;       // Flow or Temp. meter
+    bool    meterError;      // true = error (painted red)
+    // Variables for flowrate calculation
+    qreal   Ts;              // Time in msec. between two setValue() calls
+    bool    tempCorrection;  // true = apply temperature volume correction
+    qreal   flowErr;         // error correction percentage for flowmeter
+    qreal   flowRate;        // Filtered flow-rate in L/min.
+    qreal   flowRateRaw;     // Un-filtered flow-rate in L/min.
+    MA      *pma;            // pointer to moving-average filter for flowrate
+
+    // Variables for flowrate-low detector
+    uint8_t frl_std;         // STD state number
+    uint8_t frl_tmr;         // Timer value
+    double  frl_det_lim;     // Lower-limit for flowrate
+    double  frl_min_det_lim; // Minimum flowrate: sensor-check
+    uint8_t frl_perc;        // Percentage of max flowrate
+}; // Class Meter
+
+//------------------------------------------------------------------------------------------
 // Tank object for HLT, MLT and Boil-kettle
 //------------------------------------------------------------------------------------------
 class Tank : public QGraphicsPolygonItem
 {
 public:
     Tank(int x, int y, int width, int height, uint8_t options, QString name);
-    void setOrientation(int width, int height, uint8_t options);
-    void setName(QString name);
-    void setValues(qreal temp, qreal sp, qreal vol, qreal power);
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-    QPointF get_coordinate(int which);
+    void    setOrientation(int width, int height, uint8_t options);
+    void    setName(QString name);
+    void    setValues(qreal temp, qreal sp, qreal vol, qreal power);
+    void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    QPointF getCoordinates(int which);
+
 protected:
     int       tankWidth, tankHeight;
     QString   tankName;      /* Tank name */
@@ -166,6 +216,7 @@ protected:
     qreal     tankSetPoint;  /* Setpoint temperature for tank */
     qreal     tankVolume;    /* Actual volume in the tank */
     qreal     tankPower;     /* Actual heating power applied to the tank */
+    bool      tankTempErr;   /* true = error in actual temperature */
     QPointF   left_pipe1;    /* Coordinate of top-left pipe for connecting a pump */
     QPointF   left_pipe2;    /* Coordinate of bottom-left pipe for connecting a pump */
     QPoint    left_top_pipe; /* Coordinate of top-left pipe for return manifold at top of tank */
@@ -184,7 +235,7 @@ public:
     Pipe(int x, int y, uint8_t type, uint16_t length, QColor color);
     Pipe(QPointF point, uint8_t type, uint16_t length, QColor color);
     void    drawPipe(uint8_t type, uint16_t length, QColor color);
-    QPointF get_coordinate(uint8_t side);
+    QPointF getCoordinates(uint8_t side);
     void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     void    setColor(QColor color);
 protected:
@@ -213,48 +264,6 @@ protected:
 }; // Class Display
 
 //------------------------------------------------------------------------------------------
-// Meter object for Flow-meter and Temp-meter
-//------------------------------------------------------------------------------------------
-class Meter : public QGraphicsSimpleTextItem
-{
-public:
-    Meter(QPointF point, uint8_t type, QString name);
-    void    setName(QString name);
-    void    setTempValue(qreal value);
-    void    setFlowValue(qreal value,qreal temp); /* temp. is needed for temp. correction */
-    void    setFlowParameters(uint16_t msec, bool temp_corr, qreal flow_err);
-    qreal   getFlowRate(void); // return the flow-rate in L/min.
-    void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-    void    setError(bool err);
-    QPointF get_coordinate(uint8_t side);
-    void    initFlowRateDetector(uint8_t perc);
-    bool    isFlowRateLow(void);
-    QRectF  boundary; // boundary of object
-
-protected:
-    QRectF boundingRect() const override { return boundary; }
-    QPointF left,top,right,bottom; // coordinates of various points
-    QString meterName;       // Name of meter, e.g. Flow1
-    qreal   meterValue;      // Actual meter value
-    qreal   meterValueOld;   // Previous meter value
-    uint8_t meterType;       // Flow or Temp. meter
-    bool    meterError;      // true = error (painted red)
-    // Variables for flowrate calculation
-    qreal   Ts;              // Time in msec. between two setValue() calls
-    bool    tempCorrection;  // true = apply temperature volume correction
-    qreal   flowErr;         // error correction percentage for flowmeter
-    qreal   flowRate;        // Flow-rate in L/min.
-    MA      *pma;            // pointer to moving-average filter for flowrate
-
-    // Variables for flowrate-low detector
-    uint8_t frl_std;         // STD state number
-    uint8_t frl_tmr;         // Timer value
-    double  frl_det_lim;     // Lower-limit for flowrate
-    double  frl_min_det_lim; // Minimum flowrate: sensor-check
-    uint8_t frl_perc;        // Percentage of max flowrate
-}; // Class Meter
-
-//------------------------------------------------------------------------------------------
 // Base object for Valves and Pumps
 //------------------------------------------------------------------------------------------
 class Base_Valve_Pump : public QGraphicsPolygonItem
@@ -265,8 +274,9 @@ public:
     void    setColor(QColor color);
     void    setName(QString name);
     void    setStatus(uint8_t status);
+    void    setNextStatus(void);
     uint8_t getStatus(void);
-    QPointF get_coordinate(uint8_t side);
+    QPointF getCoordinates(uint8_t side);
     bool    inManualMode(void);
     void    setActuator(uint16_t& actionBits, uint16_t whichBit);
 
@@ -305,7 +315,7 @@ public:
 
 protected:
     QRectF boundingRect() const override { return boundary; }
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override; // overriding paint()
+    void   paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override; // overriding paint()
 
 private:
 }; // class Valve
@@ -321,7 +331,7 @@ public:
 
 protected:
     QRectF boundingRect() const override { return boundary; }
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override; // overriding paint()
+    void   paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override; // overriding paint()
 
 private:
 }; // class Pump

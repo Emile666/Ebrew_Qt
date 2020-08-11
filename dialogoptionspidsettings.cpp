@@ -13,8 +13,8 @@ DialogOptionsPidSettings::DialogOptionsPidSettings(QWidget *parent) :
     ui->sbTi->setValue(pEbrew->RegEbrew->value("Ti").toInt());
     ui->sbTd->setValue(pEbrew->RegEbrew->value("Td").toInt());
     ui->sbSlpL->setValue(pEbrew->RegEbrew->value("TSET_SLOPE_LIM").toInt());
-    ui->cbDStart->setChecked(pEbrew->delayed_start);
-    if (pEbrew->delayed_start)
+    ui->cbDStart->setChecked(pEbrew->delayedStart);
+    if (pEbrew->delayedStart)
     {
         ui->dtDstart->setDateTime(pEbrew->dlyStartTime);
     } // if
@@ -43,12 +43,12 @@ void DialogOptionsPidSettings::on_buttonBox_accepted()
     pEbrew->schedulerEbrew->set_task_time_period((uint16_t)(1000 * ui->sbTs->value()),"pidControl");
     if (ui->cbDStart->isChecked())
     {
-        pEbrew->delayed_start = true;
+        pEbrew->delayedStart = true;
         pEbrew->dlyStartTime  = ui->dtDstart->dateTime();
     }
     else
     {
-        pEbrew->delayed_start = false;
+        pEbrew->delayedStart = false;
     }
 } // DialogOptionsPidSettings::on_buttonBox_accepted()
 

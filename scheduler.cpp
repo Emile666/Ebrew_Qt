@@ -110,7 +110,7 @@ void Scheduler::dispatch_tasks(void)
     //QElapsedTimer timer;
 
     //go through the active tasks
-    while(task_list[index].Period)
+    while (started && task_list[index].Period)
     {
         if((task_list[index].Status & (TASK_READY | TASK_ENABLED)) == (TASK_READY | TASK_ENABLED))
         {

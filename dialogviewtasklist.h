@@ -15,6 +15,10 @@ class DialogViewTaskList : public QDialog
 public:
     explicit DialogViewTaskList(QWidget *parent = nullptr);
     ~DialogViewTaskList();
+    void     readTaskListData(void);
+
+private slots:
+    void on_refreshButton_clicked();
 
 private:
     Ui::DialogViewTaskList *ui;

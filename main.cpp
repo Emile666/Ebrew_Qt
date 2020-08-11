@@ -54,6 +54,8 @@
 #include <QThread>
 #include <QTimer>
 #include <QLabel>
+#include <QDebug>
+
 #include "hmi_objects.h"
 #include "MainEbrew.h"
 #include "draw_hmi_screen.h"
@@ -95,7 +97,6 @@ int main(int argc, char **argv)
     mainTimer->setTimerType(Qt::PreciseTimer); // set to millisecond accuracy
     mainTimer->setInterval(100); // set to 100 msec.
     mainTimer->moveToThread(mainThread);
-    //QObject::connect(mainTimer,SIGNAL(timeout()),Ebrew,SLOT(T100msecLoop()));
     // Make sure the timer gets started from mainThread.
     mainTimer->connect(mainThread,SIGNAL(started()),SLOT(start()));
     mainThread->start(); // start the thread
@@ -118,11 +119,11 @@ int main(int argc, char **argv)
     Ebrew->setCentralWidget(frame);
     app.setApplicationName("Ebrew 3.0 Qt: Automating your Home-Brewery!");
     draw_hmi_screen(&scene,Ebrew); // Draw the total Human-Machine Interface on screen
-
     view.showNormal();
     view.fitInView(scene.sceneRect().adjusted(-50, -50, 50, 50), Qt::KeepAspectRatio);
     frame->layout()->addWidget(&view);
-    Ebrew->setFixedSize(1100,900);
+    Ebrew->setFixedSize(scene.sceneRect().width(),scene.sceneRect().height());
+    //Ebrew->setFixedSize(1300,900);
     //Ebrew->showNormal();
     Ebrew->showMaximized();
     scheduler->start();  // start scheduler if everything is initialized

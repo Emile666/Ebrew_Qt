@@ -69,15 +69,35 @@
 #define REGKEY      "HKEY_CURRENT_USER\\Software\\ebrew\\V3"
 #define EBREW_HW_ID "E-Brew"
 
+//------------------------------
+// Defines for Audio Alarm
+//------------------------------
+#define ALARM_OFF               (0) /* No sound */
+#define ALARM_TEMP_SENSORS      (1) /* Audio alarm only on Temp. sensor error */
+#define ALARM_FLOW_SENSORS      (2) /* Audio alarm only on flowsensor error */
+#define ALARM_TEMP_FLOW_SENSORS (3) /* Audio alarm on all sensor errors */
+
+//-------------------------------
+// Defines for sensor_alarm_info
+//-------------------------------
+#define SENS_THLT   (0x01)
+#define SENS_TMLT   (0x02)
+#define SENS_TBOIL  (0x04)
+#define SENS_TCFC   (0x08)
+#define SENS_FLOW1  (0x10) /* HLT -> MLT */
+#define SENS_FLOW2  (0x20) /* MLT -> Boil */
+#define SENS_FLOW3  (0x40) /* CFC out */
+#define SENS_FLOW4  (0x80) /* Reserved */
+
 //-----------------------------------------------------------
 // Defines for COM Port Communication.
 // The longest task on ebrew HW is the one-wire task,
 // this task lasts max. 22 msec.
 // Set WAIT_READ_TIMEOUT > 22 msec.
 //-----------------------------------------------------------
-#define MAX_READ_RETRIES       (2)
-#define NORMAL_READ_TIMEOUT   (60)
-#define LONG_READ_TIMEOUT    (115)
+#define MAX_READ_RETRIES      (2)
+#define NORMAL_READ_TIMEOUT  (40)
+#define LONG_READ_TIMEOUT    (80)
 
 //----------------------------------
 // Defines for Scheduler tasks
@@ -179,7 +199,17 @@
 #define GAS_NON_MODULATING (1)
 #define ELECTRICAL_HEATING (2)
 
-#define SENSOR_VAL_LIM_OK    (-99.9)
+//-------------------------------
+// Defines for sensor_alarm_info
+//-------------------------------
+#define SENS_THLT   (0x01)
+#define SENS_TMLT   (0x02)
+#define SENS_TBOIL  (0x04)
+#define SENS_TCFC   (0x08)
+#define SENS_FLOW1  (0x10) /* HLT -> MLT */
+#define SENS_FLOW2  (0x20) /* MLT -> Boil */
+#define SENS_FLOW3  (0x40) /* CFC out */
+#define SENS_FLOW4  (0x80) /* Reserved */
 
 typedef struct _mash_schedule
 {
@@ -196,31 +226,69 @@ class MainEbrew : public QMainWindow
     Q_OBJECT
 
 public:
-    MainEbrew(void);
+    MainEbrew(void);             // Default constructor for MainEbrew
 
-    Tank        *hlt;      // Pointer to HLT object
-    Tank        *mlt;      // Pointer to MLT object
-    Tank        *boil;     // Pointer to Boil-kettle object
-    Valve       *V1;       // Pointer to valve V1
-    Valve       *V2;       // Pointer to valve V2
-    Valve       *V3;       // Pointer to valve V3
-    Valve       *V4;       // Pointer to valve V5
-    Valve       *V6;       // Pointer to valve V6
-    Valve       *V7;       // Pointer to valve V7
-    Pump        *P1;       // Pointer to pump P1, main brew-pump
-    Pump        *P2;       // Pointer to pump P2, pump for HLT heat-exchanger
-    Meter       *F1;       // Flowmeter 1: between HLT-output and pump-input
-    Meter       *F2;       // Flowmeter 2: Boil-kettle input
-    Meter       *F3;       // Flowmeter 3: CFC-output
-    Meter       *F4;       // Flowmeter 4: at MLT top return-manifold
-    Display     *std_text; // STD state description
-    PowerButton *hlt_pid;  // HLT PID on/off powerButton
-    PowerButton *boil_pid; // Boil-kettle PID on/off powerButton
-    QSettings   *RegEbrew; // Pointer to Registry Ebrew object
+    Tank        *hlt;            // Pointer to HLT object
+    Tank        *mlt;            // Pointer to MLT object
+    Tank        *boil;           // Pointer to Boil-kettle object
+    Valve       *V1;             // Pointer to valve V1
+    Valve       *V2;             // Pointer to valve V2
+    Valve       *V3;             // Pointer to valve V3
+    Valve       *V4;             // Pointer to valve V5
+    Valve       *V6;             // Pointer to valve V6
+    Valve       *V7;             // Pointer to valve V7
+    Pump        *P1;             // Pointer to pump P1, main brew-pump
+    Pump        *P2;             // Pointer to pump P2, pump for HLT heat-exchanger
+    Meter       *F1;             // Flowmeter 1: between HLT-output and pump-input
+    Meter       *F2;             // Flowmeter 2: Boil-kettle input
+    Meter       *F3;             // Flowmeter 3: CFC-output
+    Meter       *F4;             // Flowmeter 4: at MLT top return-manifold
+    Meter       *T3;             // Temp. meter 3: Tcfc
+    Display     *std_text;       // STD state description
+    PowerButton *hlt_pid;        // HLT PID on/off powerButton
+    PowerButton *boil_pid;       // Boil-kettle PID on/off powerButton
+    QSettings   *RegEbrew;       // Pointer to Registry Ebrew object
     Scheduler   *schedulerEbrew; // Pointer to scheduler object
     QSerialPort *serialPort;     // Pointer to serialPort object
     QFile       *fEbrewLog;      // Pointer to log-file object
     QFile       *fDbgCom;        // Pointer to com-port debug file object
+
+    // Pointers to pipes and elbows in graphical scene
+    Pipe *elbowP20; // Pump P2 top-left elbow
+    Pipe *elbowP21; // Pump P2 bottom-left elbow
+    Pipe *elbowP22; // Pump P2 bottom-right elbow
+    Pipe *elbowP23; // Pump P2 top-right elbow
+    Pipe *pipeH1;   // Pump P2 horizontal pipe
+    Pipe *pipeH2;   // Input : horizontal pipe between TPipe1  and TPipe2
+    Pipe *pipeH3;   // Input : horizontal pipe between TPipe2  and elbow3/valve3/BK-output
+    Pipe *pipeH4;   // Input : horizontal pipe between elbow7  and pump P1
+    Pipe *pipeH5;   // Output: horizontal pipe between elbow10 and TPipe3
+    Pipe *pipeH6;   // Output: horizontal pipe between TPipe3  and Tpipe4
+    Pipe *pipeH7;   // Output: horizontal pipe at CFC-output
+    Pipe *pipeH8;   // Output: horizontal pipe between flow2   and elbow4
+    Pipe *pipeH9;   // Output: horizontal pipe between HLT heat-exchanger input-pipe and elbow11
+
+    Pipe *pipeV1;   // Input : vertical pipe between TPipe1 and elbow7
+    Pipe *pipeV2;   // Output: vertical pipe between valve4 and elbow11
+    Pipe *pipeV3;   // Output: vertical pipe between valve4 and elbow10
+    Pipe *pipeV4;   // Output: vertical pipe between valve6 and flow3
+    Pipe *pipeV5;   // Output: vertical pipe between elbow4 and valve7
+
+    Pipe *elbow2;   // Input : elbow between valve2  and flow1
+    Pipe *elbow3;   // Input : elbow between valve3  and pipeH3
+    Pipe *elbow4;   // Output: elbow between pipeH8  and elbow4
+    Pipe *elbow5;   // Output: elbow between flow3   and temp3
+    Pipe *elbow6;   // Output: elbow between pump P1 and Tpipe3
+    Pipe *elbow7;   // Input : elbow between pipeV1  and pipeH4
+    Pipe *elbow8;   // Output: elbow between HLT heat-exchanger output and flow4
+    Pipe *elbow9;   // Output: elbow between flow4   and MLT top return manifold
+    Pipe *elbow10;  // Output: elbow between pipeH5  and pipeV3
+    Pipe *elbow11;  // Output: elbow between pipeV2  and pipeH9
+
+    Pipe *Tpipe1;   // Input : connects to flow1 , pipeH2 and pipeV1
+    Pipe *Tpipe2;   // Input : connects to pipeH2, valve1 and pipeH3
+    Pipe *Tpipe3;   // Output: connects to pipeH5, elbow6 and pipeH6
+    Pipe *Tpipe4;   // Output: connects to pipeH6, valve6 and flow2
 
     uint16_t   state_machine(void);   // Ebrew State Transition Diagram
     void       readMashSchemeFile(bool initTimers);
@@ -229,12 +297,11 @@ public:
     void       createStatusBar(void); // Creates a status bar at the bottom of the screen
     void       createMenuBar(void);   // Creates a menu bar at the top of the screen
     void       setStateName(void);    // Update state nr and description on screen
-    void       initBrewDaySettings(void); // Update brew-day settings from Registry values
-    void       msgBox(QString title, QString text, QCheckBox *cb);
+    void       initBrewDaySettings(void);   // Update brew-day settings from Registry values
+    void       sleep(uint16_t msec);        // Sleep msec milliseconds
     void       commPortOpen(void);          // Open communications channel
     void       commPortClose(void);         // Close the communications channel
     void       commPortWrite(QByteArray s); // Writes a string to the communications channel
-    void       removeLF(QByteArray& s);     // Removes \n from QByteArray
 
     /* Switches and Fixes for variables */
     bool  tset_hlt_sw  = false;  // Switch value for tset_hlt
@@ -262,7 +329,7 @@ public:
     bool  vboil_sw = false;      // Switch value for Vboil
     qreal vboil_fx = 0.0;        // Fix value for Vboil
 
-    bool  delayed_start = false; // true = HLT PID controller is started at a fixed time and date
+    bool  delayedStart = false;  // true = HLT PID controller is started at a fixed time and date
     QDateTime dlyStartTime;      // Holds date and time for delayed-start
 
     // State Transition Diagram (STD) values
@@ -283,27 +350,28 @@ public:
     int   malt_first = 0;     // 1 = malt is added to MLT first, then water
 
     /* Mash Settings */
-    int   ph_time;         // ph_time in seconds, PREHEAT_TIME in minutes
+    int   ph_time;                // ph_time in seconds, PREHEAT_TIME in minutes
 
     /* Sparge Settings */
-    int   mash_vol;        // Total mashing volume in litres (read from maisch.sch)
-    int   sp_vol;          // Total sparge volume in litres (read from maisch.sch)
-    int   sp_time_ticks;   // sp_time in TS ticks
-    int   boil_time_ticks; // boil_time in TS ticks
-    qreal sp_vol_batch;    // Sparge volume of 1 batch = sp_vol / sp_batches
-    qreal sp_vol_batch0;   // Sparge volume of first batch
+    int   mash_vol;               // Total mashing volume in litres (read from maisch.sch)
+    int   sp_vol;                 // Total sparge volume in litres (read from maisch.sch)
+    int   sp_time_ticks;          // sp_time in TS ticks
+    int   boil_time_ticks;        // boil_time in TS ticks
+    qreal sp_vol_batch;           // Sparge volume of 1 batch = sp_vol / sp_batches
+    qreal sp_vol_batch0;          // Sparge volume of first batch
 
     /* Boil Settings */
-    int   boil_time;       // Total boiling time in minutes (read from maisch.sch)
+    int   boil_time;              // Total boiling time in minutes (read from maisch.sch)
 
-    mash_schedule ms[MAX_MS];    // struct containing mash schedule
-    SlopeLimiter  *slopeLimHLT;  // slope-limiter object for tset_hlt
-    SlopeLimiter  *slopeLimBK;   // slope-limiter object for tset_boil
-    PidCtrl       *PidCtrlHlt;   // PID-controller object for HLT
-    PidCtrl       *PidCtrlBk;    // PID-controller object for Boil-kettle
+    mash_schedule ms[MAX_MS];     // struct containing mash schedule
+    SlopeLimiter  *slopeLimHLT;   // slope-limiter object for tset_hlt
+    SlopeLimiter  *slopeLimBK;    // slope-limiter object for tset_boil
+    PidCtrl       *PidCtrlHlt;    // PID-controller object for HLT
+    PidCtrl       *PidCtrlBk;     // PID-controller object for Boil-kettle
 
-    bool     ReadDataAvailable;
-    QByteArray ReadData;
+    bool       ReadDataAvailable; // true = ReadData is available, set by CommPortRead() slot
+    QByteArray ReadData;          // Data read from virtual COM port by CommPortRead() slot
+    bool       comPortIsOpen;     // true = communication channel is opened
 
 public slots:
     void     task_alive_led(void);             // 500 msec. task for blinking alive LED
@@ -321,11 +389,13 @@ public slots:
     void     MenuOptionsMeasurements(void);    // Options->Measurements Settings dialog screen
     void     MenuOptionsBrewDaySettings(void); // Options->Brew Day Settings dialog screen
     void     MenuOptionsSystemSettings(void);  // Options->System Settings dialog screen
-    void     commPortRead2(void);    // Reads a string from the communications channel
-    void     sleep(uint16_t msec);             // Sleep msec milliseconds
+    void     commPortRead(void);               // Reads a string from the communications channel
 
 protected:
-    void  closeEvent(QCloseEvent *event);
+    void     closeEvent(QCloseEvent *event);   // called when application is closed
+    void     keyPressEvent(QKeyEvent *event);  // called when a key is pressed
+    void     removeLF(QByteArray& s);          // Removes \n from QByteArray
+    void     msgBox(QString title, QString text, QCheckBox *cb);
 
     // Temperature, Volume and pid-output values
 	qreal thlt;             // HLT actual temperature
@@ -351,21 +421,21 @@ protected:
     qreal Vboil_old;        // Prev. value of Vboil, used in STD
 
     // Flow-rate values
-    qreal Flow_hlt_mlt;       // Flow1
-    qreal Flow_mlt_boil;      // Flow2
-    qreal Flow_cfc_out;       // Flow3
-    qreal Flow4;              // Flow4: Future Use
+    qreal Flow_hlt_mlt;         // Flow1
+    qreal Flow_mlt_boil;        // Flow2
+    qreal Flow_cfc_out;         // Flow3
+    qreal Flow4;                // Flow4: Future Use
     qreal Flow_cfc_out_reset_value;
-    bool  flow1_running;      // True = flowsensor 1 should see a flow
-    bool  flow2_running;      // True = flowsensor 2 should see a flow
-    bool  flow3_running;      // True = flowsensor 3 should see a flow
-    bool  flow_temp_corr;     // true = compensate flowsensor readings for higher temperatures
-    int   no_sound;           // 0: disable audible alarm, 1: alarm on T-sensors, 2: alarm on F-sensors
+    bool  flow1Running;         // True = flowsensor 1 should see a flow
+    bool  flow2Running;         // True = flowsensor 2 should see a flow
+    bool  flow3Running;         // True = flowsensor 3 should see a flow
+    bool  flow4Running;         // True = flowsensor 4 should see a flow
+    int   sensorAlarmInfo;      // alarm bits for temp. and flow-sensors
+    int   alarmSound = ALARM_TEMP_FLOW_SENSORS; // alarm on all sensor errors
 
     bool  toggle_led;           // Indicator for Alive LED
     bool  power_up_flag;        // true = power-up in progress
     bool  triac_too_hot;        // true = SSR too hot
-    bool  comPortIsOpen;        // true = communication channel is opened
 
     QString ebrew_revision = "$Revision: 3.00 $";
     QString line1MashScheme;    // Title line in mash-scheme file
@@ -388,6 +458,7 @@ private:
     QCheckBox *toolCipInitDone;
     QCheckBox *toolCipDrainBK;
     QCheckBox *toolCipHltFilled;
+
 }; // MainEbrew()
 
 #endif // MAIN_EBREW_H

@@ -93,12 +93,12 @@ public:
     MA(uint8_t order, qreal init_val);
     void  ma_init(uint8_t order, qreal init_val);
     qreal moving_average(qreal x);
-
-protected:
-    uint8_t N;           // order of MA-filter, N < MA_MAX_N
     qreal   T[MA_MAX_N]; // array with delayed values of input signal
     uint8_t index;       // index in T[] where to store the new input value
     qreal   sum;         // The running sum of the MA filter
+
+protected:
+    uint8_t N;           // order of MA-filter, N < MA_MAX_N
 }; // clas MA
 
 //------------------------------------------------------------------------------------------
