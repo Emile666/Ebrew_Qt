@@ -15,6 +15,17 @@ class DialogOptionsSystemSettings : public QDialog
 public:
     explicit DialogOptionsSystemSettings(QWidget *parent = nullptr);
     ~DialogOptionsSystemSettings();
+    int     systemMode;       // Parameter 0
+    int     gasNonModLlimit;  // Parameter 1
+    int     gasNonModHlimit;  // Parameter 2
+    int     gasModPwmLlimit;  // Parameter 3
+    int     gasModPwmHlimit;  // Parameter 4
+    int     triacLlimit;      // Parameter 5
+    int     triacHlimit;      // Parameter 6
+    int     commChannel;
+    QString commSettings;
+    QString commUdp;
+    int     commCb;
 
 private slots:
     void on_buttonBox_accepted();
@@ -31,6 +42,7 @@ private:
     void set_mode1(void);
     void set_mode2(void);
     void set_mode3(void);
+    void sendChangedValueToEbrewHW(uint16_t val1, uint16_t val2, uint8_t nr);
 };
 
 #endif // DIALOGOPTIONSSYSTEMSETTINGS_H

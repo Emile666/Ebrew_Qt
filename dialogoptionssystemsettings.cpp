@@ -16,18 +16,18 @@ DialogOptionsSystemSettings::DialogOptionsSystemSettings(QWidget *parent) :
     //-------------------------
     // Heater Mode
     //-------------------------
-    switch (pEbrew->RegEbrew->value("SYSTEM_MODE").toInt())
+    switch (systemMode = pEbrew->RegEbrew->value("SYSTEM_MODE").toInt())
     {
         case GAS_MODULATING    : ui->rb1->setChecked(true); set_mode1(); break;
         case GAS_NON_MODULATING: ui->rb2->setChecked(true); set_mode2(); break;
         case ELECTRICAL_HEATING: ui->rb3->setChecked(true); set_mode3(); break;
     } // switch
-    ui->sb11->setValue(pEbrew->RegEbrew->value("GAS_MOD_PWM_LLIMIT").toInt());
-    ui->sb12->setValue(pEbrew->RegEbrew->value("GAS_MOD_PWM_HLIMIT").toInt());
-    ui->sb21->setValue(pEbrew->RegEbrew->value("GAS_NON_MOD_LLIMIT").toInt());
-    ui->sb22->setValue(pEbrew->RegEbrew->value("GAS_NON_MOD_HLIMIT").toInt());
-    ui->sb31->setValue(pEbrew->RegEbrew->value("TTRIAC_LLIM").toInt());
-    ui->sb32->setValue(pEbrew->RegEbrew->value("TTRIAC_HLIM").toInt());
+    ui->sb11->setValue(gasModPwmLlimit = pEbrew->RegEbrew->value("GAS_MOD_PWM_LLIMIT").toInt());
+    ui->sb12->setValue(gasModPwmHlimit = pEbrew->RegEbrew->value("GAS_MOD_PWM_HLIMIT").toInt());
+    ui->sb21->setValue(gasNonModLlimit = pEbrew->RegEbrew->value("GAS_NON_MOD_LLIMIT").toInt());
+    ui->sb22->setValue(gasNonModHlimit = pEbrew->RegEbrew->value("GAS_NON_MOD_HLIMIT").toInt());
+    ui->sb31->setValue(triacLlimit = pEbrew->RegEbrew->value("TTRIAC_LLIM").toInt());
+    ui->sb32->setValue(triacHlimit = pEbrew->RegEbrew->value("TTRIAC_HLIM").toInt());
     //-------------------------
     // Communications
     //-------------------------
@@ -38,9 +38,9 @@ DialogOptionsSystemSettings::DialogOptionsSystemSettings(QWidget *parent) :
         string.append(info.portName() + ": " + info.description() + "\n");
     } // for
     ui->lblAvailable->setText(string);
-    ui->cbCommCh->setCurrentIndex(pEbrew->RegEbrew->value("COMM_CHANNEL").toInt());
-    ui->leComPort->setText(pEbrew->RegEbrew->value("COM_PORT_SETTINGS").toString());
-    ui->leIPaddr->setText(pEbrew->RegEbrew->value("UDP_IP_PORT").toString());
+    ui->cbCommCh->setCurrentIndex(commChannel = pEbrew->RegEbrew->value("COMM_CHANNEL").toInt());
+    ui->leComPort->setText(commSettings = pEbrew->RegEbrew->value("COM_PORT_SETTINGS").toString());
+    ui->leIPaddr->setText(commUdp = pEbrew->RegEbrew->value("UDP_IP_PORT").toString());
     if (ui->cbCommCh->currentIndex() == 0)
     {   // Ethernet (UDP)
         ui->lblComPort->setEnabled(false);
@@ -55,7 +55,8 @@ DialogOptionsSystemSettings::DialogOptionsSystemSettings(QWidget *parent) :
         ui->lblIPaddr->setEnabled(false);
         ui->leIPaddr->setEnabled(false);
     } // else
-    ui->cbDbgLog->setChecked(pEbrew->RegEbrew->value("CB_DEBUG_COM_PORT").toInt() == 1);
+    commCb = pEbrew->RegEbrew->value("CB_DEBUG_COM_PORT").toInt();
+    ui->cbDbgLog->setChecked(commCb == 1);
 
     //-------------------------
     // Brew-kettle Sizes
@@ -79,20 +80,40 @@ void DialogOptionsSystemSettings::on_buttonBox_accepted()
          pEbrew->RegEbrew->setValue("SYSTEM_MODE",GAS_MODULATING);
     else if (ui->rb2->isChecked())
          pEbrew->RegEbrew->setValue("SYSTEM_MODE",GAS_NON_MODULATING);
-    else pEbrew->RegEbrew->setValue("SYSTEM_MODE",ELECTRICAL_HEATING);
-    pEbrew->RegEbrew->setValue("GAS_MOD_PWM_LLIMIT",ui->sb11->value());
-    pEbrew->RegEbrew->setValue("GAS_MOD_PWM_HLIMIT",ui->sb12->value());
-    pEbrew->RegEbrew->setValue("GAS_NON_MOD_LLIMIT",ui->sb21->value());
-    pEbrew->RegEbrew->setValue("GAS_NON_MOD_HLIMIT",ui->sb22->value());
-    pEbrew->RegEbrew->setValue("TTRIAC_LLIM",ui->sb31->value());
-    pEbrew->RegEbrew->setValue("TTRIAC_HLIM",ui->sb32->value());
+    else pEbrew->RegEbrew->setValue("SYSTEM_MODE",ELECTRICAL_HEATING);  // Parameter 0
+    pEbrew->RegEbrew->setValue("GAS_NON_MOD_LLIMIT",ui->sb21->value()); // Parameter 1
+    pEbrew->RegEbrew->setValue("GAS_NON_MOD_HLIMIT",ui->sb22->value()); // Parameter 2
+    pEbrew->RegEbrew->setValue("GAS_MOD_PWM_LLIMIT",ui->sb11->value()); // Parameter 3
+    pEbrew->RegEbrew->setValue("GAS_MOD_PWM_HLIMIT",ui->sb12->value()); // Parameter 4
+    pEbrew->RegEbrew->setValue("TTRIAC_LLIM",ui->sb31->value());        // Parameter 5
+    pEbrew->RegEbrew->setValue("TTRIAC_HLIM",ui->sb32->value());        // Parameter 6
+    pEbrew->schedulerEbrew->stop();  // stop scheduler for a moment
+    pEbrew->sleep(10);               // give scheduler time to stop all communications
+    sendChangedValueToEbrewHW(pEbrew->RegEbrew->value("SYSTEM_MODE").toUInt()       ,systemMode     ,0);
+    sendChangedValueToEbrewHW(pEbrew->RegEbrew->value("GAS_NON_MOD_LLIMIT").toUInt(),gasNonModLlimit,1);
+    sendChangedValueToEbrewHW(pEbrew->RegEbrew->value("GAS_NON_MOD_HLIMIT").toUInt(),gasNonModHlimit,2);
+    sendChangedValueToEbrewHW(pEbrew->RegEbrew->value("GAS_MOD_PWM_LLIMIT").toUInt(),gasModPwmLlimit,3);
+    sendChangedValueToEbrewHW(pEbrew->RegEbrew->value("GAS_MOD_PWM_HLIMIT").toUInt(),gasModPwmHlimit,4);
+    sendChangedValueToEbrewHW(100*pEbrew->RegEbrew->value("TTRIAC_LLIM").toUInt()       ,100*triacLlimit    ,5); // in E-2 °C
+    sendChangedValueToEbrewHW(100*pEbrew->RegEbrew->value("TTRIAC_HLIM").toUInt()       ,100*triacHlimit    ,6); // in E-2 °C
+
     //-------------------------
     // Communications
     //-------------------------
     pEbrew->RegEbrew->setValue("COMM_CHANNEL",ui->cbCommCh->currentIndex());
     pEbrew->RegEbrew->setValue("COM_PORT_SETTINGS",ui->leComPort->text());
     pEbrew->RegEbrew->setValue("UDP_IP_PORT",ui->leIPaddr->text());
-    pEbrew->RegEbrew->setValue("CB_DEBUG_COM_PORT",ui->cbDbgLog->isChecked() ? 1 : 0);
+    int x = ui->cbDbgLog->isChecked() ? 1 : 0;
+    pEbrew->RegEbrew->setValue("CB_DEBUG_COM_PORT",x);
+    if ((ui->cbCommCh->currentIndex() != commChannel) || (ui->leComPort->text() != commSettings) || (ui->leIPaddr->text() != commUdp) || (x != commCb))
+    {   // Communication settings have changed
+        pEbrew->schedulerEbrew->stop();  // stop scheduler for a moment
+        pEbrew->sleep(10);               // give scheduler time to stop all communications
+        pEbrew->commPortClose();         // this also closes the com-port log-file
+        pEbrew->commPortOpen();          // open COM port with new settings
+    } // if
+    pEbrew->schedulerEbrew->start(); // restart scheduler
+
     //-------------------------
     // Brew-kettle Sizes
     //-------------------------
@@ -101,6 +122,15 @@ void DialogOptionsSystemSettings::on_buttonBox_accepted()
     pEbrew->RegEbrew->setValue("VBOIL_MAX",ui->sbBkVol->value());
     pEbrew->setKettleNames();  // Init. titles of kettles with volumes found in Registry
 } // DialogOptionsSystemSettings::on_buttonBox_accepted()
+
+void DialogOptionsSystemSettings::sendChangedValueToEbrewHW(uint16_t val1, uint16_t val2, uint8_t nr)
+{
+    if (val1 != val2)
+    {
+        QString string = QString("N%1 %2").arg(nr).arg(val1); // send new value to Ebrew HW
+        pEbrew->commPortWrite(string.toUtf8());
+    } // if
+} // DialogOptionsSystemSettings::sendChangedValueToEbrewHW()
 
 void DialogOptionsSystemSettings::set_mode0(void)
 {

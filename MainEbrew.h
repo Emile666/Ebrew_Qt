@@ -1,52 +1,24 @@
-/****************************************************************************
+/**************************************************************************************
+** Filename    : MainEbrew.h
+** Author      : Emile
+** Purpose     : Header file for MainEbrew.cpp. Contains the MainEbrew class.
+** License     : This is free software: you can redistribute it and/or modify
+**               it under the terms of the GNU General Public License as published by
+**               the Free Software Foundation, either version 3 of the License, or
+**               (at your option) any later version.
 **
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
+**               This file is distributed in the hope that it will be useful,
+**               but WITHOUT ANY WARRANTY; without even the implied warranty of
+**               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**               GNU General Public License for more details.
 **
-** This file is part of the examples of the Qt Toolkit.
+**               You should have received a copy of the GNU General Public License
+**               along with this file.  If not, see <http://www.gnu.org/licenses/>.
+** ------------------------------------------------------------------------------------
+** Revision 3.00  2020/08/12
+** - Redesign from r1.99 (Borland C++ Builder) to Qt framework
 **
-** $QT_BEGIN_LICENSE:BSD$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** BSD License Usage
-** Alternatively, you may use this file under the terms of the BSD license
-** as follows:
-**
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of The Qt Company Ltd nor the names of its
-**     contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
-**
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
+**************************************************************************************/
 #ifndef MAIN_EBREW_H
 #define MAIN_EBREW_H
 
@@ -63,31 +35,35 @@
 #include "controlobjects.h"
 #include "scheduler.h"
 
-#define COMMDBGFILE "com_port_dbg.txt"
-#define LOGFILE     "ebrewlog.txt"
-#define MASHFILE    "maisch.sch"
-#define REGKEY      "HKEY_CURRENT_USER\\Software\\ebrew\\V3"
-#define EBREW_HW_ID "E-Brew"
+//------------------------------
+// Ebrew system-wide defines
+//------------------------------
+#define EBREW_REVISION "$Revision: 3.00 $"                      /* Ebrew SW revision number */
+#define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
+#define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
+#define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
+#define REGKEY         "HKEY_CURRENT_USER\\Software\\ebrew\\V3" /* Registry entry */
+#define EBREW_HW_ID    "E-Brew"                                 /* S0-reponse from Ebrew hardware */
 
 //------------------------------
-// Defines for Audio Alarm
+// Defines for Sensor Alarms
 //------------------------------
 #define ALARM_OFF               (0) /* No sound */
 #define ALARM_TEMP_SENSORS      (1) /* Audio alarm only on Temp. sensor error */
 #define ALARM_FLOW_SENSORS      (2) /* Audio alarm only on flowsensor error */
 #define ALARM_TEMP_FLOW_SENSORS (3) /* Audio alarm on all sensor errors */
 
-//-------------------------------
-// Defines for sensor_alarm_info
-//-------------------------------
-#define SENS_THLT   (0x01)
-#define SENS_TMLT   (0x02)
-#define SENS_TBOIL  (0x04)
-#define SENS_TCFC   (0x08)
-#define SENS_FLOW1  (0x10) /* HLT -> MLT */
-#define SENS_FLOW2  (0x20) /* MLT -> Boil */
-#define SENS_FLOW3  (0x40) /* CFC out */
-#define SENS_FLOW4  (0x80) /* Reserved */
+//---------------------------------
+// Bit-defines for sensorAlarmInfo
+//---------------------------------
+#define SENS_THLT   (0x01)   /* HLT temperature */
+#define SENS_TMLT   (0x02)   /* MLT temperature */
+#define SENS_TBOIL  (0x04)   /* Boil-kettle temperature */
+#define SENS_TCFC   (0x08)   /* CFC-output temperature */
+#define SENS_FLOW1  (0x10)   /* HLT output flowmeter */
+#define SENS_FLOW2  (0x20)   /* Boil-kettle input flowmeter */
+#define SENS_FLOW3  (0x40)   /* CFC-output flowmeter */
+#define SENS_FLOW4  (0x80)   /* HLT heat-exchanger -> MLT top return manifold */
 
 //-----------------------------------------------------------
 // Defines for COM Port Communication.
@@ -111,15 +87,21 @@
 //----------------------------------
 // Defines for Brew-day Settings
 //----------------------------------
-#define MAX_MS      (10) /* Max. number of mash temp-time pairs */
-#define MAX_SP      (10) /* Max. number of batch sparge sessions */
-#define NOT_STARTED (-1) /* Timer not started */
+#define MAX_MS      (10)     /* Max. number of mash temp-time pairs */
+#define MAX_SP      (10)     /* Max. number of batch sparge sessions */
+#define NOT_STARTED (-1)     /* Timer not started */
 
 //----------------------------------
 // Defines for readMashSchemeFile()
 //----------------------------------
 #define INIT_TIMERS    (true)
 #define NO_INIT_TIMERS (false)
+
+//----------------------------------
+// Defines for setTopToolBar()
+//----------------------------------
+#define TOOLBAR_BREWING (0)
+#define TOOLBAR_CIP     (1)
 
 //------------------------------------------------------
 // Defines for State Transition Diagram.
@@ -168,49 +150,39 @@
 // Hard-coded Timers.
 // task update_std() runs every second, so 1 second is 1 tick.
 //-------------------------------------------------------------
-#define TMR_PREFILL_PUMP       (60)
-#define TMR_DELAY_xSEC         (10)
-#define TMR_MASH_REST_5_MIN   (300)
-#define TMR_BOIL_REST_5_MIN   (300)
+#define TMR_PREFILL_PUMP       (60) /* Pump priming time in seconds */
+#define TMR_DELAY_xSEC         (10) /* Default delay in seconds */
+#define TMR_MASH_REST_5_MIN   (300) /* Mash-rest in seconds */
+#define TMR_BOIL_REST_5_MIN   (300) /* Post-boil rest in seconds */
 
 //--------------------------------------------------------------------------
 // #defines for the valves. Each valve can be set manually or automatically
 // by the STD. Bit-values are for the variable 'valves'.
 //--------------------------------------------------------------------------
-#define P1b  (0x0200)
-#define P0b  (0x0100)
-#define V8b  (0x0080)
-#define V7b  (0x0040)
-#define V6b  (0x0020)
-#define V5b  (0x0010)
-#define V4b  (0x0008)
-#define V3b  (0x0004)
-#define V2b  (0x0002)
-#define V1b  (0x0001)
+#define P1b  (0x0200) /* Pump P2, HLT heat-exchanger pump */
+#define P0b  (0x0100) /* Pump P1, main Ebrew pump */
+#define V8b  (0x0080) /* Valve V8, futures use */
+#define V7b  (0x0040) /* Valve V7, Boil-kettle input */
+#define V6b  (0x0020) /* Valve V6, CFC-output */
+#define V5b  (0x0010) /* Valve V5, future use */
+#define V4b  (0x0008) /* Valve V4, HLT heat-exchanger -> MLT top return manifold */
+#define V3b  (0x0004) /* Valve V3, Boil-kettle output */
+#define V2b  (0x0002) /* Valve V2, HLT output */
+#define V1b  (0x0001) /* Valve V1, MLT output */
 
 #define ALL_VALVES (V1b | V2b | V3b | V4b | V5b | V6b | V7b | V8b)
 #define ALL_PUMPS  (P0b | P1b)
-#define ALL_MANUAL (V1M | V2M | V3M | V4M | V5M | V6M | V7M | V8M | P0M | P1M)
 
-//-----------------------------
-// E-brew System Modes
-//-----------------------------
-#define GAS_MODULATING     (0)
-#define GAS_NON_MODULATING (1)
-#define ELECTRICAL_HEATING (2)
+//-----------------------------------------------------
+// E-brew System Modes for heating HLT and boil-kettle
+//-----------------------------------------------------
+#define GAS_MODULATING     (0) /* Modulating gas-burner */
+#define GAS_NON_MODULATING (1) /* Non-modulating (on/off) gas-burner */
+#define ELECTRICAL_HEATING (2) /* Electrical heating, SSR/Triac controlled */
 
-//-------------------------------
-// Defines for sensor_alarm_info
-//-------------------------------
-#define SENS_THLT   (0x01)
-#define SENS_TMLT   (0x02)
-#define SENS_TBOIL  (0x04)
-#define SENS_TCFC   (0x08)
-#define SENS_FLOW1  (0x10) /* HLT -> MLT */
-#define SENS_FLOW2  (0x20) /* MLT -> Boil */
-#define SENS_FLOW3  (0x40) /* CFC out */
-#define SENS_FLOW4  (0x80) /* Reserved */
-
+//-----------------------------------------------------
+// Struct for temperature-time pairs during mashing
+//-----------------------------------------------------
 typedef struct _mash_schedule
 {
    qreal   time;       /* time (min.) to remain at this temperature */
@@ -220,6 +192,8 @@ typedef struct _mash_schedule
    QString time_stamp; /* time when timer was started */
 } mash_schedule;
 
+//------------------------------------------------------------------------------------------
+// CLASS MainEbrew
 //------------------------------------------------------------------------------------------
 class MainEbrew : public QMainWindow
 {
@@ -243,15 +217,23 @@ public:
     Meter       *F2;             // Flowmeter 2: Boil-kettle input
     Meter       *F3;             // Flowmeter 3: CFC-output
     Meter       *F4;             // Flowmeter 4: at MLT top return-manifold
-    Meter       *T3;             // Temp. meter 3: Tcfc
-    Display     *std_text;       // STD state description
+    Meter       *T3;             // Temp. meter 3: Tcfc, other temp. meters are inside Tank objects
+    Display     *std_text;       // STD state description with sub-text
     PowerButton *hlt_pid;        // HLT PID on/off powerButton
     PowerButton *boil_pid;       // Boil-kettle PID on/off powerButton
+
+    SlopeLimiter *slopeLimHLT;   // slope-limiter object for tset_hlt
+    SlopeLimiter *slopeLimBK;    // slope-limiter object for tset_boil
+    PidCtrl      *PidCtrlHlt;    // PID-controller object for HLT
+    PidCtrl      *PidCtrlBk;     // PID-controller object for Boil-kettle
+
     QSettings   *RegEbrew;       // Pointer to Registry Ebrew object
     Scheduler   *schedulerEbrew; // Pointer to scheduler object
     QSerialPort *serialPort;     // Pointer to serialPort object
     QFile       *fEbrewLog;      // Pointer to log-file object
     QFile       *fDbgCom;        // Pointer to com-port debug file object
+    QToolBar    *toolBarB;       // Toolbar with brewing checkboxes
+    QToolBar    *toolBarC;       // Toolbar with CIP checkboxes
 
     // Pointers to pipes and elbows in graphical scene
     Pipe *elbowP20; // Pump P2 top-left elbow
@@ -290,18 +272,18 @@ public:
     Pipe *Tpipe3;   // Output: connects to pipeH5, elbow6 and pipeH6
     Pipe *Tpipe4;   // Output: connects to pipeH6, valve6 and flow2
 
-    uint16_t   state_machine(void);   // Ebrew State Transition Diagram
-    void       readMashSchemeFile(bool initTimers);
-    void       setKettleNames(void);  // Set title of kettles with volumes from Registry
-    void       createRegistry(void);  // Create default Registry entries for Ebrew
-    void       createStatusBar(void); // Creates a status bar at the bottom of the screen
-    void       createMenuBar(void);   // Creates a menu bar at the top of the screen
-    void       setStateName(void);    // Update state nr and description on screen
+    uint16_t   state_machine(void);         // Ebrew State Transition Diagram
+    void       readMashSchemeFile(bool initTimers); // Read mash-scheme from file
+    void       setKettleNames(void);        // Set title of kettles with volumes from Registry
+    void       createRegistry(void);        // Create default Registry entries for Ebrew
+    void       createStatusBar(void);       // Creates a status bar at the bottom of the screen
+    void       createMenuBar(void);         // Creates a menu bar at the top of the screen
     void       initBrewDaySettings(void);   // Update brew-day settings from Registry values
     void       sleep(uint16_t msec);        // Sleep msec milliseconds
     void       commPortOpen(void);          // Open communications channel
     void       commPortClose(void);         // Close the communications channel
     void       commPortWrite(QByteArray s); // Writes a string to the communications channel
+    void       setTopToolBar(int option);   // Set toolbar at top of screen for brewing or for CIP
 
     /* Switches and Fixes for variables */
     bool  tset_hlt_sw  = false;  // Switch value for tset_hlt
@@ -334,20 +316,17 @@ public:
 
     // State Transition Diagram (STD) values
     int   ebrew_std  = S00_INITIALISATION; // Current state of STD
-    int   ms_tot     = 0;     // total nr. of valid temp & time values
-    int   ms_idx     = 0;     // index in ms[] array
-    int   sp_idx     = 0;     // Sparging index [0..sps->sp_batches-1]
-    int   timer1     = 0;     // Timer for state 'Sparging Rest'
-    int   timer2     = 0;     // Timer for state 'Delay_xSEC'
-    int   timer3     = 0;     // Timer for state 'Pump Pre-Fill'
-    int   mrest_tmr  = 0;     // Timer for state 'Mast Rest 5 Min.'
-    int   brest_tmr  = 0;     // Timer for state 'Boiling finished, prepare Chiller'
-    int   timer5     = 0;     // Timer for state 'Boiling'
-    int   mash_rest  = 0;     // 1 = mash rest after malt is added
-    int   cip_tmr1   = 0;     // Timer for CIP process
-    int   cip_circ   = 0;     // Counter for CIP circulations
-    int   boil_rest  = 0;     // 1 = let wort rest after malt is added
-    int   malt_first = 0;     // 1 = malt is added to MLT first, then water
+    int   ms_tot     = 0;         // total nr. of valid temp & time values
+    int   ms_idx     = 0;         // index in ms[] array
+    int   sp_idx     = 0;         // Sparging index [0..sps->sp_batches-1]
+    int   timer1     = 0;         // Timer for state 'Sparging Rest'
+    int   timer2     = 0;         // Timer for state 'Delay_xSEC'
+    int   timer3     = 0;         // Timer for state 'Pump Pre-Fill'
+    int   mrest_tmr  = 0;         // Timer for state 'Mast Rest 5 Min.'
+    int   brest_tmr  = 0;         // Timer for state 'Boiling finished, prepare Chiller'
+    int   timer5     = 0;         // Timer for state 'Boiling'
+    int   cip_tmr1   = 0;         // Timer for CIP process
+    int   cip_circ   = 0;         // Counter for CIP circulations
 
     /* Mash Settings */
     int   ph_time;                // ph_time in seconds, PREHEAT_TIME in minutes
@@ -363,15 +342,18 @@ public:
     /* Boil Settings */
     int   boil_time;              // Total boiling time in minutes (read from maisch.sch)
 
-    mash_schedule ms[MAX_MS];     // struct containing mash schedule
-    SlopeLimiter  *slopeLimHLT;   // slope-limiter object for tset_hlt
-    SlopeLimiter  *slopeLimBK;    // slope-limiter object for tset_boil
-    PidCtrl       *PidCtrlHlt;    // PID-controller object for HLT
-    PidCtrl       *PidCtrlBk;     // PID-controller object for Boil-kettle
+    mash_schedule ms[MAX_MS];     // struct containing mash-schedule
 
+    /* Communications channel variables */
     bool       ReadDataAvailable; // true = ReadData is available, set by CommPortRead() slot
     QByteArray ReadData;          // Data read from virtual COM port by CommPortRead() slot
     bool       comPortIsOpen;     // true = communication channel is opened
+
+    /* Time-stamps for Sparge, Boil and Chilling*/
+    QStringList mlt2boil; // strings for time-stamp moment of MLT -> BOIL
+    QStringList hlt2mlt;  // MAX_SP strings for time-stamp moment of HLT -> MLT
+    QStringList Boil;     // Boil-start and Boil-End time-stamps
+    QStringList Chill;    // Chill-start and Chill-End time-stamps
 
 public slots:
     void     task_alive_led(void);             // 500 msec. task for blinking alive LED
@@ -395,7 +377,7 @@ protected:
     void     closeEvent(QCloseEvent *event);   // called when application is closed
     void     keyPressEvent(QKeyEvent *event);  // called when a key is pressed
     void     removeLF(QByteArray& s);          // Removes \n from QByteArray
-    void     msgBox(QString title, QString text, QCheckBox *cb);
+    void     msgBox(QString title, QString text, QCheckBox *cb); /* shows only one instance of a MessageBox */
 
     // Temperature, Volume and pid-output values
 	qreal thlt;             // HLT actual temperature
@@ -421,11 +403,11 @@ protected:
     qreal Vboil_old;        // Prev. value of Vboil, used in STD
 
     // Flow-rate values
-    qreal Flow_hlt_mlt;         // Flow1
-    qreal Flow_mlt_boil;        // Flow2
-    qreal Flow_cfc_out;         // Flow3
-    qreal Flow4;                // Flow4: Future Use
-    qreal Flow_cfc_out_reset_value;
+    qreal FlowHltMlt;           // Flow-meter 1 value
+    qreal FlowMltBoil;          // Flow-meter 2 value
+    qreal FlowCfcOut;           // Flow-meter 3 value
+    qreal Flow4;                // Flow-meter 4 value
+    qreal FlowCfcOutResetValue; // Needed in boiling phase to reset flowmeter
     bool  flow1Running;         // True = flowsensor 1 should see a flow
     bool  flow2Running;         // True = flowsensor 2 should see a flow
     bool  flow3Running;         // True = flowsensor 3 should see a flow
@@ -433,32 +415,34 @@ protected:
     int   sensorAlarmInfo;      // alarm bits for temp. and flow-sensors
     int   alarmSound = ALARM_TEMP_FLOW_SENSORS; // alarm on all sensor errors
 
-    bool  toggle_led;           // Indicator for Alive LED
-    bool  power_up_flag;        // true = power-up in progress
-    bool  triac_too_hot;        // true = SSR too hot
+    bool  toggleLed;            // Indicator for Alive LED
+    bool  triacTooHot;          // true = SSR too hot
 
-    QString ebrew_revision = "$Revision: 3.00 $";
-    QString line1MashScheme;    // Title line in mash-scheme file
+    QString ebrewRevision = EBREW_REVISION; // Ebrew SW revision number
+    QString line1MashScheme;    // Title line in mash-scheme file, needed for log-file
 
 private:
-    // Pointers to Labels in Statusbar at bottom of screen
-    QLabel    *statusAlarm;
-    QLabel    *statusMashScheme;
-    QLabel    *statusMashVol;
-    QLabel    *statusSpargeVol;
-    QLabel    *statusBoilTime;
-    QLabel    *statusMsIdx;
-    QLabel    *statusSpIdx;
-    QLabel    *statusSwRev;
-    QCheckBox *toolStartCIP;
-    QCheckBox *toolStartAddMalt;
-    QCheckBox *toolMaltAdded;
-    QCheckBox *toolBoilStarted;
-    QCheckBox *toolStartChilling;
-    QCheckBox *toolCipInitDone;
-    QCheckBox *toolCipDrainBK;
-    QCheckBox *toolCipHltFilled;
+    // Labels in Statusbar at bottom of screen
+    QLabel    *statusAlarm;       // Statusbar Sensor Alarm label
+    QLabel    *statusMashScheme;  // Statusbar Mash-scheme label
+    QLabel    *statusMashVol;     // Statusbar Mash-volume value
+    QLabel    *statusSpargeVol;   // Statusbar Sparge-volume value
+    QLabel    *statusBoilTime;    // Statusbar total boil-time value
+    QLabel    *statusMsIdx;       // Statusbar mash-index (ms_idx) value
+    QLabel    *statusSpIdx;       // Statusbar sparge-index (sp_idx) value
+    QLabel    *statusSwRev;       // Statusbar SW+HW revision numbers
 
+    // Checkboxes at toolbar at top of screen
+    QCheckBox *toolStartCIP;      // Toolbar top checkbox start CIP program
+    QCheckBox *toolStartAddMalt;  // Toolbar top checkbox ready to add malt
+    QCheckBox *toolMaltAdded;     // Toolbar top checkbox malt is added
+    QCheckBox *toolMLTEmpty;      // Toolbar top checkbox MLT is empty
+    QCheckBox *toolBoilStarted;   // Toolbar top checkbox boiling is started
+    QCheckBox *toolStartChilling; // Toolbar top checkbox prepare chiller
+    QCheckBox *toolReadyChilling; // Toolbar top checkbox chilling is finished
+    QCheckBox *toolCipInitDone;   // Toolbar top checkbox ready to start CIP program
+    QCheckBox *toolCipDrainBK;    // Toolbar top checkbox drain boil-kettle
+    QCheckBox *toolCipHltFilled;  // Toolbar top checkbox HLT filled with water
 }; // MainEbrew()
 
 #endif // MAIN_EBREW_H

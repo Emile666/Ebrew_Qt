@@ -59,10 +59,10 @@
 #include <QPushButton>
 #include "controlobjects.h"
 
-#define HORIZONTAL (0) /* Valve horizontal direction */
-#define VERTICAL   (1) /* Valve vertical direction */
-#define OUT_RIGHT  (0) /* Pump output on right */
-#define OUT_LEFT   (1) /* TODO Pump output on left */
+#define HORIZONTAL      (0) /* Valve horizontal direction */
+#define VERTICAL        (1) /* Valve vertical direction */
+#define OUT_RIGHT       (0) /* Pump output on right */
+#define OUT_LEFT        (1) /* Pump output on left */
 
 #define METER_HFLOW     (0) /* Meter-type: flow-meter horizontal lay-out */
 #define METER_HTEMP     (1) /* Meter-type: temperature-meter horizontal lay-out */
@@ -72,11 +72,11 @@
 #define FLOWRATE_RAW    (0) /* get unfiltered flow-rate */
 #define FLOWRATE_FIL    (1) /* get filtered flow-rate */
 
-#define RPIPE      (10) /* Radius of pipes */
-#define RPUMP      (35) /* Radius of Pump */
-#define VALVE_SIZE (60) /* Valve size */
-#define RVALVE     (12) /* Radius of ball in middle of valve */
-#define TANK_WALL  (10) /* Thickness of tank wall */
+#define RPIPE          (10) /* Radius of pipes */
+#define RPUMP          (35) /* Radius of Pump */
+#define VALVE_SIZE     (60) /* Valve size */
+#define RVALVE         (12) /* Radius of ball in middle of valve */
+#define TANK_WALL      (10) /* Thickness of tank wall */
 
 #define PIPE2_LEFT_TOP     (0)
 #define PIPE2_LEFT_RIGHT   (1)
@@ -100,10 +100,11 @@
 #define TANK_RETURN_BOTTOM    (8) /* Return pipe at bottom of tank */
 #define TANK_EXIT_BOTTOM     (16) /* One pipe output at tank bottom */
 
-#define MANUAL_OFF (0)
-#define MANUAL_ON  (1)
-#define AUTO_OFF   (2)
-#define AUTO_ON    (3)
+// Possible states for Actuators (pumps, valves)
+#define MANUAL_OFF (0) /* Actuator in manual mode, off */
+#define MANUAL_ON  (1) /* Actuator in manual mode, on */
+#define AUTO_OFF   (2) /* Actuator in automatic mode, off */
+#define AUTO_ON    (3) /* Actuator in automatic mode, on */
 
 // Coordinates for Tank object
 #define COORD_LEFT_PIPE1    (0)
@@ -141,8 +142,10 @@ public:
     PowerButton(int x, int y, int width, int height, QString name);
     bool getButtonState(void);
     void setButtonState(bool state);
+
 public slots:
     void button_pressed(void);
+
 protected:
     bool    buttonState;
     QPixmap pixmap_off;
@@ -238,12 +241,15 @@ public:
     QPointF getCoordinates(uint8_t side);
     void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     void    setColor(QColor color);
+
 protected:
+    QRectF    boundingRect() const override { return boundary; }
     uint16_t  pipeLength;
     uint8_t   pipeType;
     QPolygonF pipePolygon; /* Contains polygon for drawing the pipe */
     QPointF   left,top,right,bottom; // coordinates of various points
     QColor    pipeColor;
+    QRectF    boundary; // boundary of object
 }; // class Pipe
 
 //------------------------------------------------------------------------------------------
@@ -252,10 +258,11 @@ protected:
 class Display : public QGraphicsSimpleTextItem
 {
 public:
-    Display(QPointF point);
+    Display(QPointF point, int w);
     void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     QRectF  boundary; // boundary of object
     void    setSubText(QString string);
+
 protected:
     QRectF  boundingRect() const override { return boundary; }
     QString subText;
@@ -266,11 +273,10 @@ protected:
 //------------------------------------------------------------------------------------------
 // Base object for Valves and Pumps
 //------------------------------------------------------------------------------------------
-class Base_Valve_Pump : public QGraphicsPolygonItem
+class Actuator : public QGraphicsPolygonItem
 {
-//    Q_OBJECT
 public:
-    Base_Valve_Pump(QPointF point, QString name);
+    Actuator(QPointF point, QString name);
     void    setColor(QColor color);
     void    setName(QString name);
     void    setStatus(uint8_t status);
@@ -279,35 +285,23 @@ public:
     QPointF getCoordinates(uint8_t side);
     bool    inManualMode(void);
     void    setActuator(uint16_t& actionBits, uint16_t whichBit);
-
     QRectF  boundary; // boundary of object
 
-//public slots:
-//    void slotManualOff(void);
-//    void slotManualOn(void);
-//    void slotAuto(void);
-
 protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
-    QString   valveName;                     /* Valve name */
-    QColor    valveColor       = Qt::red;    /* color of valve */
-    bool      valveOrientation = HORIZONTAL; /* Orientation of valve: HORIZONTAL or VERTICAL */
-    QPolygonF valvePolygon;                  /* Contains polygon for drawing the valve */
-    uint8_t   valveStatus;                   /* Status of the valve: MANUAL_OFF, MANUAL_ON, AUTO_OFF, AUTO_ON */
-    QString   status_text[4] = { "OFF(M)", "ON (M)", "OFF(A)", "ON (A)" };
-    QPointF   left,top,right,bottom;         // coordinates of various points
-
-private:
-    QAction   *setManualOffAction;
-    QAction   *setManualOnAction;
-    QAction   *setAutoAction;
-    QMenu     *contextMenu;
-}; // class Base_Valve_Pump
+    void      contextMenuEvent(QGraphicsSceneContextMenuEvent * event) override;
+    QString   actuatorName;                     // actuator name
+    QColor    actuatorColor       = Qt::red;    // color of actuator
+    bool      actuatorOrientation = HORIZONTAL; // Orientation of actuator: HORIZONTAL or VERTICAL
+    QPolygonF actuatorPolygon;                  // Contains polygon for drawing the actuator
+    uint8_t   actuatorStatus;                   // Actuator status: MANUAL_OFF, MANUAL_ON, AUTO_OFF, AUTO_ON
+    QString   statustext[4] = { "OFF(M)", "ON (M)", "OFF(A)", "ON (A)" };
+    QPointF   left,top,right,bottom;            // coordinates of various points
+}; // class Actuator
 
 //------------------------------------------------------------------------------------------
-// Valve object, derived from Base_Valve_Pump
+// Valve object, derived from Actuator
 //------------------------------------------------------------------------------------------
-class Valve : public Base_Valve_Pump
+class Valve : public Actuator
 {
 public:
     Valve(QPointF point, bool orientation, QString name);
@@ -321,9 +315,9 @@ private:
 }; // class Valve
 
 //------------------------------------------------------------------------------------------
-// Pump object, derived from Base_Valve_Pump
+// Pump object, derived from Actuator
 //------------------------------------------------------------------------------------------
-class Pump : public Base_Valve_Pump
+class Pump : public Actuator
 {
 public:
     Pump(QPointF point, bool orientation, QString name);

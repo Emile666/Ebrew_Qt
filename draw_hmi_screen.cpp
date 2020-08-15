@@ -360,7 +360,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     p->pipeH9 = pipeH9;         // add reference to MainEbrew
     scene->addItem(pipeH9);
 
-    Display *std_text = new Display(QPointF(-700,450));
+    Display *std_text = new Display(QPointF(-800,450),700);
     std_text->setText("00. Initialisation");
     std_text->setSubText("Press the HLT PID Controller button to advance to the next state");
     scene->addItem(std_text);

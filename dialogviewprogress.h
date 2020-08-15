@@ -10,9 +10,9 @@ class DialogViewProgress;
 
 static const QString   MashTitle("  Mash Temp Time  PreHt Timer Timer        Time-\n"
                                  "  idx  [°C] [sec] [sec] [sec] Status       Stamp\n"
-                                 "------------------------------------------------");
-static const QString SpargeTitle("  index  From HLT -> MLT  |   From MLT -> Boil-kettle\n"
-                                 "--------------------------|--------------------------");
+                                 "--------------------------------------------------");
+static const QString SpargeTitle("index        From HLT to MLT  | From MLT to Boil-kettle\n"
+                                 "------------------------------|--------------------------");
 
 class DialogViewProgress : public QDialog
 {
@@ -32,13 +32,6 @@ private:
     Ui::DialogViewProgress *ui;
     MainEbrew *pEbrew; // pointer to parent (MainEbrew)
     int        timerId;
-    int        prev_ebrew_std = S00_INITIALISATION; // previous value of ebrew_std
-
-    /* Time-stamps for Sparge, Boil and Chilling*/
-    QStringList mlt2boil; // strings for time-stamp moment of MLT -> BOIL
-    QStringList hlt2mlt;  // MAX_SP strings for time-stamp moment of HLT -> MLT
-    QStringList Boil;     // Boil-start and Boil-End time-stamps
-    QStringList Chill;    // Chill-start and Chill-End time-stamps
 };
 
 #endif // DIALOGVIEWPROGRESS_H

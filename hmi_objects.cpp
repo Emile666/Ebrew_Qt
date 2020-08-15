@@ -59,6 +59,8 @@
 #include <QDebug>
 
 //------------------------------------------------------------------------------------------
+// Pushbutton with a green/red LED
+//------------------------------------------------------------------------------------------
 PowerButton::PowerButton(int x, int y, int width, int height, QString name)
     : QPushButton()
 {
@@ -102,6 +104,8 @@ void PowerButton::setButtonState(bool state)
     else setIcon(icon_off);
 } // PowerButton::setButtonState()
 
+//------------------------------------------------------------------------------------------
+// Tank object for HLT, MLT and Boil-kettle
 //------------------------------------------------------------------------------------------
 Tank::Tank(int x, int y, int width, int height, uint8_t options, QString name)
     : QGraphicsPolygonItem()
@@ -269,18 +273,19 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     {   // No return manifold in top, this is an HLT or boil-kettle
         yb = 20;
     } // else
-    painter->drawRect(-(tankWidth>>2),yb+4-tankHeight,120,40); // Draw Temperature display rectangle
+    int xbase = -10-(tankWidth>>2); // top-left coord. of temperature display
+    painter->drawRect(xbase,yb+4-tankHeight,130,40); // Draw Temperature display rectangle
     painter->setPen(Qt::red);
-    text = QString("%1 °C").arg(tankTemp,2,'f',2);
-    painter->drawText(10-(tankWidth>>2),yb+26-tankHeight,text); // Draw Actual temperature
+    text = QString("%1 °C").arg(tankTemp,2,'f',tankTemp < 100.0 ? 2 : 1); // 1 decimal for > 99.99 °C
+    painter->drawText(xbase+10,yb+26-tankHeight,text); // Draw Actual temperature
     font.setPointSize(10);
     font.setBold(true);
     painter->setFont(font);
     painter->setPen(Qt::yellow);
     text = QString("Setpoint: %1 °C").arg(tankSetPoint,2,'f',1);
-    painter->drawText(5-(tankWidth>>2),yb+40-tankHeight,text); // Draw Setpoint temperature
+    painter->drawText(xbase+5,yb+40-tankHeight,text); // Draw Setpoint temperature
     painter->setPen(Qt::black);
-    painter->drawText(5-(tankWidth>>2),yb-tankHeight,"Temperature"); // Draw title
+    painter->drawText(xbase+5,yb-tankHeight,"Temperature"); // Draw title
 
     painter->setPen(Qt::black);
     if (tankTempErr)
@@ -333,6 +338,8 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     } // if
 } // Tank::paint()
 
+//------------------------------------------------------------------------------------------
+// Pipe object
 //------------------------------------------------------------------------------------------
 Pipe::Pipe(int x, int y, uint8_t type, uint16_t length, QColor color)
     : QGraphicsPolygonItem()
@@ -394,6 +401,7 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(+RPIPE,RPIPE);
              path.lineTo(-50,+RPIPE);
              path.lineTo(-50,1-RPIPE);
+             boundary = QRectF(-48,-47,50+RPIPE-4,50+RPIPE-1);
              break;
         case PIPE2_LEFT_RIGHT:
         case PIPE2_RIGHT_LEFT:
@@ -404,6 +412,7 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(+pipeLength>>1,+RPIPE);
              path.lineTo(-pipeLength>>1,+RPIPE);
              path.lineTo(-pipeLength>>1,1-RPIPE);
+             boundary = QRectF(3-pipeLength/2,1-RPIPE,pipeLength-5,2*RPIPE-1);
              break;
         case PIPE2_LEFT_BOTTOM:
              left   = QPoint(-50,0);
@@ -415,6 +424,7 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(-RPIPE,+RPIPE);
              path.lineTo(-50,+RPIPE);
              path.lineTo(-50,1-RPIPE);
+             boundary = QRectF(-48,1-RPIPE,50+RPIPE-4,50+RPIPE-1);
              break;
         case PIPE2_TOP_RIGHT:
              top   = QPoint(0,-length);
@@ -425,6 +435,7 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(length,+RPIPE);
              path.lineTo(-RPIPE,+RPIPE);
              path.lineTo(-RPIPE,-length);
+             boundary = QRectF(-RPIPE,-length,length+RPIPE-2,length+RPIPE-1);
              break;
         case PIPE2_TOP_BOTTOM:
         case PIPE2_BOTTOM_TOP:
@@ -436,6 +447,7 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(-RPIPE,+pipeLength>>1);
              path.lineTo(-RPIPE,-(pipeLength>>1));
              path.lineTo(+RPIPE,-(pipeLength>>1));
+             boundary = QRectF(-RPIPE,2-(pipeLength>>1),2*RPIPE,pipeLength-5);
              break;
         case PIPE2_BOTTOM_RIGHT:
              bottom = QPoint(0,length);
@@ -447,6 +459,7 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(+RPIPE,+RPIPE);
              path.lineTo(+RPIPE,length);
              path.lineTo(-RPIPE,length);
+             boundary = QRectF(-RPIPE,1-RPIPE,length+RPIPE-2,length+RPIPE-1);
              break;
         case PIPE3_NO_TOP:
              right  = QPoint(50,0);
@@ -461,6 +474,7 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(-RPIPE,+RPIPE);
              path.lineTo(-50,+RPIPE);
              path.lineTo(-50,1-RPIPE);
+             boundary = QRectF(-50,1-RPIPE,100,50+RPIPE-1);
              break;
         case PIPE3_NO_RIGHT:
              top    = QPoint(0,-50);
@@ -475,6 +489,7 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(-RPIPE,1-RPIPE);
              path.lineTo(-RPIPE,-50);
              path.lineTo(+RPIPE,-50);
+             boundary = QRectF(-50,50,50+RPIPE,100);
              break;
         case PIPE3_NO_BOTTOM:
              right = QPoint(50,0);
@@ -489,6 +504,7 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(+RPIPE,1-RPIPE);
              path.lineTo(+50,1-RPIPE);
              path.lineTo(+50,+RPIPE);
+             boundary = QRectF(-50,-50,100,50+RPIPE-1);
              break;
         case PIPE3_NO_LEFT:
              right  = QPoint(50,0);
@@ -503,6 +519,7 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(+RPIPE,+RPIPE);
              path.lineTo(+RPIPE,+50);
              path.lineTo(-RPIPE,+50);
+             boundary = QRectF(-RPIPE,-50,50+RPIPE,100);
              break;
         case PIPE4_ALL:
              top    = QPoint(0,-50);
@@ -522,6 +539,7 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(+RPIPE,+RPIPE);
              path.lineTo(+RPIPE,+50);
              path.lineTo(-RPIPE,+50);
+             boundary = QRectF(-50,-50,100,100);
              break;
     } // switch
     pipePolygon = path.toFillPolygon();
@@ -567,12 +585,14 @@ void Pipe::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
 } // Pipe::paint()
 
 //------------------------------------------------------------------------------------------
-Display::Display(QPointF point)
+// Text-display object for STD with sub-text
+//------------------------------------------------------------------------------------------
+Display::Display(QPointF point, int w)
     : QGraphicsSimpleTextItem()
 {
     QFont font;
 
-    width  = 600;
+    width  = w;
     height = 45;
     font.setPointSize(18);
     setFont(font);
@@ -607,6 +627,8 @@ void Display::setSubText(QString string)
 } // Display::setSubText()
 
 //------------------------------------------------------------------------------------------
+// Meter object for Flow-meter and Temp-meter
+//------------------------------------------------------------------------------------------
 Meter::Meter(QPointF point, uint8_t type, QString name)
     : QGraphicsSimpleTextItem()
 {
@@ -636,10 +658,10 @@ Meter::Meter(QPointF point, uint8_t type, QString name)
         setTempValue(TEMP_DEFAULT); // default temperature
     } // else
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
-    //setFlag(QGraphicsItem::ItemIsSelectable,true);
+    setFlag(QGraphicsItem::ItemIsSelectable,true);
     if ((meterType == METER_HFLOW) || (meterType == METER_HTEMP))
-         boundary = QRectF(-15,-15,70,80);  // horizontal lay-out
-    else boundary = QRectF(-35,-10,160,60); // vertical lay-out
+         boundary = QRectF(-20,-15,100,100); // horizontal lay-out
+    else boundary = QRectF(-35,-10,160, 60); // vertical   lay-out
     left     = QPointF(-13,+24);
     right    = QPointF(+34,+24);
     top      = QPointF(+11,0);
@@ -695,12 +717,12 @@ qreal Meter::getFlowRate(uint8_t fil)
 void Meter::setName(QString name)
 {
     meterName = name;
-}
+} // Meter::setName()
 
 void Meter::setError(bool err)
 {
     meterError = err;
-}
+} // Meter::setError()
 
 QPointF Meter::getCoordinates(uint8_t side)
 {
@@ -715,7 +737,7 @@ QPointF Meter::getCoordinates(uint8_t side)
         default:           point  = QPoint(0,0); break;
     } // which
     return point;
-} // Pipe::getCoordinates()
+} // Meter::getCoordinates()
 
 void Meter::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
@@ -726,7 +748,14 @@ void Meter::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     path.addEllipse(QRect(-14,-1,50,50));
     if (meterError)
          painter->fillPath(path,Qt::red);
-    else painter->fillPath(path,Qt::green);
+    else if ((meterType == METER_HTEMP) || (meterType == METER_VTEMP))
+         painter->fillPath(path,Qt::green);
+    else
+    {    // flowmeter
+         if (flowRate < 0.1)
+              painter->fillPath(path,QColor(255,165,0)); // dark orange
+         else painter->fillPath(path,Qt::green);
+    } // else
     painter->drawArc(QRect(-14,-1,50,50),0,5760);
     font.setPointSize(12);
     font.setBold(true);
@@ -794,7 +823,7 @@ bool Meter::isFlowRateLow(void)
     {
         case 0 : // Give flow-rate time to increase because of the MA-filter
             // Use 30 seconds which is enough to stabilize the MA-filter
-            if (++frl_tmr > 30)
+            if (!meterError && (++frl_tmr > 30))
             {
                 frl_det_lim = 0.0; // reset detection-limit
                 frl_tmr     = 0;   // reset timer
@@ -835,7 +864,9 @@ bool Meter::isFlowRateLow(void)
 } // Meter::isFlowRateLow()
 
 //------------------------------------------------------------------------------------------
-Base_Valve_Pump::Base_Valve_Pump(QPointF point, QString name)
+// Base object for Valves and Pumps
+//------------------------------------------------------------------------------------------
+Actuator::Actuator(QPointF point, QString name)
     : QGraphicsPolygonItem()
 {
     setPos(point);
@@ -845,21 +876,10 @@ Base_Valve_Pump::Base_Valve_Pump(QPointF point, QString name)
     //setFlag(QGraphicsItem::ItemIsSelectable,true);
     //setFlag(QGraphicsItem::ItemIsMovable,true);
     left = top = right = bottom = QPoint(0,0); // init. all coordinates
-
-    setAutoAction = new QAction("Auto");
-    //QObject::connect(setAutoAction,SIGNAL(triggered()),this,SLOT(slotAuto()));
-    setManualOffAction = new QAction("OFF (M)");
-    //QObject::connect(setManualOffAction,SIGNAL(triggered()),this,SLOT(slotManualOff()));
-    setManualOnAction = new QAction("ON (M)");
-    //QObject::connect(setManualOnAction,SIGNAL(triggered()),this,SLOT(slotManualOn()));
-    contextMenu = new QMenu();
-    contextMenu->addAction(setAutoAction);
-    contextMenu->addAction(setManualOffAction);
-    contextMenu->addAction(setManualOnAction);
-} // Base_Valve_Pump()
+} // Actuator()
 
 // This function returns the parent coordinate of top, right, left or bottom of pipe
-QPointF Base_Valve_Pump::getCoordinates(uint8_t side)
+QPointF Actuator::getCoordinates(uint8_t side)
 {
     QPointF point = pos();
 
@@ -872,83 +892,68 @@ QPointF Base_Valve_Pump::getCoordinates(uint8_t side)
     default:               point  = QPoint(0,0); break;
     } // which
     return point;
-} // Base_Valve_Pump::getCoordinates()
+} // Actuator::getCoordinates()
 
-void Base_Valve_Pump::setColor(QColor color)
+void Actuator::setColor(QColor color)
 {
-    valveColor = color;
-    setBrush(valveColor);
-} // setRadius()
+    actuatorColor = color;
+    setBrush(actuatorColor);
+} // Actuator::setRadius()
 
-void Base_Valve_Pump::setName(QString name)
+void Actuator::setName(QString name)
 {
-    valveName = name;
-}
+    actuatorName = name;
+} // Actuator::setName()
 
-void Base_Valve_Pump::setStatus(uint8_t status)
+void Actuator::setStatus(uint8_t status)
 {
-    valveStatus = status;
-    if ((valveStatus == MANUAL_OFF) || (valveStatus == AUTO_OFF))
+    actuatorStatus = status;
+    if ((actuatorStatus == MANUAL_OFF) || (actuatorStatus == AUTO_OFF))
          setColor(Qt::red);
     else setColor(Qt::green);
     update();
-}
+} // Actuator::setStatus()
 
-// MANUAL_OFF -> MANUAL_ON -> AUTO_OFF -> MANUAL_OFF
-void Base_Valve_Pump::setNextStatus(void)
+void Actuator::setNextStatus(void)
 {
-    if ((valveStatus == AUTO_ON) || (valveStatus == AUTO_OFF))
+    if ((actuatorStatus == AUTO_OFF) || (actuatorStatus == MANUAL_OFF))
     {
-        valveStatus = MANUAL_OFF;
+        actuatorStatus = MANUAL_ON;
     } // if
-    else if (valveStatus == MANUAL_OFF)
-         valveStatus = MANUAL_ON;
-    else valveStatus = AUTO_OFF; // MANUAL_ON -> AUTO_OFF
-    setStatus(valveStatus);
-} // Base_Valve_Pump::setNextStatus()
+    else if ((actuatorStatus == AUTO_ON) || (actuatorStatus == MANUAL_ON))
+         actuatorStatus = MANUAL_OFF;
+    setStatus(actuatorStatus);
+} // Actuator::setNextStatus()
 
-bool Base_Valve_Pump::inManualMode(void)
+bool Actuator::inManualMode(void)
 {
-    if ((valveStatus == MANUAL_OFF) || (valveStatus == MANUAL_ON))
+    if ((actuatorStatus == MANUAL_OFF) || (actuatorStatus == MANUAL_ON))
          return true;
     else return false;
-} // Base_Valve_Pump::inManualMode()
+} // Actuator::inManualMode()
 
-uint8_t Base_Valve_Pump::getStatus(void)
+uint8_t Actuator::getStatus(void)
 {
-    return valveStatus;
-} // Base_Valve_Pump::getStatus()
+    return actuatorStatus;
+} // Actuator::getStatus()
 
-void Base_Valve_Pump::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
+void Actuator::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 {
-    if (mouseEvent->button() == Qt::LeftButton)
-    {
-        setNextStatus(); // set next possible state
-        mouseEvent->accept();
-        qDebug() << "valveStatus=" << valveStatus;
-    }
-    else if (mouseEvent->button() == Qt::RightButton)
-    {
-        mouseEvent->accept();
-        contextMenu->exec(QCursor::pos());
-    } // if
-    QGraphicsPolygonItem::mousePressEvent(mouseEvent);
-}
-
-//void Base_Valve_Pump::slotManualOff(void)
-//{
-//    setStatus(MANUAL_OFF);
-//}
-
-//void Base_Valve_Pump::slotManualOn(void)
-//{
-//   setStatus(MANUAL_ON);
-//}
-
-//void Base_Valve_Pump::slotAuto(void)
-//{
-//    setStatus(AUTO_OFF);
-//}
+    QMenu menu;
+    QAction *setAutoAction      = menu.addAction("Auto");
+    QAction *setManualOffAction = menu.addAction("OFF (M)");
+    QAction *setManualOnAction  = menu.addAction("ON (M)");
+    setAutoAction->setCheckable(true);
+    setManualOffAction->setCheckable(true);
+    setManualOnAction->setCheckable(true);
+    if      (!inManualMode())              setAutoAction->setChecked(true);
+    else if (actuatorStatus == MANUAL_OFF) setManualOffAction->setChecked(true);
+    else if (actuatorStatus == MANUAL_ON)  setManualOnAction->setChecked(true);
+    QAction *selectedAction = menu.exec(event->screenPos());
+    if      (selectedAction == setAutoAction)      setStatus(AUTO_OFF);
+    else if (selectedAction == setManualOffAction) setStatus(MANUAL_OFF);
+    else if (selectedAction == setManualOnAction)  setStatus(MANUAL_ON);
+} // Actuator::contextMenuEvent()
 
 /*------------------------------------------------------------------
   Purpose  : This function sets actionBits to the proper setting (on,off)
@@ -960,27 +965,29 @@ void Base_Valve_Pump::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
    whichBit: a bitdefine for the specific actuator (e.g. V1b = 0x0001)
   Returns  : -
   ------------------------------------------------------------------*/
-void Base_Valve_Pump::setActuator(uint16_t& actionBits, uint16_t whichBit)
+void Actuator::setActuator(uint16_t& actionBits, uint16_t whichBit)
 {
     if (!inManualMode())
     { // not in Manual Override mode
         if (actionBits & whichBit) setStatus(AUTO_ON);
         else                       setStatus(AUTO_OFF);
-    }
+    } // if
     else
     {  // manual Override mode
        if (getStatus() == MANUAL_ON)
             actionBits |=  whichBit;
        else actionBits &= ~whichBit;
     } // else
-} // Base_Valve_Pump::setActuator()
+} // Actuator::setActuator()
 
 //------------------------------------------------------------------------------------------
+// Valve object, derived from Actuator
+//------------------------------------------------------------------------------------------
 Valve::Valve(QPointF point, bool orientation, QString name)
-    : Base_Valve_Pump(point,name)
+    : Actuator(point,name)
 {
     setOrientation(orientation); // Draw the valve
-    valveStatus = AUTO_OFF;
+    actuatorStatus = AUTO_OFF;
 } // Valve::Valve()
 
 void Valve::setOrientation(bool orientation)
@@ -988,7 +995,7 @@ void Valve::setOrientation(bool orientation)
     QPainterPath path;
     float x1 = qSqrt(0.5)*RVALVE;
 
-    valveOrientation = orientation;
+    actuatorOrientation = orientation;
     path.moveTo(-VALVE_SIZE>>1,-VALVE_SIZE>>1);
     path.lineTo(-x1,-x1);
     if (orientation == HORIZONTAL)
@@ -1019,8 +1026,8 @@ void Valve::setOrientation(bool orientation)
         // set boundary with enough room for drawText() in paint()
         boundary = QRectF(-60-(VALVE_SIZE>>1),3-(VALVE_SIZE>>1),60+VALVE_SIZE,0+VALVE_SIZE); // extra space left for title and status
     } // else
-    valvePolygon = path.toFillPolygon();
-    setPolygon(valvePolygon);
+    actuatorPolygon = path.toFillPolygon();
+    setPolygon(actuatorPolygon);
 } // Valve::SetValveOrientation()
 
 void Valve::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -1031,44 +1038,46 @@ void Valve::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     font.setPointSize(20);
     painter->setFont(font);
     painter->save();
-    if (valveOrientation == HORIZONTAL)
+    if (actuatorOrientation == HORIZONTAL)
     {
-        painter->drawText(-0.35*VALVE_SIZE,-1.5*RVALVE,valveName);
+        painter->drawText(-0.35*VALVE_SIZE,-1.5*RVALVE,actuatorName);
         font.setPointSize(14);
         painter->setFont(font);
-        painter->drawText(-0.5*VALVE_SIZE,+0.8*VALVE_SIZE,status_text[valveStatus]);
+        painter->drawText(-0.5*VALVE_SIZE,+0.8*VALVE_SIZE,statustext[actuatorStatus]);
     } // if
     else
     {   // VERTICAL
-        painter->drawText(-1.1*VALVE_SIZE,5-1.2*RVALVE,valveName);
+        painter->drawText(-1.1*VALVE_SIZE,5-1.2*RVALVE,actuatorName);
         font.setPointSize(14);
         painter->setFont(font);
-        painter->drawText(-1.4*VALVE_SIZE,5+0.7*RVALVE,status_text[valveStatus]);
+        painter->drawText(-1.4*VALVE_SIZE,5+0.7*RVALVE,statustext[actuatorStatus]);
     } // else
     painter->restore();
     QGraphicsPolygonItem::paint(painter,option,widget);
-} //
+} // Valve::paint()
 
 //------------------------------------------------------------------------------------------
+// Pump object, derived from Actuator
+//------------------------------------------------------------------------------------------
 Pump::Pump(QPointF point, bool orientation, QString name)
-    : Base_Valve_Pump(point,name)
+    : Actuator(point,name)
 {
     setPumpOrientation(orientation); // Draw the valve
-    valveStatus = AUTO_OFF;
+    actuatorStatus = AUTO_OFF;
 } // Pump()
 
 void Pump::setPumpOrientation(bool orientation)
 {
     QPainterPath path;
-    double x1 = qSqrt(RPUMP*RPUMP - RPIPE*RPIPE); // x-coord of pipe-in with PUMP at left side
+    double x1  = qSqrt(RPUMP*RPUMP - RPIPE*RPIPE); // x-coord of pipe-in with PUMP at left side
     double x1a = 180 - qAtan2(RPIPE,x1) * 180 / M_PI;
-    double x2 = qSqrt(10*RPUMP - 25); // x-coord at y=25: pipe-out with PUMP at right side
+    double x2  = qSqrt(10*RPUMP - 25); // x-coord at y=25: pipe-out with PUMP at right side
     double x2a = qAtan2(RPUMP-5,x2) * 180 / M_PI;
-    double y3 = RPUMP-5-2*RPIPE;
-    double x3 = qSqrt(RPUMP*RPUMP-(5-RPUMP+2*RPIPE)*(5-RPUMP+2*RPIPE));
+    double y3  = RPUMP-5-2*RPIPE;
+    double x3  = qSqrt(RPUMP*RPUMP-(5-RPUMP+2*RPIPE)*(5-RPUMP+2*RPIPE));
     double x3a = qAtan2(y3,x3) * 180 / M_PI;
 
-    valveOrientation = orientation;
+    actuatorOrientation = orientation;
     if (orientation == OUT_RIGHT)
     {   // Pump output is on the right
         path.moveTo(-60,-RPIPE);
@@ -1087,13 +1096,13 @@ void Pump::setPumpOrientation(bool orientation)
         left  = QPoint(-60,0);
         right = -left;
         boundary = QRectF(-60,-(RPUMP<<1),117,RPUMP<<2); // extra space on top and bottom for title and status
-    }
+    } // if
     else
-    {   // Pump output is on the left
+    {   // TODO Pump output is on the left
     } // else
-    valvePolygon = path.toFillPolygon();
-    setPolygon(valvePolygon);
-} // SetPumpOrientation()
+    actuatorPolygon = path.toFillPolygon();
+    setPolygon(actuatorPolygon);
+} // Pump::SetPumpOrientation()
 
 void Pump::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
@@ -1103,26 +1112,25 @@ void Pump::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     font.setStyleHint(QFont::Times, QFont::PreferAntialias);
     font.setBold(true);
     font.setPointSize(20);
-    pen.setWidth(3);
+    pen.setWidth(1);
 
     painter->setFont(font);
     painter->save();
-    if (valveOrientation == OUT_RIGHT)
+    if (actuatorOrientation == OUT_RIGHT)
     {
-        painter->drawText(-20,-40,valveName);
+        painter->drawText(-20,-40,actuatorName);
         font.setPointSize(14);
         painter->setFont(font);
-        painter->drawText(-35,RPUMP+25,status_text[valveStatus]);
+        painter->drawText(-35,RPUMP+25,statustext[actuatorStatus]);
         font.setPointSize(10);
         painter->setFont(font);
         painter->drawText(-50,22,"in");
         painter->drawText(38,+3,"out");
-        painter->setBrush(Qt::white);
-    }
+    } // if
     painter->restore();
     QGraphicsPolygonItem::paint(painter,option,widget);
-    painter->setPen(pen);
-    painter->drawArc(-10,-10,20,20,0,5760);
-} // paint()
+    painter->setBrush(Qt::white);
+    painter->drawChord(-10,-10,20,20,0,5760);
+} // Pump::paint()
 
 

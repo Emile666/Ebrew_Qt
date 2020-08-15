@@ -30,12 +30,12 @@ DialogEditFixParameters::DialogEditFixParameters(QWidget *parent) :
     ui->sbBkVol->setValue(pEbrew->vboil_fx);
     ui->cbBkPid->setChecked(pEbrew->gamma_boil_sw);
     ui->sbBkPid->setValue(pEbrew->gamma_boil_fx);
-}
+} // DialogEditFixParameters::DialogEditFixParameters()
 
 DialogEditFixParameters::~DialogEditFixParameters()
 {
     delete ui;
-}
+} // DialogEditFixParameters::~DialogEditFixParameters()
 
 //---------------------------------------------------------------
 // Hot Liquid Tun (HLT)
@@ -46,6 +46,7 @@ void DialogEditFixParameters::on_cbHltSp_stateChanged(int arg1)
     {
         ui->sbHltSp->setEnabled(true);
         ui->sbHltSp->setFocus();
+        ui->sbHltSp->selectAll();
     } // if
     else
     {
@@ -60,6 +61,7 @@ void DialogEditFixParameters::on_cbHltTemp_stateChanged(int arg1)
     {
         ui->sbHltTemp->setEnabled(true);
         ui->sbHltTemp->setFocus();
+        ui->sbHltTemp->selectAll();
     } // if
     else
     {
@@ -74,6 +76,7 @@ void DialogEditFixParameters::on_cbHltVol_stateChanged(int arg1)
     {
         ui->sbHltVol->setEnabled(true);
         ui->sbHltVol->setFocus();
+        ui->sbHltVol->selectAll();
     } // if
     else
     {
@@ -88,6 +91,7 @@ void DialogEditFixParameters::on_cbHltPid_stateChanged(int arg1)
     {
         ui->sbHltPid->setEnabled(true);
         ui->sbHltPid->setFocus();
+        ui->sbHltPid->selectAll();
     } // if
     else
     {
@@ -105,6 +109,7 @@ void DialogEditFixParameters::on_cbMltTemp_stateChanged(int arg1)
     {
         ui->sbMltTemp->setEnabled(true);
         ui->sbMltTemp->setFocus();
+        ui->sbMltTemp->selectAll();
     } // if
     else
     {
@@ -119,6 +124,7 @@ void DialogEditFixParameters::on_cbMltVol_stateChanged(int arg1)
     {
         ui->sbMltVol->setEnabled(true);
         ui->sbMltVol->setFocus();
+        ui->sbMltVol->selectAll();
     } // if
     else
     {
@@ -136,6 +142,7 @@ void DialogEditFixParameters::on_cbBkSp_stateChanged(int arg1)
     {
         ui->sbBkSp->setEnabled(true);
         ui->sbBkSp->setFocus();
+        ui->sbBkSp->selectAll();
     } // if
     else
     {
@@ -150,6 +157,7 @@ void DialogEditFixParameters::on_cbBkTemp_stateChanged(int arg1)
     {
         ui->sbBkTemp->setEnabled(true);
         ui->sbBkTemp->setFocus();
+        ui->sbBkTemp->selectAll();
     } // if
     else
     {
@@ -164,6 +172,7 @@ void DialogEditFixParameters::on_cbBkVol_stateChanged(int arg1)
     {
         ui->sbBkVol->setEnabled(true);
         ui->sbBkVol->setFocus();
+        ui->sbBkVol->selectAll();
     } // if
     else
     {
@@ -172,14 +181,13 @@ void DialogEditFixParameters::on_cbBkVol_stateChanged(int arg1)
     } // else
 } // DialogEditFixParameters::on_cbBkVol_stateChanged()
 
-
-
 void DialogEditFixParameters::on_cbBkPid_stateChanged(int arg1)
 {
     if (arg1)
     {
         ui->sbBkPid->setEnabled(true);
         ui->sbBkPid->setFocus();
+        ui->sbBkPid->selectAll();
     } // if
     else
     {
@@ -197,6 +205,7 @@ void DialogEditFixParameters::on_cbTTriac_stateChanged(int arg1)
     {
         ui->sbTTriac->setEnabled(true);
         ui->sbTTriac->setFocus();
+        ui->sbTTriac->selectAll();
     } // if
     else
     {
@@ -211,6 +220,7 @@ void DialogEditFixParameters::on_cbMsIdx_stateChanged(int arg1)
     {
         ui->sbMsIdx->setEnabled(true);
         ui->sbMsIdx->setFocus();
+        ui->sbMsIdx->selectAll();
     } // if
     else
     {
@@ -225,6 +235,7 @@ void DialogEditFixParameters::on_cbSpIdx_stateChanged(int arg1)
     {
         ui->sbSpIdx->setEnabled(true);
         ui->sbSpIdx->setFocus();
+        ui->sbSpIdx->selectAll();
     } // if
     else
     {
@@ -289,7 +300,6 @@ void DialogEditFixParameters::on_buttonBox_rejected()
     pEbrew->vboil_fx      = 0.0;
     pEbrew->gamma_boil_sw = false;
     pEbrew->gamma_boil_fx = 0.0;
-
 } // DialogEditFixParameters::on_buttonBox_rejected()
 
 void DialogEditFixParameters::set_switch_fix(void)
@@ -410,4 +420,21 @@ void DialogEditFixParameters::set_switch_fix(void)
         pEbrew->gamma_boil_sw = false;
         pEbrew->gamma_boil_fx = 0.0;
     } // else
+    //-------------------------
+    // No sw/fx, set only once
+    //-------------------------
+    if (ui->cbStd->checkState())
+    {   // ebrew_std
+        pEbrew->ebrew_std = ui->comboStd->currentText().left(2).toInt();
+    } // if
+    if (ui->cbSpIdx->checkState())
+    {   // sp_idx
+        int x = ui->sbSpIdx->value();
+        if (x < pEbrew->RegEbrew->value("SP_BATCHES").toInt()) pEbrew->sp_idx = x;
+    } // if
+    if (ui->cbMsIdx->checkState())
+    {   // ms_idx
+        int x = ui->sbMsIdx->value();
+        if (x < pEbrew->ms_tot) pEbrew->ms_idx = x;
+    } // if
 } // set_switch_fix()

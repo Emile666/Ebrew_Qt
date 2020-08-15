@@ -61,6 +61,9 @@
 #include "draw_hmi_screen.h"
 #include "scheduler.h"
 
+// NOTE various colors for pipes inside Tank object
+// NOTE add terminal screen to Ebrew menu
+
 /*-----------------------------------------------------------------------------
   Purpose    : Main-entry program of Ebrew v3 Qt.
   Variables  : argc: argument count

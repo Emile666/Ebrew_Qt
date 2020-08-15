@@ -67,7 +67,7 @@ DialogBrewDaySettings::DialogBrewDaySettings(QWidget *parent) :
 DialogBrewDaySettings::~DialogBrewDaySettings()
 {
     delete ui;
-}
+} // DialogBrewDaySettings::~DialogBrewDaySettings()
 
 void DialogBrewDaySettings::on_buttonBox_accepted()
 {
@@ -109,7 +109,9 @@ void DialogBrewDaySettings::on_buttonBox_accepted()
     pEbrew->RegEbrew->setValue("CIP_REST_TIME",ui->sbCip3->value());
     pEbrew->RegEbrew->setValue("CIP_OUT_TIME" ,ui->sbCip4->value());
     pEbrew->RegEbrew->setValue("CIP_INP_TIME" ,ui->sbCip5->value());
-}
+
+    pEbrew->initBrewDaySettings(); // update (sparge) timers
+} // DialogBrewDaySettings::on_buttonBox_accepted()
 
 void DialogBrewDaySettings::on_cbMash1_stateChanged(int arg1)
 {   // Dynamic Preheat Timing checkbox
@@ -119,7 +121,7 @@ void DialogBrewDaySettings::on_cbMash1_stateChanged(int arg1)
         ui->sbMash4->setEnabled(true);
         ui->lblMash5->setEnabled(false);
         ui->sbMash5->setEnabled(false);
-    }
+    } // if
     else
     {
         ui->lblMash4->setEnabled(false);

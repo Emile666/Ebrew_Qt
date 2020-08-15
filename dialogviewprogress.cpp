@@ -28,205 +28,254 @@ void DialogViewProgress::onUpdateProgress(void)
 {
     mash_schedule *p; // pointer naar maisch_schedule structure
     QString string;
+    QFont   font("Courier New",8);
 
     ui->teMash->clear();
-    if ((pEbrew->ms_idx < pEbrew->ms_tot) || (pEbrew->ms[pEbrew->ms_tot-1].timer < pEbrew->ms[pEbrew->ms_tot-1].time))
+    bool mashActive = (pEbrew->ms_idx < pEbrew->ms_tot - 1) || (pEbrew->ms[pEbrew->ms_tot-1].timer < pEbrew->ms[pEbrew->ms_tot-1].time);
+    if (mashActive)
     {
         ui->teMash->setEnabled(true);
         ui->lblMash->setEnabled(true);
-        ui->teMash->setText(MashTitle);
-        //---------------------------------------------------------------------
-        // Sample time of ms[] update is 1 second.
-        // Time of ms[i].time was converted to seconds in readMashSchemeFile().
-        //---------------------------------------------------------------------
-        for (int i = 0; i < pEbrew->ms_tot; i++)
-        {
-            p = &pEbrew->ms[i];
-            //---------------------------------------------------
-            // Now update time_stamp if a mash-timer has started
-            //---------------------------------------------------
-            if ((p->timer != NOT_STARTED) && (p->time_stamp.isEmpty()))
-            {
-               p->time_stamp = QTime::currentTime().toString();
-            } // if
-            string = QString("%1 %2 %3 %4 %5  ").arg(i,2)
-                                                .arg(p->temp ,5,'f',0)
-                                                .arg(p->time ,5,'f',0)
-                                                .arg(p->preht,5)
-                                                .arg(p->temp ,5,'f',0);
-            if (p->timer == NOT_STARTED)
-            {
-                string.append("Not Started ");
-            } // if
-            else if (p->timer < p->time)
-            {
-                string.append("Running     ");
-            } // else
-            else
-            {
-                string.append("Time-Out    ");
-            } // else
-            string.append(p->time_stamp);
-            if (i == pEbrew->ms_idx)
-            {
-                ui->teMash->setTextColor(Qt::blue);
-                string = "->" + string;
-            } // if
-            else
-            {
-                ui->teMash->setTextColor(Qt::black);
-                string = "  " + string;
-            } // else
-            ui->teMash->append(string);
-        } // for i
-    } // if
+    }
     else
     {   // mashing not active anymore
         ui->teMash->setEnabled(false);
         ui->lblMash->setEnabled(false);
     } // else
 
+    font.setBold(false);
+    ui->teMash->setCurrentFont(font);
+    ui->teMash->setTextColor(Qt::black);
+    ui->teMash->setText(MashTitle);
+    //---------------------------------------------------------------------
+    // Sample time of ms[] update is 1 second.
+    // Time of ms[i].time was converted to seconds in readMashSchemeFile().
+    //---------------------------------------------------------------------
+    for (int i = 0; i < pEbrew->ms_tot; i++)
+    {
+        p = &pEbrew->ms[i];
+        //---------------------------------------------------
+        // Now update time_stamp if a mash-timer has started
+        //---------------------------------------------------
+        if ((p->timer != NOT_STARTED) && (p->time_stamp.isEmpty()))
+        {
+           p->time_stamp = QTime::currentTime().toString();
+        } // if
+        string = QString("%1 %2 %3 %4 %5  ").arg(i,2)
+                                            .arg(p->temp ,5,'f',0)
+                                            .arg(p->time ,5,'f',0)
+                                            .arg(p->preht,5)
+                                            .arg(p->timer == NOT_STARTED ? 0 : p->timer,5);
+        if (p->timer == NOT_STARTED)
+        {
+            string.append("Not Started ");
+        } // if
+        else if (p->timer < p->time)
+        {
+            string.append("Running     ");
+        } // else
+        else
+        {
+            string.append("Time-Out    ");
+        } // else
+        string.append(p->time_stamp);
+        if (mashActive && (i == pEbrew->ms_idx))
+        {
+            ui->teMash->setTextColor(Qt::blue);
+            font.setBold(true);
+            string = "->" + string;
+        } // if
+        else
+        {
+            ui->teMash->setTextColor(Qt::black);
+            font.setBold(false);
+            string = "  " + string;
+        } // else
+        ui->teMash->setCurrentFont(font);
+        ui->teMash->append(string);
+    } // for i
+
     // SPARGE PROGRESS
-    //if ((pEbrew->ebrew_std >= S05_SPARGE_TIMER_RUNNING) && (pEbrew->ebrew_std < S09_EMPTY_MLT))
-    if (true)
+    bool spargeActive = (pEbrew->ebrew_std >= S05_SPARGE_TIMER_RUNNING) && (pEbrew->ebrew_std < S09_EMPTY_MLT);
+    // TEST
+//    spargeActive = true;
+//    pEbrew->mlt2boil << "14:59:59" << "15:51:32" << "15:52:58"<< "15:54:24";
+//    pEbrew->hlt2mlt  << "15:50:24" << "15:51:52" << "15:53:16"<< "15:54:46";
+    // TEST
+    if (spargeActive)
     {
         ui->teSparge->setEnabled(true);
         ui->lblSparge->setEnabled(true);
-        ui->teSparge->setText(SpargeTitle);
-        if ((pEbrew->ebrew_std == S06_PUMP_FROM_MLT_TO_BOIL) && (prev_ebrew_std == S05_SPARGE_TIMER_RUNNING))
-        {  // New transition detected, copy time-stamp into array of strings
-           mlt2boil << QTime::currentTime().toString();
-        } // if
-        if ((pEbrew->ebrew_std == S07_PUMP_FROM_HLT_TO_MLT) && ((prev_ebrew_std == S08_DELAY_xSEC) || (prev_ebrew_std == S06_PUMP_FROM_MLT_TO_BOIL)))
-        {  // New transition detected, copy time-stamp into array of strings
-           hlt2mlt << QTime::currentTime().toString();
-        } // if
-        if ((pEbrew->ebrew_std == S11_BOILING) && (prev_ebrew_std == S10_WAIT_FOR_BOIL))
-        {  // New transition detected, copy time-stamp into array of strings
-           Boil << QTime::currentTime().toString();
-        } // if
-        if ((pEbrew->ebrew_std == S12_BOILING_FINISHED) && (prev_ebrew_std == S11_BOILING))
-        {  // New transition detected, copy time-stamp into array of strings
-           Boil << QTime::currentTime().toString();
-        } // if
-        if ((pEbrew->ebrew_std == S16_CHILL_PUMP_FERMENTOR) && (prev_ebrew_std == S12_BOILING_FINISHED))
-        {  // New transition detected, copy time-stamp into array of strings
-           Chill << QTime::currentTime().toString();
-        } // if
-        if ((pEbrew->ebrew_std == S17_FINISHED) && (prev_ebrew_std == S16_CHILL_PUMP_FERMENTOR))
-        {  // New transition detected, copy time-stamp into array of strings
-           Chill << QTime::currentTime().toString();
-        } // if
-        prev_ebrew_std = pEbrew->ebrew_std; // update previous value
+    } // if
+    else
+    {
+        ui->teSparge->setEnabled(false);
+        ui->lblSparge->setEnabled(false);
+    } // else
+    font.setBold(false);
+    ui->teSparge->setCurrentFont(font);
+    ui->teSparge->setTextColor(Qt::black);
+    ui->teSparge->setText(SpargeTitle);
 
-        string = QString("  0    - - - - - - - -  |%1 %2 L").arg(mlt2boil.size() ? mlt2boil.at(0) : "",11).arg(pEbrew->sp_vol_batch0,4,'f',1);
-        if (!pEbrew->sp_idx)
+    string = QString(" 0            0.0 L %1.0 L |%2  %3 L").arg(pEbrew->mash_vol,3)
+                                                            .arg(pEbrew->mlt2boil.size() ? pEbrew->mlt2boil.at(0) : "",9)
+                                                            .arg(pEbrew->sp_vol_batch0,4,'f',1);
+    if (spargeActive && !pEbrew->sp_idx)
+    {
+        font.setBold(true);
+        ui->teSparge->setTextColor(Qt::blue);
+        string = "->" + string;
+    } // if
+    else
+    {
+        font.setBold(false);
+        ui->teSparge->setTextColor(Qt::black);
+        string = "  " + string;
+    } // else
+    ui->teSparge->setCurrentFont(font);
+    ui->teSparge->append(string);
+    int sptot = pEbrew->RegEbrew->value("SP_BATCHES").toInt();
+    for (int i = 1; i <= sptot; i++)
+    {
+        string = QString("%1 %2 %3 L %4 L |%5  ").arg(i,2)
+                                                 .arg(i < pEbrew->hlt2mlt.size() + 1 ? pEbrew->hlt2mlt.at(i-1) : "",9)
+                                                 .arg(i * pEbrew->sp_vol_batch,4,'f',1)
+                                                 .arg(i * pEbrew->sp_vol_batch + pEbrew->mash_vol,5,'f',1)
+                                                 .arg(i < pEbrew->mlt2boil.size()    ? pEbrew->mlt2boil.at(i)  : "",9);
+        if (i < sptot)
+             string.append(QString("%1 L").arg(i * pEbrew->sp_vol_batch + pEbrew->sp_vol_batch0,4,'f',1));
+        else string.append(QString("Empty MLT"));
+        if (spargeActive && (i == pEbrew->sp_idx))
         {
+            font.setBold(true);
             ui->teSparge->setTextColor(Qt::blue);
             string = "->" + string;
         } // if
         else
         {
+            font.setBold(false);
             ui->teSparge->setTextColor(Qt::black);
             string = "  " + string;
         } // else
+        ui->teSparge->setCurrentFont(font);
         ui->teSparge->append(string);
-        int sptot = pEbrew->RegEbrew->value("SP_BATCHES").toInt();
-        for (int i = 1; i <= sptot; i++)
-        {
-            string = QString("%1 %2 %3 L  |%4 ").arg(i,3)
-                                                  .arg(i < hlt2mlt.size() ? hlt2mlt.at(i) : "",11)
-                                                  .arg(i * pEbrew->sp_vol_batch,4,'f',1)
-                                                  .arg(i < mlt2boil.size() ? mlt2boil.at(i) : "",11);
-            if (i < sptot)
-                 string.append(QString("%1 L").arg(i * pEbrew->sp_vol_batch + pEbrew->sp_vol_batch0,4,'f',1));
-            else string.append(QString("Empty MLT"));
-            if (i == pEbrew->sp_idx)
-            {
-                ui->teSparge->setTextColor(Qt::blue);
-                string = "->" + string;
-            } // if
-            else
-            {
-                ui->teSparge->setTextColor(Qt::black);
-                string = "  " + string;
-            } // else
-            ui->teSparge->append(string);
-        } // for i
-    } // if
-    else
-    {   // Sparging not active
-        ui->teSparge->setEnabled(false);
-        ui->lblSparge->setEnabled(false);
-    } // else
+    } // for i
 
     // TIMERS
-    string = QString("Timer in state \'Sparge Timer Running\': %1/%2 min.").arg(pEbrew->timer1/60,3).arg(pEbrew->RegEbrew->value("SP_TIME").toInt(),3);
-    if (pEbrew->timer1)
+    bool timerActive = false;
+    font.setBold(false);
+    ui->teTimers->setCurrentFont(font);
+    ui->teTimers->setTextColor(Qt::black);
+    int tmr1 = pEbrew->RegEbrew->value("SP_TIME").toInt() * 60;
+    string = QString("Timer in state \'Sparge Timer Running\': %1/%2 sec.").arg(pEbrew->timer1,3).arg(tmr1,3);
+    if (pEbrew->timer1 && (pEbrew->timer1 < tmr1))
     {
+        font.setBold(true);
         ui->teTimers->setTextColor(Qt::blue);
-        string = "->" + string;
+        string      = "->" + string;
+        timerActive = true;
     } // if
     else
     {
+        font.setBold(false);
         ui->teTimers->setTextColor(Qt::black);
         string = "  " + string;
     } // else
+    ui->teTimers->setCurrentFont(font);
     ui->teTimers->setText(string);
     string = QString("Timer in state \'Delay 10 seconds\'    : %1/%2 sec.").arg(pEbrew->timer2,3).arg(TMR_DELAY_xSEC,3);
-    if (pEbrew->timer2)
+    if (pEbrew->timer2 && (pEbrew->timer2 < TMR_DELAY_xSEC))
     {
+        font.setBold(true);
         ui->teTimers->setTextColor(Qt::blue);
-        string = "->" + string;
+        string      = "->" + string;
+        timerActive = true;
     } // if
     else
     {
+        font.setBold(false);
         ui->teTimers->setTextColor(Qt::black);
         string = "  " + string;
     } // else
+    ui->teTimers->setCurrentFont(font);
     ui->teTimers->append(string);
     string = QString("Timer in state \'Pump Pre-fill\'       : %1/%2 sec.").arg(pEbrew->timer3,3).arg(TMR_PREFILL_PUMP,3);
-    if (pEbrew->timer3)
+    if (pEbrew->timer3 && (pEbrew->timer3 < TMR_PREFILL_PUMP))
     {
+        font.setBold(true);
         ui->teTimers->setTextColor(Qt::blue);
-        string = "->" + string;
+        string      = "->" + string;
+        timerActive = true;
     } // if
     else
     {
+        font.setBold(false);
         ui->teTimers->setTextColor(Qt::black);
         string = "  " + string;
     } // else
+    ui->teTimers->setCurrentFont(font);
     ui->teTimers->append(string);
     string = QString("Timer in state \'Mash-rest 5 min.\'    : %1/%2 sec.").arg(pEbrew->mrest_tmr,3).arg(TMR_MASH_REST_5_MIN,3);
-    if (pEbrew->mrest_tmr)
+    if (pEbrew->mrest_tmr && (pEbrew->mrest_tmr < TMR_MASH_REST_5_MIN))
     {
+        font.setBold(true);
         ui->teTimers->setTextColor(Qt::blue);
-        string = "->" + string;
+        string      = "->" + string;
+        timerActive = true;
     } // if
     else
     {
+        font.setBold(false);
         ui->teTimers->setTextColor(Qt::black);
         string = "  " + string;
     } // else
+    ui->teTimers->setCurrentFont(font);
     ui->teTimers->append(string);
     string = QString("Timer in state \'Now Boiling\'         : %1/%2 min.\n").arg(pEbrew->timer5/60,3).arg(pEbrew->boil_time,3);
-    if (pEbrew->timer5)
+    if (pEbrew->timer5 && (pEbrew->timer5 < pEbrew->boil_time * 60))
     {
+        font.setBold(true);
         ui->teTimers->setTextColor(Qt::blue);
-        string = "->" + string;
+        string      = "->" + string;
+        timerActive = true;
     } // if
     else
     {
+        font.setBold(false);
         ui->teTimers->setTextColor(Qt::black);
         string = "  " + string;
     } // else
+    ui->teTimers->setCurrentFont(font);
     ui->teTimers->append(string);
 
-    string = QString("  Boiling started at  : ");
-    if (Boil.size() > 0) string += Boil.at(0);
+    font.setBold(false);
+    ui->teTimers->setCurrentFont(font);
+    ui->teTimers->setTextColor(Qt::black);
+    string = QString("  Boiling  started at ");
+    if (pEbrew->Boil.size() > 0) string += pEbrew->Boil.at(0);
+    if (pEbrew->Boil.size() > 1)
+    {
+        string += " and finished at ";
+        string += pEbrew->Boil.at(1);
+    } // if
     ui->teTimers->append(string);
-    string = QString("  Boiling finished at : ");
-    if (Boil.size() > 1) string += Boil.at(1);
+    string = QString("  Chilling started at ");
+    if (pEbrew->Chill.size() > 0) string += pEbrew->Chill.at(0);
+    if (pEbrew->Chill.size() > 1)
+    {
+        string += " and finished at ";
+        string += pEbrew->Chill.at(1);
+    } // if
     ui->teTimers->append(string);
 
+    if (timerActive || pEbrew->Boil.size() > 0)
+    {
+        ui->lblTimers->setEnabled(true);
+        ui->teTimers->setEnabled(true);
+    } // if
+    else
+    {
+        ui->lblTimers->setEnabled(false);
+        ui->teTimers->setEnabled(false);
+    } // else
 } // DialogViewProgress::onUpdateProgress()
