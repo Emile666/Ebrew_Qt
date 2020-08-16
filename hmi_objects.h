@@ -1,52 +1,30 @@
-/****************************************************************************
+/**************************************************************************************
+** Filename    : hmi_objects.h
+** Author      : Emile
+** Purpose     : Header file for hmi_objects.cpp. Contains all graphical objects that
+**               are used by MainEbrew:
+**               PowerButton: A push-button with a green/red LED in it.
+**               Meter      : a flowmeter or temperaturesensor, showing actual values.
+**               Tank       : a tank object for constructing a HLT, MLT or boil-kettle.
+**               Pipe       : a pipe which is used to connect everything. A pipe can have
+**                            just 2 pipes, but also 3 and 4 pipes.
+**               Display    : A display with a sub-text for displaying the actual state.
+**               Actuator   : A base object for actuators
+**               Valve      : A valve, derived from Actuator, for blocking or enabling a flow.
+**               Pump       : A pump, derived from Actuator, for pumping fluids through pipes.
+** License     : This is free software: you can redistribute it and/or modify
+**               it under the terms of the GNU General Public License as published by
+**               the Free Software Foundation, either version 3 of the License, or
+**               (at your option) any later version.
 **
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
+**               This file is distributed in the hope that it will be useful,
+**               but WITHOUT ANY WARRANTY; without even the implied warranty of
+**               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**               GNU General Public License for more details.
 **
-** This file is part of the examples of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:BSD$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** BSD License Usage
-** Alternatively, you may use this file under the terms of the BSD license
-** as follows:
-**
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of The Qt Company Ltd nor the names of its
-**     contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
-**
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
+**               You should have received a copy of the GNU General Public License
+**               along with this file.  If not, see <http://www.gnu.org/licenses/>.
+**************************************************************************************/
 #ifndef HMI_OBJECTS_H
 #define HMI_OBJECTS_H
 
@@ -126,6 +104,11 @@
 #define COLOR_OUT1 QColor(  0,220,255) /* Output pipe color when flow */
 #define COLOR_IN0  QColor(102,153,255) /* Input pipe color when no flow */
 #define COLOR_IN1  QColor(102,255,255) /* Input pipe color when flow */
+#define COLOR_LEFT_PIPES   (0)
+#define COLOR_BOTTOM_PIPE1 (1)
+#define COLOR_BOTTOM_PIPE2 (2)
+#define COLOR_RIGHT_PIPES  (3)
+#define COLOR_TOP_PIPE     (4)
 
 // Value returned from Ebrew hardware when a temperaturesensor is faulty or not connected
 #define SENSOR_VAL_LIM_OK (-99.9)
@@ -207,26 +190,35 @@ public:
     void    setOrientation(int width, int height, uint8_t options);
     void    setName(QString name);
     void    setValues(qreal temp, qreal sp, qreal vol, qreal power);
+    void    setColor(uint8_t pipe, QColor color);
     void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    QRectF  boundingRect() const override { return boundary; }
     QPointF getCoordinates(int which);
 
 protected:
     int       tankWidth, tankHeight;
-    QString   tankName;      /* Tank name */
-    uint8_t   tankOptions;   /* Tank options: TANK_HEAT_EXCHANGER ... TANK_EXIT_BOTTOM */
-    QPolygonF tankPolygon;   /* Contains polygon for drawing the tank */
-    qreal     tankTemp;      /* Actual temperature inside tank */
-    qreal     tankSetPoint;  /* Setpoint temperature for tank */
-    qreal     tankVolume;    /* Actual volume in the tank */
-    qreal     tankPower;     /* Actual heating power applied to the tank */
-    bool      tankTempErr;   /* true = error in actual temperature */
-    QPointF   left_pipe1;    /* Coordinate of top-left pipe for connecting a pump */
-    QPointF   left_pipe2;    /* Coordinate of bottom-left pipe for connecting a pump */
-    QPoint    left_top_pipe; /* Coordinate of top-left pipe for return manifold at top of tank */
-    QPoint    bottom_pipe1;  /* Coordinate of bottom pipe for manifold at bottom of tank */
-    QPoint    bottom_pipe2;  /* Coordinate of bottom return pipe at bottom of tank */
-    QPoint    right_pipe1;   /* Coordinate of top-right pipe for heat-exchanger in tank */
-    QPoint    right_pipe2;   /* Coordinate of bottom-right pipe for heat-exchanger in tank */
+    QString   tankName;       /* Tank name */
+    uint8_t   tankOptions;    /* Tank options: TANK_HEAT_EXCHANGER ... TANK_EXIT_BOTTOM */
+    QPolygonF tankPolygon;    /* Contains polygon for drawing the tank */
+    qreal     tankTemp;       /* Actual temperature inside tank */
+    qreal     tankSetPoint;   /* Setpoint temperature for tank */
+    qreal     tankVolume;     /* Actual volume in the tank */
+    qreal     tankPower;      /* Actual heating power applied to the tank */
+    bool      tankTempErr;    /* true = error in actual temperature */
+    QRectF    boundary;       /* boundary of tank object */
+
+    QPointF   leftPipe1;      /* Coordinate of top-left pipe for connecting a pump */
+    QPointF   leftPipe2;      /* Coordinate of bottom-left pipe for connecting a pump */
+    QPointF   leftTopPipe;    /* Coordinate of top-left pipe for return manifold at top of tank */
+    QPointF   bottomPipe1;    /* Coordinate of bottom pipe for manifold at bottom of tank */
+    QPointF   bottomPipe2;    /* Coordinate of bottom return pipe at bottom of tank */
+    QPointF   rightPipe1;     /* Coordinate of top-right pipe for heat-exchanger in tank */
+    QPointF   rightPipe2;     /* Coordinate of bottom-right pipe for heat-exchanger in tank */
+    QColor    colLeftPipes;   /* Color of pipes at left of (HLT) tank */
+    QColor    colBottomPipe1; /* Color of output-pipe at bottom of tank */
+    QColor    colBottomPipe2; /* Color of input-pipe at bottom of tank */
+    QColor    colRightPipes;  /* Color of heat-exchanger pipes at right-side of tank */
+    QColor    colTopPipe;     /* Color of input-pipe at top of tank */
 }; // class Tank
 
 //------------------------------------------------------------------------------------------

@@ -1,53 +1,29 @@
-/****************************************************************************
+/**************************************************************************************
+** Filename    : hmi_objects.cpp
+** Author      : Emile
+** Purpose     : This file contains all graphical objects that are used by MainEbrew:
+**               PowerButton: A push-button with a green/red LED in it.
+**               Meter      : a flowmeter or temperaturesensor, showing actual values.
+**               Tank       : a tank object for constructing a HLT, MLT or boil-kettle.
+**               Pipe       : a pipe which is used to connect everything. A pipe can have
+**                            just 2 pipes, but also 3 and 4 pipes.
+**               Display    : A display with a sub-text for displaying the actual state.
+**               Actuator   : A base object for actuators
+**               Valve      : A valve, derived from Actuator, for blocking or enabling a flow.
+**               Pump       : A pump, derived from Actuator, for pumping fluids through pipes.
+** License     : This is free software: you can redistribute it and/or modify
+**               it under the terms of the GNU General Public License as published by
+**               the Free Software Foundation, either version 3 of the License, or
+**               (at your option) any later version.
 **
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
+**               This file is distributed in the hope that it will be useful,
+**               but WITHOUT ANY WARRANTY; without even the implied warranty of
+**               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**               GNU General Public License for more details.
 **
-** This file is part of the examples of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:BSD$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** BSD License Usage
-** Alternatively, you may use this file under the terms of the BSD license
-** as follows:
-**
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of The Qt Company Ltd nor the names of its
-**     contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
-**
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
-
+**               You should have received a copy of the GNU General Public License
+**               along with this file.  If not, see <http://www.gnu.org/licenses/>.
+**************************************************************************************/
 #include "hmi_objects.h"
 
 #include <QBrush>
@@ -111,14 +87,11 @@ Tank::Tank(int x, int y, int width, int height, uint8_t options, QString name)
     : QGraphicsPolygonItem()
 {
     setPos(x,y);
-
-    QPoint point(100,100);
     setValues(0.0,0.0,0.0,0.0); // init. temp., setpoint temp., volume and power
-
     setOrientation(width,height,options);
     setName(name);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
-    //setFlag(QGraphicsItem::ItemIsSelectable,true);
+    setFlag(QGraphicsItem::ItemIsSelectable,true);
     //setFlag(QGraphicsItem::ItemIsMovable,true);
 } // Tank()
 
@@ -149,21 +122,52 @@ void Tank::setOrientation(int width, int height, uint8_t options)
     tankPolygon = path.toFillPolygon();
     setPolygon(tankPolygon);
     // Set coordinates for all input- and output-pipes
-    left_pipe1.setX(-45.0-0.5*width);
-    left_pipe1.setY(-50.0-0.25*height); // upper-left pipe
-    left_pipe2.setX(-45.0-0.5*width);
-    left_pipe2.setY(-10.0-0.25*height); // lower-left pipe
-    bottom_pipe1.setX(-RPIPE);
-    bottom_pipe1.setY(-30);             // bottom pipe connected to manifold
-    bottom_pipe2.setX((width>>1)-4*RPIPE);
-    bottom_pipe2.setY(-20);             // bottom pipe connected to manifold
-    right_pipe1.setX((width>>2)-10);
-    right_pipe1.setY(left_pipe1.y());   // upper-right pipe
-    right_pipe2.setX((width>>2)-10);
-    right_pipe2.setY(left_pipe2.y());   // lower-right pipe
-    left_top_pipe.setX(left_pipe1.x());
-    left_top_pipe.setY(20-height);      // top-left pipe for return manifold
+    leftPipe1.setX(-45.0-0.5*width);
+    leftPipe1.setY(-50.0-0.25*height); // upper-left pipe
+    leftPipe2.setX(-45.0-0.5*width);
+    leftPipe2.setY(-10.0-0.25*height); // lower-left pipe
+    bottomPipe1.setX(-RPIPE);
+    bottomPipe1.setY(-30);             // bottom pipe connected to manifold
+    bottomPipe2.setX((width>>1)-4*RPIPE);
+    bottomPipe2.setY(-20);             // bottom pipe connected to manifold
+    rightPipe1.setX(0.25*width-10.0);
+    rightPipe1.setY(leftPipe1.y());    // upper-right pipe
+    rightPipe2.setX(rightPipe1.x());
+    rightPipe2.setY(leftPipe2.y());    // lower-right pipe
+    leftTopPipe.setX(leftPipe1.x());
+    leftTopPipe.setY(20-height);       // top-left pipe for return manifold
+    // Determine proper boundary for tank object
+    qreal x,w,h;
+    if (options & (TANK_MANIFOLD_TOP | TANK_HEAT_EXCHANGER))
+         x = leftPipe1.x(); // there are pipes on the left
+    else x = -0.5*width;    // no pipes on the left
+    if (options & TANK_HEAT_EXCHANGER)
+         w = 0.25*width + 70 - x; // pipes on the right
+    else w = 0.50*width - x;
+    if (options & (TANK_EXIT_BOTTOM | TANK_MANIFOLD_BOTTOM | TANK_RETURN_BOTTOM))
+         h = height + 30;
+    else h = height;
+    boundary = QRectF(x,-height,w,h);
+
+    colLeftPipes   = COLOR_IN0;        // connected to second pump
+    colBottomPipe1 = COLOR_IN0;        // tank-output, connected to pump-input
+    colBottomPipe2 = COLOR_OUT0;       // tank-input, connected to pump-output
+    colRightPipes  = COLOR_OUT0;       // heat-exchanger pipes, connected to pump-output
+    colTopPipe     = COLOR_OUT0;       // tank top-return pipe, connected to pump-output
 } // Tank::setOrientation()
+
+void Tank::setColor(uint8_t pipe, QColor color)
+{
+    switch (pipe)
+    {
+        case COLOR_LEFT_PIPES  : colLeftPipes   = color; break;
+        case COLOR_BOTTOM_PIPE1: colBottomPipe1 = color; break;
+        case COLOR_BOTTOM_PIPE2: colBottomPipe2 = color; break;
+        case COLOR_RIGHT_PIPES : colRightPipes  = color; break;
+        case COLOR_TOP_PIPE    : colTopPipe     = color; break;
+        default: break;
+    } // switch
+} // Tank::setColor()
 
 void Tank::setValues(qreal temp, qreal sp, qreal vol, qreal power)
 {
@@ -188,13 +192,13 @@ QPointF Tank::getCoordinates(int which)
 
     switch (which)
     {
-        case COORD_LEFT_PIPE1:    point += left_pipe1    + QPoint(0,RPIPE);     break; /* upper-left pipe */
-        case COORD_LEFT_PIPE2:    point += left_pipe2    + QPoint(0,RPIPE-1);   break; /* lower-left pipe */
-        case COORD_LEFT_TOP_PIPE: point += left_top_pipe + QPoint(0,RPIPE-1);   break; /* for return manifold */
-        case COORD_BOTTOM_PIPE1:  point += bottom_pipe1  + QPoint(RPIPE<<1,60); break;
-        case COORD_BOTTOM_PIPE2:  point += bottom_pipe2  + QPoint(RPIPE<<1,60); break;
-        case COORD_RIGHT_PIPE1:   point += right_pipe1   + QPoint(80,RPIPE-1);  break;
-        case COORD_RIGHT_PIPE2:   point += right_pipe2   + QPoint(80,RPIPE-1);  break;
+        case COORD_LEFT_PIPE1:    point += leftPipe1    + QPointF(0,RPIPE);    break; /* upper-left pipe */
+        case COORD_LEFT_PIPE2:    point += leftPipe2    + QPointF(0,RPIPE-1);  break; /* lower-left pipe */
+        case COORD_LEFT_TOP_PIPE: point += leftTopPipe  + QPointF(0,RPIPE-1);  break; /* for return manifold */
+        case COORD_BOTTOM_PIPE1:  point += bottomPipe1  + QPointF(RPIPE,60);   break;
+        case COORD_BOTTOM_PIPE2:  point += bottomPipe2  + QPointF(RPIPE,60);   break;
+        case COORD_RIGHT_PIPE1:   point += rightPipe1   + QPointF(80,RPIPE-1); break;
+        case COORD_RIGHT_PIPE2:   point += rightPipe2   + QPointF(80,RPIPE-1); break;
     default:                      point  = QPoint(0,0); break;
     } // which
     return point;
@@ -214,46 +218,45 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     painter->setPen(QPen(Qt::blue));
     painter->drawText(-75,-tankHeight,tankName);
 
-    painter->save();
+    // NOTE Use QLinearGradient color blue-white-color when pipe is ON
     if (tankOptions & (TANK_EXIT_BOTTOM | TANK_MANIFOLD_BOTTOM))
     {   // An exit pipe at the bottom of the tank with or without a manifold
-        path.addRect(bottom_pipe1.x(),bottom_pipe1.y(),RPIPE<<1,60);
-        painter->fillPath(path,COLOR_IN0);
+        painter->fillRect(bottomPipe1.x(),bottomPipe1.y(),RPIPE<<1,60,colBottomPipe1);
         if (tankOptions & TANK_MANIFOLD_BOTTOM)
         {   // A manifold always has a tank-exit pipe
-            painter->setPen(QPen(Qt::blue,5,Qt::SolidLine));
+            painter->setPen(QPen(colBottomPipe1,5,Qt::SolidLine));
             painter->drawEllipse(1.5*TANK_WALL-(tankWidth>>1),-50,tankWidth-3*TANK_WALL,20);
         } // if
     } // if
     if (tankOptions & TANK_MANIFOLD_TOP)
     {   // A return-manifold at the top of the tank
-        path.addRect(left_top_pipe.x(),left_top_pipe.y(),65,RPIPE<<1);
-        painter->fillPath(path,COLOR_OUT0);
-        painter->setPen(QPen(COLOR_OUT0,5,Qt::SolidLine));
+        painter->fillRect(leftTopPipe.x(),leftTopPipe.y(),65,RPIPE<<1,colTopPipe);
+        painter->setPen(QPen(colTopPipe,5,Qt::SolidLine));
         painter->drawEllipse(1.5*TANK_WALL-(tankWidth>>1),20-tankHeight,tankWidth-3*TANK_WALL,20);
     } // if
     if (tankOptions & TANK_RETURN_BOTTOM)
     {   // A return pipe at the bottom of the tank (no manifold)
-        path.addRect(bottom_pipe2.x(),bottom_pipe2.y(),RPIPE<<1,60);
-        painter->fillPath(path,COLOR_OUT0);
+        painter->fillRect(bottomPipe2.x(),bottomPipe2.y(),RPIPE<<1,60,colBottomPipe2);
     } // if
     if (tankOptions & TANK_HEAT_EXCHANGER)
     {   // A heat-exchanger in the middle of the tank
-        path.addRect(left_pipe1.x() ,left_pipe1.y() ,90,RPIPE<<1); // upper pipe left
-        path.addRect(left_pipe2.x() ,left_pipe2.y() ,90,RPIPE<<1); // lower pipe left
-        path.addRect(right_pipe1.x(),right_pipe1.y(),80,RPIPE<<1); // upper pipe right
-        path.addRect(right_pipe2.x(),right_pipe2.y(),80,RPIPE<<1); // lower pipe right
-        painter->setPen(QPen(COLOR_OUT0,5,Qt::SolidLine));
+        //painter->setPen(QPen(colLeftPipes,5,Qt::SolidLine));
+        painter->fillRect(leftPipe1.x() ,leftPipe1.y() ,90,RPIPE<<1,colLeftPipes); // upper pipe left
+        painter->fillRect(leftPipe2.x() ,leftPipe2.y() ,90,RPIPE<<1,colLeftPipes); // lower pipe left
+        //painter->fillPath(path,colLeftPipes);
+
+        painter->fillRect(rightPipe1.x(),rightPipe1.y(),80,RPIPE<<1,colRightPipes); // upper pipe right
+        painter->fillRect(rightPipe2.x(),rightPipe2.y(),80,RPIPE<<1,colRightPipes); // lower pipe right
         int x1 = -tankWidth>>2;
-        painter->drawEllipse(x1,left_pipe2.y()+10,tankWidth>>1,10);
-        painter->drawEllipse(x1,left_pipe2.y()   ,tankWidth>>1,10);
-        painter->drawEllipse(x1,left_pipe2.y()-10,tankWidth>>1,10);
-        painter->drawEllipse(x1,left_pipe2.y()-20,tankWidth>>1,10);
-        painter->drawEllipse(x1,left_pipe2.y()-30,tankWidth>>1,10);
-        painter->drawEllipse(x1,left_pipe2.y()-40,tankWidth>>1,10);
-        painter->fillPath(path,COLOR_OUT0);
+        painter->setPen(QPen(colRightPipes,5,Qt::SolidLine));
+        painter->drawEllipse(x1,leftPipe2.y()+10,tankWidth>>1,10);
+        painter->drawEllipse(x1,leftPipe2.y()   ,tankWidth>>1,10);
+        painter->drawEllipse(x1,leftPipe2.y()-10,tankWidth>>1,10);
+        painter->drawEllipse(x1,leftPipe2.y()-20,tankWidth>>1,10);
+        painter->drawEllipse(x1,leftPipe2.y()-30,tankWidth>>1,10);
+        painter->drawEllipse(x1,leftPipe2.y()-40,tankWidth>>1,10);
+        painter->fillPath(path,colRightPipes);
     } // if
-    painter->restore();
 
     QGraphicsPolygonItem::paint(painter,option,widget);
 
@@ -873,7 +876,7 @@ Actuator::Actuator(QPointF point, QString name)
     setColor(Qt::red);
     setName(name);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
-    //setFlag(QGraphicsItem::ItemIsSelectable,true);
+    setFlag(QGraphicsItem::ItemIsSelectable,true);
     //setFlag(QGraphicsItem::ItemIsMovable,true);
     left = top = right = bottom = QPoint(0,0); // init. all coordinates
 } // Actuator()

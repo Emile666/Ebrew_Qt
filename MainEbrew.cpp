@@ -1,7 +1,8 @@
 /**************************************************************************************
 ** Filename    : MainEbrew.cpp
 ** Author      : Emile
-** Purpose     : Header file for MainEbrew.cpp. Contains the MainEbrew class.
+** Purpose     : This file contains the MainEbrew class, which is needed for creating
+**               an automated HERMS brewing system.
 ** License     : This is free software: you can redistribute it and/or modify
 **               it under the terms of the GNU General Public License as published by
 **               the Free Software Foundation, either version 3 of the License, or
@@ -701,6 +702,8 @@ void MainEbrew::task_update_std(void)
     pipeH9->setColor(color);
     elbow8->setColor(color);
     elbow9->setColor(color);
+    hlt->setColor(COLOR_RIGHT_PIPES,color);
+    mlt->setColor(COLOR_TOP_PIPE,color);
 
     //-------------------------------------------------
     // Is there output-flow to either V6 or V7?
@@ -744,6 +747,7 @@ void MainEbrew::task_update_std(void)
     pipeH8->setColor(color);
     elbow4->setColor(color);
     pipeV5->setColor(color);
+    boil->setColor(COLOR_BOTTOM_PIPE2,color);
 
     //-------------------------------------------------
     // Is there input-flow to Pump P1?
@@ -770,6 +774,7 @@ void MainEbrew::task_update_std(void)
         flow1Running = false;     // FLOW1 HLT->MLT is not running
     } // else
     elbow2->setColor(color);
+    hlt->setColor(COLOR_BOTTOM_PIPE1,color);
 
     //---------------------------------------------------------------
     // Is there input-flow from either Valve 1 (MLT) or Valve 3 (BK)?
@@ -781,6 +786,14 @@ void MainEbrew::task_update_std(void)
     Tpipe2->setColor(color);
 
     //-------------------------------------------------
+    // Is there input-flow from Valve 1 (MLT)?
+    //-------------------------------------------------
+    if (pumpP1On && anyOutputOn && (std_out & V1b))
+         color = COLOR_IN1; // flow running
+    else color = COLOR_IN0; // no flow
+    mlt->setColor(COLOR_BOTTOM_PIPE1,color);
+
+    //-------------------------------------------------
     // Is there input-flow from Valve 3 (BK)?
     //-------------------------------------------------
     if (pumpP1On && anyOutputOn && (std_out & V3b))
@@ -788,15 +801,20 @@ void MainEbrew::task_update_std(void)
     else color = COLOR_IN0; // no flow
     pipeH3->setColor(color);
     elbow3->setColor(color);
+    boil->setColor(COLOR_BOTTOM_PIPE1,color);
 
+    //-------------------------------------------------
+    // Is the pump for the HLT heat-exchanger on?
+    //-------------------------------------------------
     if (pumpP2On)
-         color = COLOR_OUT1;
-    else color = COLOR_OUT0;
+         color = COLOR_IN1;
+    else color = COLOR_IN0;
     elbowP20->setColor(color);
     elbowP21->setColor(color);
     elbowP22->setColor(color);
     elbowP23->setColor(color);
     pipeH1->setColor(color);
+    hlt->setColor(COLOR_LEFT_PIPES,color);
 
     schedulerEbrew->updateDuration("updateStd",timer.nsecsElapsed()/1000);
 } // MainEbrew::task_update_std()

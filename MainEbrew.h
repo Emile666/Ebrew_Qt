@@ -1,7 +1,8 @@
 /**************************************************************************************
 ** Filename    : MainEbrew.h
 ** Author      : Emile
-** Purpose     : Header file for MainEbrew.cpp. Contains the MainEbrew class.
+** Purpose     : Header file for MainEbrew.cpp. Contains the MainEbrew class, which contains
+**               all logic for creating an automated HERMS brewing system.
 ** License     : This is free software: you can redistribute it and/or modify
 **               it under the terms of the GNU General Public License as published by
 **               the Free Software Foundation, either version 3 of the License, or
@@ -14,10 +15,6 @@
 **
 **               You should have received a copy of the GNU General Public License
 **               along with this file.  If not, see <http://www.gnu.org/licenses/>.
-** ------------------------------------------------------------------------------------
-** Revision 3.00  2020/08/12
-** - Redesign from r1.99 (Borland C++ Builder) to Qt framework
-**
 **************************************************************************************/
 #ifndef MAIN_EBREW_H
 #define MAIN_EBREW_H

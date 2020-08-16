@@ -1,53 +1,21 @@
-/****************************************************************************
+/**************************************************************************************
+** Filename    : draw_hmi_screen.cpp
+** Author      : Emile
+** Purpose     : This file contains a single procedure that
+**               draws all graphical objects to the screen.
+** License     : This is free software: you can redistribute it and/or modify
+**               it under the terms of the GNU General Public License as published by
+**               the Free Software Foundation, either version 3 of the License, or
+**               (at your option) any later version.
 **
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
+**               This file is distributed in the hope that it will be useful,
+**               but WITHOUT ANY WARRANTY; without even the implied warranty of
+**               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**               GNU General Public License for more details.
 **
-** This file is part of the examples of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:BSD$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** BSD License Usage
-** Alternatively, you may use this file under the terms of the BSD license
-** as follows:
-**
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of The Qt Company Ltd nor the names of its
-**     contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
-**
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
-
+**               You should have received a copy of the GNU General Public License
+**               along with this file.  If not, see <http://www.gnu.org/licenses/>.
+**************************************************************************************/
 #include <QGraphicsScene>
 #include "hmi_objects.h"
 #include "MainEbrew.h"
@@ -105,7 +73,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     // Draw HLT output pipe with V2
     // Objects: valve2, elbow2, flow1, Tpipe1
     //----------------------------------------------------------
-    point = hlt->getCoordinates(COORD_BOTTOM_PIPE1) + QPoint(-RPIPE,30); // get coordinates of bottom-left pipe
+    point = hlt->getCoordinates(COORD_BOTTOM_PIPE1) + QPoint(0,30); // get coordinates of bottom-left pipe
     Valve *valve2 = new Valve(point,VERTICAL,"V2");
     scene->addItem(valve2);
     p->V2 = valve2;          // Add valve2 reference to MainEbrew
@@ -130,8 +98,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     Tank *mlt = new Tank(-270,0,250,300,TANK_MANIFOLD_BOTTOM|TANK_MANIFOLD_TOP,"MLT 110L");
     scene->addItem(mlt);     // Mash-Lauter Tun (MLT)
     p->mlt = mlt;            // add MLT reference to MainEbrew
-    point = mlt->getCoordinates(COORD_BOTTOM_PIPE1); // get coordinates of bottom-left pipe
-    point += QPoint(-RPIPE,30);
+    point = mlt->getCoordinates(COORD_BOTTOM_PIPE1) + QPoint(0,30); // get coordinates of bottom-left pipe
     Valve *valve1 = new Valve(point,VERTICAL,"V1");
     scene->addItem(valve1);  // valve V1
     p->V1 = valve1;          // add valve1 reference to MainEbrew
@@ -152,7 +119,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     Tank *boil = new Tank(60,0,275,300,TANK_MANIFOLD_BOTTOM|TANK_RETURN_BOTTOM,"BOIL 140L");
     scene->addItem(boil);
     p->boil = boil;          // add boil reference to MainEbrew
-    point = boil->getCoordinates(COORD_BOTTOM_PIPE1) + QPoint(-RPIPE,30); // get coordinates of bottom-left pipe
+    point = boil->getCoordinates(COORD_BOTTOM_PIPE1) + QPoint(0,30); // get coordinates of bottom-left pipe
     Valve *valve3 = new Valve(point,VERTICAL,"V3");
     scene->addItem(valve3);  // Valve V3 at input-side of pump
     p->V3 = valve3;          // add valve3 reference to MainEbrew
@@ -170,7 +137,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     // Draw boil-kettle input pipe with valve V7
     // Objects: valve7, pipeV5, elbow4, pipeH8, flow2, Tpipe4
     //----------------------------------------------------------
-    point = boil->getCoordinates(COORD_BOTTOM_PIPE2) + QPoint(-RPIPE,30); // get coordinates of bottom-right pipe
+    point = boil->getCoordinates(COORD_BOTTOM_PIPE2) + QPoint(0,30); // get coordinates of bottom-right pipe
     Valve *valve7 = new Valve(point,VERTICAL,"V7");
     scene->addItem(valve7);  // valve V7
     p->V7 = valve7;          // add valve7 reference to MainEbrew
@@ -292,7 +259,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     // Connect HLT heat-exchanger output to MLT return-manifold
     // Objects: elbow8, flow4, elbow9
     //----------------------------------------------------------
-    point = hlt->getCoordinates(COORD_RIGHT_PIPE1) + QPoint(50,1); // get coordinates of top-right pipe of heat-exchanger
+    point = hlt->getCoordinates(COORD_RIGHT_PIPE1) + QPoint(50,0); // get coordinates of top-right pipe of heat-exchanger
     Pipe *elbow8 = new Pipe(point,PIPE2_LEFT_TOP,50,COLOR_OUT0);
     p->elbow8 = elbow8;      // add reference to MainEbrew
     scene->addItem(elbow8);  // lower elbow pipe right of HLT heat-exchanger output
@@ -305,7 +272,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     point.setY(mlt->getCoordinates(COORD_LEFT_TOP_PIPE).y()); // get y-coordinate of top-left pipe for return-manifold in top
     int lenx = (mlt->getCoordinates(COORD_LEFT_TOP_PIPE) - flow4->getCoordinates(COORD_TOP)).x(); // x-diff between flowmeter and top elbow pipe
     int leny = (flow4->getCoordinates(COORD_TOP) - mlt->getCoordinates(COORD_LEFT_TOP_PIPE)).y(); // y-diff between flowmeter and top elbow pipe
-    len = qMax(lenx,leny);   // use the larger of the two
+    len = qMax(lenx,leny)-1;   // use the larger of the two
     Pipe *elbow9 = new Pipe(point,PIPE2_BOTTOM_RIGHT,len,COLOR_OUT0);
     p->elbow9 = elbow9;      // add reference to MainEbrew
     scene->addItem(elbow9);  // top elbow pipe, left of MLT return-manifold input
@@ -356,7 +323,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     // Now connect lower pipe of HLT heat-exchanger to elbow 11
     point = 0.5*(elbow11->getCoordinates(COORD_LEFT) + hlt->getCoordinates(COORD_RIGHT_PIPE2)); // x-midpoint between hlt pipe-output and pipe 22
     len   = (elbow11->getCoordinates(COORD_LEFT) - hlt->getCoordinates(COORD_RIGHT_PIPE2)).x(); // x-length
-    Pipe *pipeH9 = new Pipe(point,PIPE2_RIGHT_LEFT,len,COLOR_OUT0);
+    Pipe *pipeH9 = new Pipe(point,PIPE2_RIGHT_LEFT,len+2,COLOR_OUT0);
     p->pipeH9 = pipeH9;         // add reference to MainEbrew
     scene->addItem(pipeH9);
 
