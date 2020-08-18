@@ -156,6 +156,13 @@ public:
     bool    isFlowRateLow(void);
     QRectF  boundary; // boundary of object
 
+    // Variables for flowrate-low detector
+    uint8_t frl_std;         // STD state number
+    uint8_t frl_tmr;         // Timer value
+    double  frl_det_lim;     // Lower-limit for flowrate
+    double  frl_min_det_lim; // Minimum flowrate: sensor-check
+    uint8_t frl_perc;        // Percentage of max flowrate
+
 protected:
     QRectF boundingRect() const override { return boundary; }
     QPointF left,top,right,bottom; // coordinates of various points
@@ -171,13 +178,6 @@ protected:
     qreal   flowRate;        // Filtered flow-rate in L/min.
     qreal   flowRateRaw;     // Un-filtered flow-rate in L/min.
     MA      *pma;            // pointer to moving-average filter for flowrate
-
-    // Variables for flowrate-low detector
-    uint8_t frl_std;         // STD state number
-    uint8_t frl_tmr;         // Timer value
-    double  frl_det_lim;     // Lower-limit for flowrate
-    double  frl_min_det_lim; // Minimum flowrate: sensor-check
-    uint8_t frl_perc;        // Percentage of max flowrate
 }; // Class Meter
 
 //------------------------------------------------------------------------------------------

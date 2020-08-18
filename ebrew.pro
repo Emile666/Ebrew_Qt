@@ -8,10 +8,12 @@ HEADERS = hmi_objects.h \
     dialogbrewdaysettings.h \
     dialogeditfixparameters.h \
     dialogeditmashscheme.h \
+    dialogeditterminal.h \
     dialogoptionsmeasurements.h \
     dialogoptionspidsettings.h \
     dialogoptionssystemsettings.h \
     dialogviewprogress.h \
+    dialogviewstatusalarms.h \
     dialogviewtasklist.h \
     draw_hmi_screen.h \
     scheduler.h
@@ -22,10 +24,12 @@ SOURCES = main.cpp hmi_objects.cpp \
     dialogbrewdaysettings.cpp \
     dialogeditfixparameters.cpp \
     dialogeditmashscheme.cpp \
+    dialogeditterminal.cpp \
     dialogoptionsmeasurements.cpp \
     dialogoptionspidsettings.cpp \
     dialogoptionssystemsettings.cpp \
     dialogviewprogress.cpp \
+    dialogviewstatusalarms.cpp \
     dialogviewtasklist.cpp \
     draw_hmi_screen.cpp \
     scheduler.cpp
@@ -42,8 +46,10 @@ FORMS += \
     dialogbrewdaysettings.ui \
     dialogeditfixparameters.ui \
     dialogeditmashscheme.ui \
+    dialogeditterminal.ui \
     dialogoptionsmeasurements.ui \
     dialogoptionspidsettings.ui \
     dialogoptionssystemsettings.ui \
     dialogviewprogress.ui \
+    dialogviewstatusalarms.ui \
     dialogviewtasklist.ui

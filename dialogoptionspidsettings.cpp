@@ -41,12 +41,12 @@ DialogOptionsPidSettings::DialogOptionsPidSettings(QWidget *parent) :
         ui->dtDstart->setMinimumDate(QDate::currentDate());
         ui->dtDstart->setMaximumDate(QDate::currentDate().addDays(5));
     } // else
-}
+} // DialogOptionsPidSettings::DialogOptionsPidSettings()
 
 DialogOptionsPidSettings::~DialogOptionsPidSettings()
 {
     delete ui;
-}
+} // DialogOptionsPidSettings::~DialogOptionsPidSettings()
 
 void DialogOptionsPidSettings::on_buttonBox_accepted()
 {
@@ -56,18 +56,16 @@ void DialogOptionsPidSettings::on_buttonBox_accepted()
     pEbrew->RegEbrew->setValue("Td",ui->sbTd->value());
     pEbrew->RegEbrew->setValue("TSET_SLOPE_LIM",ui->sbSlpL->value());
     pEbrew->PidCtrlHlt->pidInit(ui->sbKc->value(),ui->sbTi->value(),ui->sbTd->value(),ui->sbTs->value());
-    pEbrew->PidCtrlBk->pidInit(ui->sbKc->value(),ui->sbTi->value(),ui->sbTd->value(),ui->sbTs->value());
-    // Now update schedule task for PID-controller with new task-time
-    pEbrew->schedulerEbrew->set_task_time_period((uint16_t)(1000 * ui->sbTs->value()),"pidControl");
+    pEbrew->PidCtrlBk->pidInit( ui->sbKc->value(),ui->sbTi->value(),ui->sbTd->value(),ui->sbTs->value());
     if (ui->cbDStart->isChecked())
     {
         pEbrew->delayedStart = true;
-        pEbrew->dlyStartTime  = ui->dtDstart->dateTime();
-    }
+        pEbrew->dlyStartTime = ui->dtDstart->dateTime();
+    } // if
     else
     {
         pEbrew->delayedStart = false;
-    }
+    } // else
 } // DialogOptionsPidSettings::on_buttonBox_accepted()
 
 void DialogOptionsPidSettings::on_cbDStart_stateChanged(int arg1)

@@ -28,7 +28,7 @@
 #include "draw_hmi_screen.h"
 #include "scheduler.h"
 
-// NOTE add terminal screen to Ebrew menu
+// NOTE add hop-duration timers to mash-scheme file
 
 /*-----------------------------------------------------------------------------
   Purpose    : Main-entry program of Ebrew v3 Qt.
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
     Ebrew->connect(mainTimer,SIGNAL(timeout()),scheduler,SLOT(dispatch_tasks())); // dispatcher also runs at 100 msec.
     scheduler->add_task("aliveLed"  ,   0,TS_LED_MSEC  ,Ebrew,SLOT(task_alive_led()));      // TASK 0
     scheduler->add_task("readTemps" , 100,TS_TEMPS_MSEC,Ebrew,SLOT(task_read_temps()));     // TASK 1
-    scheduler->add_task("pidControl", 300,(uint16_t)(1000*Ebrew->RegEbrew->value("TS").toInt()),Ebrew,SLOT(task_pid_control())); // TASK 2
+    scheduler->add_task("pidControl", 300,TS_PID_MSEC  ,Ebrew,SLOT(task_pid_control()));    // TASK 2
     scheduler->add_task("updateStd" , 400,TS_STD_MSEC  ,Ebrew,SLOT(task_update_std()));     // TASK 3
     scheduler->add_task("readFlows" , 600,TS_FLOWS_MSEC,Ebrew,SLOT(task_read_flows()));     // TASK 5
     scheduler->add_task("wrLogFile" ,1600,TS_WR_LOGFILE,Ebrew,SLOT(task_write_logfile()));  // TASK 6

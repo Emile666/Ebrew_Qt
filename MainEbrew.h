@@ -77,6 +77,7 @@
 //----------------------------------
 #define TS_FLOWS_MSEC (2000) /* Read flowsensors every 2 sec. */
 #define TS_TEMPS_MSEC (2000) /* Read temp. sensors every 2 sec. */
+#define TS_PID_MSEC   (1000) /* Call PID task every sec. Note: PID itself is called every TS sec. */
 #define TS_STD_MSEC   (1000) /* Call state-machine every second */
 #define TS_LED_MSEC    (500) /* Alive LED blinking every 1/2 sec. */
 #define TS_WR_LOGFILE (5000) /* Write to logfile every 5 seconds */
@@ -282,6 +283,38 @@ public:
     void       commPortWrite(QByteArray s); // Writes a string to the communications channel
     void       setTopToolBar(int option);   // Set toolbar at top of screen for brewing or for CIP
 
+    // Temperature, Volume and pid-output values
+    qreal thlt;             // HLT actual temperature
+    qreal tmlt;             // MLT actual temperature
+    qreal tboil;            // Boil-kettle actual temperature
+    qreal tcfc;             // CFC-output actual temperature
+    qreal ttriac;           // Temperature of Power Electronics
+    qreal gamma_hlt;        // PID controller output for HLT
+    qreal gamma_boil;       // PID controller output for Boil-Kettle
+    qreal tset_hlt;         // HLT reference temperature
+    qreal tset_mlt;         // MLT reference temperature
+    qreal tset_boil;        // HLT reference temperature
+    qreal Vhlt;             // Volume of HLT in litres
+    qreal Vmlt;             // Volume of MLT in litres
+    qreal Vboil;            // Volume of Boil kettle in litres
+    qreal Vhlt_old;         // Prev. value of Vhlt, used in STD
+    qreal Vmlt_old;         // Prev. value of Vmlt, used in STD
+    qreal Vboil_old;        // Prev. value of Vboil, used in STD
+
+    // Flow-rate values
+    qreal FlowHltMlt;           // Flow-meter 1 value
+    qreal FlowMltBoil;          // Flow-meter 2 value
+    qreal FlowCfcOut;           // Flow-meter 3 value
+    qreal Flow4;                // Flow-meter 4 value
+    qreal FlowCfcOutResetValue; // Needed in boiling phase to reset flowmeter
+    bool  flow1Running;         // True = flowsensor 1 should see a flow
+    bool  flow2Running;         // True = flowsensor 2 should see a flow
+    bool  flow3Running;         // True = flowsensor 3 should see a flow
+    bool  flow4Running;         // True = flowsensor 4 should see a flow
+    int   sensorAlarmInfo;      // alarm bits for temp. and flow-sensors
+    int   alarmSound = ALARM_TEMP_FLOW_SENSORS; // alarm on all sensor errors
+    bool  triacTooHot;          // true = SSR too hot
+
     /* Switches and Fixes for variables */
     bool  tset_hlt_sw  = false;  // Switch value for tset_hlt
     qreal tset_hlt_fx  = 0.0;    // Fix value for tset_hlt
@@ -362,61 +395,26 @@ public slots:
     void     about(void);                      // About() screen of MainEbrew
     void     MenuEditMashScheme(void);         // Edit->Mash Scheme dialog screen
     void     MenuEditFixParameters(void);      // Edit->Fix Parameters dialog screen
+    void     MenuEditTerminal(void);           // Edit->Terminal editor dialog screen
     void     MenuViewProgress(void);           // View->Mash & Sparge Progress dialog screen
+    void     MenuViewStatusAlarms(void);       // View->Status & Alarms dialog screen
     void     MenuViewTaskList(void);           // View->Task-list and Timings dialog screen
     void     MenuOptionsPidSettings(void);     // Options->PID Settings dialog screen
     void     MenuOptionsMeasurements(void);    // Options->Measurements Settings dialog screen
     void     MenuOptionsBrewDaySettings(void); // Options->Brew Day Settings dialog screen
     void     MenuOptionsSystemSettings(void);  // Options->System Settings dialog screen
     void     commPortRead(void);               // Reads a string from the communications channel
+    void     removeLF(QByteArray& s);          // Removes \n from QByteArray
 
 protected:
     void     closeEvent(QCloseEvent *event);   // called when application is closed
     void     keyPressEvent(QKeyEvent *event);  // called when a key is pressed
-    void     removeLF(QByteArray& s);          // Removes \n from QByteArray
     void     msgBox(QString title, QString text, QCheckBox *cb); /* shows only one instance of a MessageBox */
 
-    // Temperature, Volume and pid-output values
-	qreal thlt;             // HLT actual temperature
-	qreal thlt_offset;      // Offset to add to Thlt measurement
-	qreal tmlt;             // MLT actual temperature
-	qreal tmlt_offset;      // Offset to add to Tmlt measurement
-	qreal tboil;            // Boil-kettle actual temperature
-	qreal tboil_offset;     // Offset to add to Tboil measurement
-	qreal tcfc;             // CFC-output actual temperature
-	qreal tcfc_offset;      // Offset to add to Tcfc measurement
-	qreal tset_slope_limit; // Slope limiter for Temp. Setpoints
-    qreal ttriac;           // Temperature of Power Electronics
-	qreal gamma_hlt;        // PID controller output for HLT
-	qreal gamma_boil;       // PID controller output for Boil-Kettle
-	qreal tset_hlt;         // HLT reference temperature
-	qreal tset_mlt;         // MLT reference temperature
-	qreal tset_boil;        // HLT reference temperature
-    qreal Vhlt;             // Volume of HLT in litres
-    qreal Vmlt;             // Volume of MLT in litres
-    qreal Vboil;            // Volume of Boil kettle in litres
-    qreal Vhlt_old;         // Prev. value of Vhlt, used in STD
-    qreal Vmlt_old;         // Prev. value of Vmlt, used in STD
-    qreal Vboil_old;        // Prev. value of Vboil, used in STD
-
-    // Flow-rate values
-    qreal FlowHltMlt;           // Flow-meter 1 value
-    qreal FlowMltBoil;          // Flow-meter 2 value
-    qreal FlowCfcOut;           // Flow-meter 3 value
-    qreal Flow4;                // Flow-meter 4 value
-    qreal FlowCfcOutResetValue; // Needed in boiling phase to reset flowmeter
-    bool  flow1Running;         // True = flowsensor 1 should see a flow
-    bool  flow2Running;         // True = flowsensor 2 should see a flow
-    bool  flow3Running;         // True = flowsensor 3 should see a flow
-    bool  flow4Running;         // True = flowsensor 4 should see a flow
-    int   sensorAlarmInfo;      // alarm bits for temp. and flow-sensors
-    int   alarmSound = ALARM_TEMP_FLOW_SENSORS; // alarm on all sensor errors
-
-    bool  toggleLed;            // Indicator for Alive LED
-    bool  triacTooHot;          // true = SSR too hot
-
-    QString ebrewRevision = EBREW_REVISION; // Ebrew SW revision number
-    QString line1MashScheme;    // Title line in mash-scheme file, needed for log-file
+    int      pidCntr       = 0;                // counter for task_pid_control()
+    bool     toggleLed     = false;            // Indicator for Alive LED
+    QString  ebrewRevision = EBREW_REVISION;   // Ebrew SW revision number
+    QString  line1MashScheme;                  // Title line in mash-scheme file, needed for log-file
 
 private:
     // Labels in Statusbar at bottom of screen

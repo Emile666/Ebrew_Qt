@@ -41,7 +41,6 @@ public:
     void    pidSetLimits(qreal min, qreal max);
     uint8_t pidGetStatus(void);
 
-protected:
     uint8_t pid_on; // true = pid-controller is enabled
     qreal   xk_2;   // x[k-2], previous value of x[k-1] (= measured temperature)
     qreal   xk_1;   // x[k-1], previous value of the input variable x[k] (= measured temperature)

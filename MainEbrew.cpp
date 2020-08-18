@@ -36,8 +36,10 @@
 #include "MainEbrew.h"
 #include "dialogeditmashscheme.h"
 #include "dialogeditfixparameters.h"
+#include "dialogeditterminal.h"
 #include "dialogviewprogress.h"
 #include "dialogviewtasklist.h"
+#include "dialogviewstatusalarms.h"
 #include "dialogoptionspidsettings.h"
 #include "dialogoptionsmeasurements.h"
 #include "dialogbrewdaysettings.h"
@@ -165,6 +167,7 @@ void MainEbrew::closeEvent(QCloseEvent *event)
     commPortWrite("L0"); // Disable Alive-LED
     commPortWrite("P0"); // Disable Pump
     commPortWrite("V0"); // Disable All Valves
+    sleep(100);
 
     if (comPortIsOpen)
     {
@@ -193,28 +196,28 @@ void MainEbrew::createStatusBar(void)
     //-----------------------------------
     statusAlarm      = new QLabel(" Sensor Alarm: TEMP + FLOW ");
     statusAlarm->setAlignment(Qt::AlignHCenter);
-    statusBar->addPermanentWidget(statusAlarm);
+    statusBar->addPermanentWidget(statusAlarm,1);
     statusMashScheme = new QLabel("     ");
     statusMashScheme->setAlignment(Qt::AlignHCenter);
-    statusBar->addPermanentWidget(statusMashScheme);
+    statusBar->addPermanentWidget(statusMashScheme,1);
     statusMashVol    = new QLabel(" Mash Volume: 0 L ");
     statusMashVol->setAlignment(Qt::AlignHCenter);
-    statusBar->addPermanentWidget(statusMashVol);
+    statusBar->addPermanentWidget(statusMashVol,1);
     statusSpargeVol  = new QLabel(" Sparge Volume: 0 L ");
     statusSpargeVol->setAlignment(Qt::AlignHCenter);
-    statusBar->addPermanentWidget(statusSpargeVol);
+    statusBar->addPermanentWidget(statusSpargeVol,1);
     statusBoilTime  = new QLabel(" Boil-time: 0 min. ");
     statusBoilTime->setAlignment(Qt::AlignHCenter);
-    statusBar->addPermanentWidget(statusBoilTime);
+    statusBar->addPermanentWidget(statusBoilTime,1);
     statusMsIdx      = new QLabel(" Mash index: 0 ");
     statusMsIdx->setAlignment(Qt::AlignHCenter);
-    statusBar->addPermanentWidget(statusMsIdx);
+    statusBar->addPermanentWidget(statusMsIdx,1);
     statusSpIdx      = new QLabel(" Sparge index: 0 ");
     statusSpIdx->setAlignment(Qt::AlignHCenter);
-    statusBar->addPermanentWidget(statusSpIdx);
+    statusBar->addPermanentWidget(statusSpIdx,1);
     statusSwRev      = new QLabel(" SW r1.99 HW r1.24 ");
     statusSwRev->setAlignment(Qt::AlignHCenter);
-    statusBar->addPermanentWidget(statusSwRev);
+    statusBar->addPermanentWidget(statusSwRev,1);
     setStatusBar(statusBar); // connect the statusBar to Ebrew
 
     // Create Toolbar1 at top of screen: always visible
@@ -297,24 +300,25 @@ void MainEbrew::setTopToolBar(int option)
   ------------------------------------------------------------------*/
 void MainEbrew::createMenuBar(void)
 {
-    auto menuBar = new QMenuBar;    // See Examples\Qt-5.14.2\network\torrent
+    auto menuBar = new QMenuBar;
 
     // File menu
     auto Fmenu       = new QMenu("&File");
-    Fmenu->addAction(QIcon(":/img/fileopen.png"),"Read Log-File..."); // TODO slot voor Read logFile
+    Fmenu->addAction(QIcon(":/img/fileopen.png")    ,"Read Log-File..."); // TODO slot voor Read logFile
     Fmenu->addSeparator();
-    Fmenu->addAction(QIcon(":/img/exit.png")    , "E&xit", this,SLOT(close()));
+    Fmenu->addAction(QIcon(":/img/exit.png")        ,"E&xit"                      , this,SLOT(close())               ,QKeySequence("Ctrl+Q"));
     menuBar->addMenu(Fmenu);
     // Edit menu
     auto Emenu       = new QMenu("&Edit");
-    Emenu->addAction(QIcon(":/img/fileedit.png") ,"&Mash Scheme..."   ,this,SLOT(MenuEditMashScheme()));
-    Emenu->addAction(QIcon(":/img/fixparams.png"),"&Fix Parameters...",this,SLOT(MenuEditFixParameters()),QKeySequence("Ctrl+F"));
+    Emenu->addAction(QIcon(":/img/fileedit.png")    ,"&Mash Scheme..."            ,this,SLOT(MenuEditMashScheme())   ,QKeySequence("Ctrl+M"));
+    Emenu->addAction(QIcon(":/img/fixparams.png")   ,"&Fix Parameters..."         ,this,SLOT(MenuEditFixParameters()),QKeySequence("Ctrl+F"));
+    Emenu->addAction(QIcon(":/img/terminal.png")    ,"Terminal &Editor"           ,this,SLOT(MenuEditTerminal())     ,QKeySequence("Ctrl+E"));
     menuBar->addMenu(Emenu);
     // View menu
     auto Vmenu       = new QMenu("&View");
-    Vmenu->addAction(QIcon(":/img/progress.png"),"&Mash && Sparge Progress",this,SLOT(MenuViewProgress()));
-    Vmenu->addAction(QIcon(":/img/alarm.png")   ,"&Status and Alarms");          // TODO slot voor Status and Alarms
-    Vmenu->addAction(QIcon(":/img/task.png")    ,"&Task-list and Timings"  ,this,SLOT(MenuViewTaskList()));
+    Vmenu->addAction(QIcon(":/img/progress.png")    ,"Mash && Sparge &Progress"   ,this,SLOT(MenuViewProgress())     ,QKeySequence("Ctrl+P"));
+    Vmenu->addAction(QIcon(":/img/alarm.png")       ,"Status and &Alarms"         ,this,SLOT(MenuViewStatusAlarms()) ,QKeySequence("Ctrl+A"));
+    Vmenu->addAction(QIcon(":/img/task.png")        ,"&Task-list and Timings"     ,this,SLOT(MenuViewTaskList())     ,QKeySequence("Ctrl+T"));
     menuBar->addMenu(Vmenu);
     // Options menu
     auto Omenu       = new QMenu("&Options");
@@ -629,9 +633,9 @@ void MainEbrew::task_alive_led(void)
   ------------------------------------------------------------------*/
 void MainEbrew::task_update_std(void)
 {
-    QElapsedTimer timer;
-    QString       string;
-    QColor        color;
+    QElapsedTimer timer;       // time measurements for task
+    QString       string;      // temp. string for Ebrew HW comm.
+    QColor        color;       // color for pipes
     uint16_t      std_out;     // values of valves
     uint8_t       pump_bits;   // values of pumps
 
@@ -821,7 +825,8 @@ void MainEbrew::task_update_std(void)
 
 /*-----------------------------------------------------------------------------
   Purpose    : TASK: PID-controller
-  Period-Time: TS seconds
+  Period-Time: 1 seconds. Since the Registry TS parameter is in seconds and
+               this task is called every second, TS can be used here directly.
   ---------------------------------------------------------------------------*/
 void MainEbrew::task_pid_control(void)
 {
@@ -829,23 +834,27 @@ void MainEbrew::task_pid_control(void)
     QString       string;
 
     timer.start(); // Task time-measurement
+    if (++pidCntr >= RegEbrew->value("TS").toInt())
+    {   // call PID-controllers every TS seconds
+        pidCntr = 0;                                          // reset counter
+        PidCtrlHlt->pidEnable(hlt_pid->getButtonState());     // PID is enabled if PowerButton state is ON
+        gamma_hlt = PidCtrlHlt->pidControl(thlt,tset_hlt);    // run pid-controller for HLT
+        if (PidCtrlBk->pidGetStatus() != PID_FFC)             // PID_FFC is set by the STD
+            PidCtrlBk->pidEnable(boil_pid->getButtonState()); // PID is enabled if PowerButton state is ON
+        gamma_boil = PidCtrlBk->pidControl(tboil,tset_boil);  // run pid-controller for Boil-kettle
+    } // if
 
-    PidCtrlHlt->pidEnable(hlt_pid->getButtonState());     // PID is enabled if PowerButton state is ON
-    gamma_hlt = PidCtrlHlt->pidControl(thlt,tset_hlt);    // run pid-controller for HLT
+    // Run switches/fixes and sending to Ebrew HW every second
     if (gamma_hlt_sw) gamma_hlt = gamma_hlt_fx;
-    string = QString("H%1").arg(gamma_hlt,1,'f',0);       // PID-Output [0%..100%]
+    string = QString("H%1").arg(gamma_hlt,1,'f',0); // PID-Output [0%..100%]
     commPortWrite(string.toUtf8());
 
-    if (PidCtrlBk->pidGetStatus() != PID_FFC)             // PID_FFC is set by the STD
-        PidCtrlBk->pidEnable(boil_pid->getButtonState()); // PID is enabled if PowerButton state is ON
-    gamma_boil = PidCtrlBk->pidControl(tboil,tset_boil);  // run pid-controller for Boil-kettle
     if ((ebrew_std == S11_BOILING) && (gamma_boil > RegEbrew->value("LIMIT_BOIL").toDouble()))
     {   // Limit Boil-kettle output during boiling
         gamma_boil = RegEbrew->value("LIMIT_BOIL").toDouble();
     } // if
     if (gamma_boil_sw) gamma_boil = gamma_boil_fx;
-
-    string = QString("B%1").arg(gamma_boil,1,'f',0);      // PID-Output [0%..100%]
+    string = QString("B%1").arg(gamma_boil,1,'f',0); // PID-Output [0%..100%]
     commPortWrite(string.toUtf8());
     schedulerEbrew->updateDuration("pidControl",timer.nsecsElapsed()/1000);
 } // MainEbrew::task_pid_control()
@@ -1010,12 +1019,14 @@ void MainEbrew::task_read_flows(void)
     F4->setFlowValue(Flow4      ,thlt);
 
     //------------------ FLOW1 ------------------------------------------------
-    if ((F1->getFlowRate(FLOWRATE_RAW) < 0.1) && flow1Running &&
-        ((alarmSound == ALARM_FLOW_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS)))
+    if ((F1->getFlowRate(FLOWRATE_RAW) < 0.1) && flow1Running)
     {
-         commPortWrite("X2\n");
          sensorAlarmInfo |=  SENS_FLOW1;
          F1->setError(true);
+         if ((alarmSound == ALARM_FLOW_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS))
+         {
+             commPortWrite("X2");
+         } // if
     } // if
     else
     {
@@ -1029,12 +1040,14 @@ void MainEbrew::task_read_flows(void)
     } // if
 
     //------------------ FLOW2 ------------------------------------------------
-    if ((F2->getFlowRate(FLOWRATE_RAW) < 0.1) && flow2Running &&
-        ((alarmSound == ALARM_FLOW_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS)))
+    if ((F2->getFlowRate(FLOWRATE_RAW) < 0.1) && flow2Running)
     {
-         commPortWrite("X2\n"); // sound alarm
          sensorAlarmInfo |=  SENS_FLOW2;
          F2->setError(true);
+         if ((alarmSound == ALARM_FLOW_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS))
+         {
+             commPortWrite("X2"); // sound alarm
+         } // if
     } // if
     else
     {
@@ -1048,12 +1061,14 @@ void MainEbrew::task_read_flows(void)
     } // if
 
     //------------------ FLOW3 ------------------------------------------------
-    if ((F3->getFlowRate(FLOWRATE_RAW) < 0.1) && flow3Running &&
-        ((alarmSound == ALARM_FLOW_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS)))
+    if ((F3->getFlowRate(FLOWRATE_RAW) < 0.1) && flow3Running)
     {
-         commPortWrite("X2\n"); // sound alarm
          sensorAlarmInfo |=  SENS_FLOW3;
          F3->setError(true);
+         if ((alarmSound == ALARM_FLOW_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS))
+         {
+             commPortWrite("X2"); // sound alarm
+         } // if
     } // if
     else
     {
@@ -1067,12 +1082,14 @@ void MainEbrew::task_read_flows(void)
     } // if
 
     //------------------ FLOW4 ------------------------------------------------
-    if ((F4->getFlowRate(FLOWRATE_RAW) < 0.1) && flow4Running &&
-        ((alarmSound == ALARM_FLOW_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS)))
+    if ((F4->getFlowRate(FLOWRATE_RAW) < 0.1) && flow4Running)
     {
-         commPortWrite("X2\n"); // sound alarm
          sensorAlarmInfo |=  SENS_FLOW4;
          F4->setError(true);
+         if ((alarmSound == ALARM_FLOW_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS))
+         {
+             commPortWrite("X2"); // sound alarm
+         } // if
     } // if
     else
     {
@@ -1153,6 +1170,19 @@ void MainEbrew::MenuEditMashScheme(void)
 
 /*------------------------------------------------------------------
   Purpose  : This function is called whenever in the Menubar
+             Edit->Terminal Editor is clicked.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::MenuEditTerminal(void)
+{
+    auto Dialog = new DialogEditTerminal(this);
+
+    Dialog->show();
+} // MainEbrew::MenuEditTerminal()
+
+/*------------------------------------------------------------------
+  Purpose  : This function is called whenever in the Menubar
              Edit->Fix Parameters... is clicked.
   Variables: -
   Returns  : -
@@ -1176,6 +1206,19 @@ void MainEbrew::MenuViewProgress(void)
 
     Dialog->show();
 } // MainEbrew::MenuViewProgress()
+
+/*------------------------------------------------------------------
+  Purpose  : This function is called whenever in the Menubar
+             View->Status & Alarms is clicked.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::MenuViewStatusAlarms(void)
+{
+    auto Dialog = new DialogViewStatusAlarms(this);
+
+    Dialog->show();
+} // MainEbrew::MenuViewStatusAlarms()
 
 /*------------------------------------------------------------------
   Purpose  : This function is called whenever in the Menubar

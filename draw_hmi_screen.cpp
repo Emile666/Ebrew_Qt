@@ -130,8 +130,8 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     point = 0.5*(elbow3->getCoordinates(COORD_LEFT) + Tpipe2->getCoordinates(COORD_RIGHT)); // x-midpoint between pipe 5 and pipe 6
     len   = (elbow3->getCoordinates(COORD_LEFT) - Tpipe2->getCoordinates(COORD_RIGHT)).x();
     Pipe *pipeH3 = new Pipe(point,PIPE2_RIGHT_LEFT,len,COLOR_IN0);
-    p->pipeH3 = pipeH3;         // add reference to MainEbrew
-    scene->addItem(pipeH3);   // horizontal connecting pipe between MLT and Boil-kettle
+    p->pipeH3 = pipeH3;      // add reference to MainEbrew
+    scene->addItem(pipeH3);  // horizontal connecting pipe between MLT and Boil-kettle
 
     //----------------------------------------------------------
     // Draw boil-kettle input pipe with valve V7
@@ -174,8 +174,8 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     point = valve6->getCoordinates(COORD_BOTTOM) + QPoint(0,20);
 
     Pipe *pipeV4 = new Pipe(point,PIPE2_TOP_BOTTOM,40,COLOR_OUT0);
-    p->pipeV4 = pipeV4;       // add reference to MainEbrew
-    scene->addItem(pipeV4);   // vertical pipe between V6 and CFC
+    p->pipeV4 = pipeV4;      // add reference to MainEbrew
+    scene->addItem(pipeV4);  // vertical pipe between V6 and CFC
     point = pipeV4->getCoordinates(COORD_BOTTOM) + QPoint(-11,-1);
 
     Meter *flow3 = new Meter(point,METER_VFLOW,"flow3");
@@ -195,8 +195,8 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
 
     point = temp3->getCoordinates(COORD_RIGHT) + QPoint(26,0);
     Pipe *pipeH7 = new Pipe(point,PIPE2_LEFT_RIGHT,50,COLOR_OUT0);
-    p->pipeH7 = pipeH7;         // add reference to MainEbrew
-    scene->addItem(pipeH7);   // horizontal pipe between CFC and output
+    p->pipeH7 = pipeH7;      // add reference to MainEbrew
+    scene->addItem(pipeH7);  // horizontal pipe between CFC and output
 
     point += QPoint(-140,40);
     font.setPointSize(12);
@@ -272,7 +272,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     point.setY(mlt->getCoordinates(COORD_LEFT_TOP_PIPE).y()); // get y-coordinate of top-left pipe for return-manifold in top
     int lenx = (mlt->getCoordinates(COORD_LEFT_TOP_PIPE) - flow4->getCoordinates(COORD_TOP)).x(); // x-diff between flowmeter and top elbow pipe
     int leny = (flow4->getCoordinates(COORD_TOP) - mlt->getCoordinates(COORD_LEFT_TOP_PIPE)).y(); // y-diff between flowmeter and top elbow pipe
-    len = qMax(lenx,leny)-1;   // use the larger of the two
+    len = qMax(lenx,leny);   // use the larger of the two
     Pipe *elbow9 = new Pipe(point,PIPE2_BOTTOM_RIGHT,len,COLOR_OUT0);
     p->elbow9 = elbow9;      // add reference to MainEbrew
     scene->addItem(elbow9);  // top elbow pipe, left of MLT return-manifold input

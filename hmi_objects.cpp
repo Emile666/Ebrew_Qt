@@ -129,7 +129,7 @@ void Tank::setOrientation(int width, int height, uint8_t options)
     bottomPipe1.setX(-RPIPE);
     bottomPipe1.setY(-30);             // bottom pipe connected to manifold
     bottomPipe2.setX((width>>1)-4*RPIPE);
-    bottomPipe2.setY(-20);             // bottom pipe connected to manifold
+    bottomPipe2.setY(-20);             // bottom pipe return pipe
     rightPipe1.setX(0.25*width-10.0);
     rightPipe1.setY(leftPipe1.y());    // upper-right pipe
     rightPipe2.setX(rightPipe1.x());
@@ -193,12 +193,12 @@ QPointF Tank::getCoordinates(int which)
     switch (which)
     {
         case COORD_LEFT_PIPE1:    point += leftPipe1    + QPointF(0,RPIPE);    break; /* upper-left pipe */
-        case COORD_LEFT_PIPE2:    point += leftPipe2    + QPointF(0,RPIPE-1);  break; /* lower-left pipe */
-        case COORD_LEFT_TOP_PIPE: point += leftTopPipe  + QPointF(0,RPIPE-1);  break; /* for return manifold */
+        case COORD_LEFT_PIPE2:    point += leftPipe2    + QPointF(0,RPIPE);    break; /* lower-left pipe */
+        case COORD_LEFT_TOP_PIPE: point += leftTopPipe  + QPointF(0,RPIPE);    break; /* for return manifold */
         case COORD_BOTTOM_PIPE1:  point += bottomPipe1  + QPointF(RPIPE,60);   break;
-        case COORD_BOTTOM_PIPE2:  point += bottomPipe2  + QPointF(RPIPE,60);   break;
+        case COORD_BOTTOM_PIPE2:  point += bottomPipe2  + QPointF(RPIPE,50);   break;
         case COORD_RIGHT_PIPE1:   point += rightPipe1   + QPointF(80,RPIPE-1); break;
-        case COORD_RIGHT_PIPE2:   point += rightPipe2   + QPointF(80,RPIPE-1); break;
+        case COORD_RIGHT_PIPE2:   point += rightPipe2   + QPointF(80,RPIPE);   break;
     default:                      point  = QPoint(0,0); break;
     } // which
     return point;
@@ -230,20 +230,18 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     } // if
     if (tankOptions & TANK_MANIFOLD_TOP)
     {   // A return-manifold at the top of the tank
-        painter->fillRect(leftTopPipe.x(),leftTopPipe.y(),65,RPIPE<<1,colTopPipe);
+        painter->fillRect(leftTopPipe.x(),leftTopPipe.y(),65,2.0*RPIPE+1,colTopPipe);
         painter->setPen(QPen(colTopPipe,5,Qt::SolidLine));
         painter->drawEllipse(1.5*TANK_WALL-(tankWidth>>1),20-tankHeight,tankWidth-3*TANK_WALL,20);
     } // if
     if (tankOptions & TANK_RETURN_BOTTOM)
     {   // A return pipe at the bottom of the tank (no manifold)
-        painter->fillRect(bottomPipe2.x(),bottomPipe2.y(),RPIPE<<1,60,colBottomPipe2);
+        painter->fillRect(bottomPipe2.x(),bottomPipe2.y(),RPIPE<<1,50,colBottomPipe2);
     } // if
     if (tankOptions & TANK_HEAT_EXCHANGER)
     {   // A heat-exchanger in the middle of the tank
-        //painter->setPen(QPen(colLeftPipes,5,Qt::SolidLine));
         painter->fillRect(leftPipe1.x() ,leftPipe1.y() ,90,RPIPE<<1,colLeftPipes); // upper pipe left
         painter->fillRect(leftPipe2.x() ,leftPipe2.y() ,90,RPIPE<<1,colLeftPipes); // lower pipe left
-        //painter->fillPath(path,colLeftPipes);
 
         painter->fillRect(rightPipe1.x(),rightPipe1.y(),80,RPIPE<<1,colRightPipes); // upper pipe right
         painter->fillRect(rightPipe2.x(),rightPipe2.y(),80,RPIPE<<1,colRightPipes); // lower pipe right
@@ -653,7 +651,8 @@ Meter::Meter(QPointF point, uint8_t type, QString name)
         setText("F");
         setFlowParameters(1000,false,0.0); // set defaults to 1 sec, no temp. correction
         meterValueOld = 0.0;
-        setFlowValue(meterValueOld,TEMP_DEFAULT); // init values for flowrate measurement
+        setFlowValue(meterValueOld,TEMP_DEFAULT); // init. values for flowrate measurement
+        initFlowRateDetector(10); // init. flowrate-low detector
     } // if
     else
     {
@@ -737,7 +736,7 @@ QPointF Meter::getCoordinates(uint8_t side)
         case COORD_RIGHT : point += right;  break; /* right coordinate of pipe */
         case COORD_LEFT  : point += left;   break; /* left coordinate of pipe */
         case COORD_BOTTOM: point += bottom; break; /* bottom coordinate of pipe */
-        default:           point  = QPoint(0,0); break;
+        default:           point  = QPointF(0,0); break;
     } // which
     return point;
 } // Meter::getCoordinates()
