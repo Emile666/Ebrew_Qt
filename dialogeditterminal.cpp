@@ -19,7 +19,6 @@
 #include "dialogeditterminal.h"
 #include "ui_dialogeditterminal.h"
 #include <QKeyEvent>
-#include <QDebug>
 
 DialogEditTerminal::DialogEditTerminal(QWidget *parent) :
     QDialog(parent),

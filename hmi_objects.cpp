@@ -32,7 +32,6 @@
 #include <QFont>
 #include <QGraphicsSceneMouseEvent>
 #include <QTextStream>
-#include <QDebug>
 
 //------------------------------------------------------------------------------------------
 // Pushbutton with a green/red LED

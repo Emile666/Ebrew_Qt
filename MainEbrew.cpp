@@ -67,6 +67,7 @@ MainEbrew::MainEbrew(void) : QMainWindow()
         createRegistry(); // create default Registry entries
         qDebug() << "ebrew Registry was NOT found, init. Registry with default values";
     } // if
+    splitIpAddressPort();            // Split Registry IP-address and port-number
     readMashSchemeFile(INIT_TIMERS); // Read mash scheme from file and init. all mash timers
     initBrewDaySettings();           // Init. mash, sparge and boil setting with values from Registry
 
@@ -127,9 +128,16 @@ MainEbrew::MainEbrew(void) : QMainWindow()
         stream << "Mash-volume      : " << mash_vol << " L, Sparge-volume: " << sp_vol << " L, boil-time: " << boil_time << " min.\n";
         stream << "Mash-scheme      : "<< statusMashScheme->text() << "\n";
         stream << "HW + SW version  : " << srev << "\n";
+        QString s = statusHops->text().remove(0,5);
+        s.insert(0,"Hop-additions    : ");
+        stream << s << "\n";
+        stream << "Comm. channel    : ";
+        int x = RegEbrew->value("COMM_CHANNEL").toInt();
+        if (x > 0)
+             stream << QString("COM%1").arg(x);
+        else stream << RegEbrew->value("UDP_IP_PORT").toString();
+        stream << "\n";
         stream << line1MashScheme << "\n";
-        stream << "ms_tot: " << ms_tot << "\n";
-        stream << "Another line\n";
         stream << " Time    TsetM TsetH  Thlt  Tmlt Telc  Vmlt s m st  GmaH  Vhlt VBoil TBoil  Tcfc GmaB\n";
         stream << "[h:m:s]   [\xB0""C]  [\xB0""C]  [\xB0""C]  [\xB0""C] [\xB0""C]   [L] p s  d   [%]   [L]   [L]  [\xB0""C]  [\xB0""C]  [%]\n";
         stream << "-------------------------------------------------------------------------------------\n";
@@ -167,7 +175,7 @@ void MainEbrew::closeEvent(QCloseEvent *event)
     commPortWrite("L0"); // Disable Alive-LED
     commPortWrite("P0"); // Disable Pump
     commPortWrite("V0"); // Disable All Valves
-    sleep(100);
+    sleep(100);          // Give comm. channel some time to send it
 
     if (comPortIsOpen)
     {
@@ -200,6 +208,9 @@ void MainEbrew::createStatusBar(void)
     statusMashScheme = new QLabel("     ");
     statusMashScheme->setAlignment(Qt::AlignHCenter);
     statusBar->addPermanentWidget(statusMashScheme,1);
+    statusHops = new QLabel("");
+    statusHops->setAlignment(Qt::AlignHCenter);
+    statusBar->addPermanentWidget(statusHops);
     statusMashVol    = new QLabel(" Mash Volume: 0 L ");
     statusMashVol->setAlignment(Qt::AlignHCenter);
     statusBar->addPermanentWidget(statusMashVol,1);
@@ -356,7 +367,7 @@ void MainEbrew::createRegistry(void)
     RegEbrew->setValue("SYSTEM_MODE",GAS_MODULATING);         // Parameter 0 for Ebrew HW
     RegEbrew->setValue("COMM_CHANNEL",0);                     // Select Ethernet as Comm. Channel
     RegEbrew->setValue("COM_PORT_SETTINGS","38400,N,8,1");    // COM port settings
-    RegEbrew->setValue("UDP_IP_PORT","192.168.192.105:8888"); // IP & Port number TODO: use it (UDP_IP_PORT)
+    RegEbrew->setValue("UDP_IP_PORT","192.168.192.105:8888"); // IP & Port number
     RegEbrew->setValue("CB_DEBUG_COM_PORT",1);                // 1 = log COM port read/writes
     // Brew-kettle Sizes
     RegEbrew->setValue("VHLT_MAX",200);       // Max. HLT volume
@@ -396,6 +407,8 @@ void MainEbrew::createRegistry(void)
     RegEbrew->setValue("SP_BOIL",105);       // Boil Temperature (Celsius)
     RegEbrew->setValue("LIMIT_BOIL",100);    // Limit output during boil (%)
     RegEbrew->setValue("CB_Boil_Rest",1);    // Let wort rest for 5 minutes after boiling
+    RegEbrew->setValue("CB_Hop_Alarm",1);    // Sound 4-beeps alarm when hop-gift is needed
+
     // Clean in Place (CIP) Settings
     RegEbrew->setValue("CIP_SP",65);         // CIP Temperature Setpoint (Celsius)
     RegEbrew->setValue("CIP_CIRC_TIME",300); // CIP Circulating time (seconds)
@@ -433,6 +446,29 @@ void MainEbrew::setKettleNames(void)
     mlt->setName(QString("MLT %1 L").arg(RegEbrew->value("VMLT_MAX").toInt()));
     boil->setName(QString("BOIL %1 L").arg(RegEbrew->value("VBOIL_MAX").toInt()));
 } // MainEbrew::SetKettleNames()
+
+/*------------------------------------------------------------------
+  Purpose  : This function splits the Registry IP-address and por
+             into two variables.
+  Variables: ipAddress: a QString holding the IP-address
+             ipPort   : an integer holding the port number
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::splitIpAddressPort(void)
+{
+    QString     string = RegEbrew->value("UDP_IP_PORT").toString();
+    QStringList list1  = string.split(':');
+    if (list1.size() != 2)
+    {
+        qDebug() << "Error converting IP-address and port from UDP_IP_PORT";
+    }
+    else
+    {
+        ipAddress = QHostAddress(list1.at(0));
+        QString s = list1.at(1);
+        ipPort    = s.toInt();
+    } // else
+} // MainEbrew::splitIpAddressPort()
 
 /*------------------------------------------------------------------
   Purpose  : This function reads a Mash Scheme from a .sch file and
@@ -490,9 +526,10 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
        } // while
        ms_tot = 0;
        sbar.clear(); // clear QString for statusbar
-       while ((ms_tot < MAX_MS) && !in.atEnd())
+       int done = false;
+       while ((ms_tot < MAX_MS) && !in.atEnd() && !done)
        {  // read line
-          line = in.readLine();
+          line  = in.readLine();
           list1 = line.split(',');
           if (list1.size() >= 2)
           {
@@ -507,8 +544,34 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
               sbar.append(QString("%1 °C(%2 min.)").arg(ms[ms_tot].temp,2,'f',0).arg(ms[ms_tot].time/60.0,2,'f',0));
               ms_tot++; // number of total temperature-time pairs
           } // if
+          else done = true; // empty line, end of temp. time pairs
        } // while
        statusMashScheme->setText(sbar);
+       sbar.clear(); // clear QString for statusbar
+       sbar.append("Hops: ");
+       i    = 0;
+       while ((i++ < 2) && !in.atEnd())
+       {  // read 2 dummy lines for hop-gift explanations
+          line = in.readLine();
+       } // while
+       done = false;
+       while (!in.atEnd() && !done)
+       {
+           line  = in.readLine();
+           list1 = line.split(',');
+           if (list1.size() >= 2)
+           {
+               QString s = list1.at(0);
+               hopTimes.append(s.toInt()); // hop-time in minutes
+               hopTexts << list1.at(1);    // hop description
+               sbar.append(s);
+               sbar.append(" min. ");
+           } // if
+           else done = true; // empty line, end of hop-gift times
+       } // while
+       for (i = 0; i < MAX_HOPS; i++) hopCb[i] = false; // init checkboxes
+       if (sbar.size() < 8) sbar.append("-");
+       statusHops->setText(sbar);
        inputFile.close();
     }  // if
     else QMessageBox::warning(this,"File-read error","Could not open " MASHFILE);
@@ -640,7 +703,7 @@ void MainEbrew::task_update_std(void)
     uint8_t       pump_bits;   // values of pumps
 
     timer.start(); // Task time-measurement
-    std_out = state_machine(); // call the Ebrew STD
+    std_out = stateMachine(); // call the Ebrew STD
     if (tset_hlt_sw)
     {  // Set Temperature Setpoint for HLT to a fixed value
        tset_hlt = tset_hlt_fx; // fix tset_hlt
@@ -935,7 +998,7 @@ void MainEbrew::task_read_temps(void)
     {
         if ((alarmSound == ALARM_TEMP_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS))
         {
-             commPortWrite("X3\n");
+             commPortWrite("X3");
              sensorAlarmInfo |= SENS_TMLT;
         } // if
     } // else
@@ -953,7 +1016,7 @@ void MainEbrew::task_read_temps(void)
     {
          if ((alarmSound == ALARM_TEMP_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS))
          {
-              commPortWrite("X3\n");
+              commPortWrite("X3");
               sensorAlarmInfo |= SENS_TBOIL;
          } // if
     } // else
@@ -971,7 +1034,7 @@ void MainEbrew::task_read_temps(void)
     {
          if ((alarmSound == ALARM_TEMP_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS))
          {
-              commPortWrite("X3\n");
+              commPortWrite("X3");
               sensorAlarmInfo |= SENS_TCFC;
          } // if
     } // else
@@ -1320,8 +1383,10 @@ void MainEbrew::commPortOpen(void)
     QString      string = RegEbrew->value("COM_PORT_SETTINGS").toString();
     QStringList  list   = string.split(',');
     QSerialPort *p      = new QSerialPort;
+    QUdpSocket  *u      = new QUdpSocket(this);
 
-    serialPort = p; // copy pointer to MainEbrew
+    serialPort    = p; // copy pointer to MainEbrew
+    udpSocket     = u; // copy pointer to MainEbrew
     comPortIsOpen = false;
 
     if (x > 0)
@@ -1358,7 +1423,16 @@ void MainEbrew::commPortOpen(void)
     } // if
     else
     {   // Ethernet UDP connection
-
+        if (u->bind(ipPort))
+        {
+            comPortIsOpen = true;
+            connect(u, &QUdpSocket::readyRead,this,&MainEbrew::commPortRead);
+        } // if
+        else
+        {
+            comPortIsOpen = false;
+            qDebug() << "UDP-bind error";
+        } // else
     } // else
     if (RegEbrew->value("CB_DEBUG_COM_PORT").toInt())
     {
@@ -1398,11 +1472,20 @@ void MainEbrew::commPortClose(void)
         {
             serialPort->flush(); // send data in buffers to serial port
             serialPort->close(); // close the serial port
-            comPortIsOpen = false;
-            ReadDataAvailable = false;
-            ReadData.clear();
         } // if
     } // if
+    else
+    {   // Ethernet socket
+        if (comPortIsOpen)
+        {
+            udpSocket->flush();
+            udpSocket->close();
+        } // if
+    } // else
+    comPortIsOpen     = false;
+    ReadDataAvailable = false;
+    ReadData.clear();
+
     if (fDbgCom != nullptr)
     {
         QString d = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss");
@@ -1436,7 +1519,14 @@ void MainEbrew::commPortWrite(QByteArray s)
     } // if
     else
     {   // Ethernet UDP connection
-
+        if (comPortIsOpen)
+        {
+            ReadDataAvailable = false;
+            ReadData.clear();
+            //s.append('\n'); // add newline character
+            int x = udpSocket->writeDatagram(s+"\n",QHostAddress("192.168.192.111"),8888);
+            if (x == -1) qDebug() << "UDP write error";
+        }   // if
     } // else
     if (fDbgCom != nullptr)
     {   // comm. debug-logging is enabled
@@ -1452,6 +1542,9 @@ void MainEbrew::commPortWrite(QByteArray s)
              For the Virtual COM port, this routine is used in a
              signal-slot combination. Signal is readyRead() from the
              SerialPort, slot is this function.
+             For the Ethernet connection, this routine is also used in a
+             signal-slot combination. Signal is readyRead() from the
+             UdpSocket, slot is this function.
   Variables: ReadData         : the data read from the Virtual COM port
              ReadDataAvailable: true = new data is available
   Returns  : the string read from the communications channel.
@@ -1466,7 +1559,10 @@ void MainEbrew::commPortRead(void)
     } // if
     else
     {   // Ethernet UDP connection
-
+        ReadData.resize(udpSocket->pendingDatagramSize());
+        udpSocket->readDatagram(ReadData.data(), ReadData.size());
+        removeLF(ReadData); // remove \n
+        ReadDataAvailable = true;
     } // else
 
     if (fDbgCom != nullptr)
@@ -1502,7 +1598,7 @@ void MainEbrew::removeLF(QByteArray &s)
   ebrew_std: std state is updated
   Returns  : kleppen
   ------------------------------------------------------------------*/
-uint16_t MainEbrew::state_machine(void)
+uint16_t MainEbrew::stateMachine(void)
 {
     //-------------------------------------------------------------------
     //           |----------------------------> Pump 2 for HLT heat-exchanger
@@ -1983,6 +2079,7 @@ uint16_t MainEbrew::state_machine(void)
                 toolBoilStarted->setEnabled(false);      // ... and disable again, no longer needed
                 Boil << QTime::currentTime().toString(); // New transition, copy time-stamp into array of strings
                 timer5    = 0;                           // init. timer for boiling time
+                hopIdx    = 0;                           // init. hop-index
                 ebrew_std = S11_BOILING;
             } // if
             break;
@@ -2003,6 +2100,22 @@ uint16_t MainEbrew::state_machine(void)
                 brest_tmr = 0; // init boil-rest timer
                 ebrew_std = S12_BOILING_FINISHED;
             } // if
+            else if ((hopIdx < hopTimes.size()-1) && !hopCb[hopIdx] &&
+                     (hopTimes.at(hopIdx) >= (boil_time_ticks - timer5)/60))
+            {
+                cbHops.setChecked(false);
+                msgBox(QString("Add hop-gift %1 to Boil-kettle").arg(hopIdx+1),hopTexts.at(hopIdx),&cbHops);
+                if (cbHops.isChecked())
+                {
+                    hopCb[hopIdx] = true;
+                    hopIdx++; // increment hop-index
+                    cbHops.setChecked(false);
+                } // if
+                else if (RegEbrew->value("CB_Hop_Alarm").toInt())
+                {
+                    commPortWrite("X4"); // 4 beeps indicating hop-addition is needed
+                } // if
+            } // else if
             break;
 
         //---------------------------------------------------------------------------
@@ -2319,6 +2432,10 @@ uint16_t MainEbrew::state_machine(void)
                  } // else
                  break;
 
+            //---------------------------------------------------------------------------
+            // S32_CIP_END: Last state of CIP. Uncheck 'Start Clean-in-Place (CIP) at
+            //              toolbar at top of screen to return to Initialisation state.
+            //---------------------------------------------------------------------------
             case S32_CIP_END:
                  string    = QString("32. CIP: End of CIP-program");
                  substring = QString("Uncheck checkbox \'Start Clean-In-Place (CIP)\' to return to Init. state");
@@ -2330,15 +2447,15 @@ uint16_t MainEbrew::state_machine(void)
                  } // else
                  break;
 
-        //---------------------------------------------------------------------------
-        // Default: should never get here
-        //---------------------------------------------------------------------------
-        default:
+            //---------------------------------------------------------------------------
+            // Default: should never get here
+            //---------------------------------------------------------------------------
+            default:
                 string    = QString("xx. Unknown State");
                 substring = QString("Internal error, the STD is not supposed to get here.");
                 setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                 ebrew_std = S00_INITIALISATION;
-            break;
+                break;
     } // switch
 
     std_text->setText(string);       // Update STD label
@@ -2359,4 +2476,4 @@ uint16_t MainEbrew::state_machine(void)
     V2->setActuator(actuators,V2b); // Output valve of HLT
     V1->setActuator(actuators,V1b); // Output valve of MLT
     return actuators;
-} // MainEbrew::state_machine()
+} // MainEbrew::stateMachine()

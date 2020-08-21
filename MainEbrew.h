@@ -27,6 +27,7 @@
 #include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QFile>
+#include <QUdpSocket>
 
 #include "hmi_objects.h"
 #include "controlobjects.h"
@@ -86,7 +87,7 @@
 // Defines for Brew-day Settings
 //----------------------------------
 #define MAX_MS      (10)     /* Max. number of mash temp-time pairs */
-#define MAX_SP      (10)     /* Max. number of batch sparge sessions */
+#define MAX_HOPS    (10)     /* Max. number of hop-gifts */
 #define NOT_STARTED (-1)     /* Timer not started */
 
 //----------------------------------
@@ -190,6 +191,16 @@ typedef struct _mash_schedule
    QString time_stamp; /* time when timer was started */
 } mash_schedule;
 
+//-----------------------------------------------------
+// Struct for hop-gift pairs during boiling
+//-----------------------------------------------------
+typedef struct _hop_gift
+{
+    QList<int> time;   // time (min.) for a hop-gift
+    QString    hops;   // description for the hop-gift
+    QCheckBox  cb;     // checkbox
+} hop_gift;
+
 //------------------------------------------------------------------------------------------
 // CLASS MainEbrew
 //------------------------------------------------------------------------------------------
@@ -200,17 +211,17 @@ class MainEbrew : public QMainWindow
 public:
     MainEbrew(void);             // Default constructor for MainEbrew
 
-    Tank        *hlt;            // Pointer to HLT object
-    Tank        *mlt;            // Pointer to MLT object
-    Tank        *boil;           // Pointer to Boil-kettle object
-    Valve       *V1;             // Pointer to valve V1
-    Valve       *V2;             // Pointer to valve V2
-    Valve       *V3;             // Pointer to valve V3
-    Valve       *V4;             // Pointer to valve V5
-    Valve       *V6;             // Pointer to valve V6
-    Valve       *V7;             // Pointer to valve V7
-    Pump        *P1;             // Pointer to pump P1, main brew-pump
-    Pump        *P2;             // Pointer to pump P2, pump for HLT heat-exchanger
+    Tank        *hlt;            // HLT-Tank object
+    Tank        *mlt;            // MLT-Tank object
+    Tank        *boil;           // Boil-kettle tank object
+    Valve       *V1;             // Valve V1
+    Valve       *V2;             // Valve V2
+    Valve       *V3;             // Valve V3
+    Valve       *V4;             // Valve V5
+    Valve       *V6;             // Valve V6
+    Valve       *V7;             // Valve V7
+    Pump        *P1;             // Pump P1, main brew-pump
+    Pump        *P2;             // Pump P2, pump for HLT heat-exchanger
     Meter       *F1;             // Flowmeter 1: between HLT-output and pump-input
     Meter       *F2;             // Flowmeter 2: Boil-kettle input
     Meter       *F3;             // Flowmeter 3: CFC-output
@@ -220,16 +231,17 @@ public:
     PowerButton *hlt_pid;        // HLT PID on/off powerButton
     PowerButton *boil_pid;       // Boil-kettle PID on/off powerButton
 
-    SlopeLimiter *slopeLimHLT;   // slope-limiter object for tset_hlt
-    SlopeLimiter *slopeLimBK;    // slope-limiter object for tset_boil
+    SlopeLimiter *slopeLimHLT;   // Slope-limiter object for tset_hlt
+    SlopeLimiter *slopeLimBK;    // Slope-limiter object for tset_boil
     PidCtrl      *PidCtrlHlt;    // PID-controller object for HLT
     PidCtrl      *PidCtrlBk;     // PID-controller object for Boil-kettle
 
-    QSettings   *RegEbrew;       // Pointer to Registry Ebrew object
-    Scheduler   *schedulerEbrew; // Pointer to scheduler object
-    QSerialPort *serialPort;     // Pointer to serialPort object
-    QFile       *fEbrewLog;      // Pointer to log-file object
-    QFile       *fDbgCom;        // Pointer to com-port debug file object
+    QSettings   *RegEbrew;       // Registry Ebrew object
+    Scheduler   *schedulerEbrew; // Scheduler object
+    QSerialPort *serialPort;     // SerialPort object
+    QUdpSocket  *udpSocket;      // Udp-socket object
+    QFile       *fEbrewLog;      // Log-file object
+    QFile       *fDbgCom;        // Com-port debug file object
     QToolBar    *toolBarB;       // Toolbar with brewing checkboxes
     QToolBar    *toolBarC;       // Toolbar with CIP checkboxes
 
@@ -270,9 +282,10 @@ public:
     Pipe *Tpipe3;   // Output: connects to pipeH5, elbow6 and pipeH6
     Pipe *Tpipe4;   // Output: connects to pipeH6, valve6 and flow2
 
-    uint16_t   state_machine(void);         // Ebrew State Transition Diagram
+    uint16_t   stateMachine(void);          // Ebrew State Transition Diagram
     void       readMashSchemeFile(bool initTimers); // Read mash-scheme from file
     void       setKettleNames(void);        // Set title of kettles with volumes from Registry
+    void       splitIpAddressPort(void);    // Split Registry variable into IP-address and port-number
     void       createRegistry(void);        // Create default Registry entries for Ebrew
     void       createStatusBar(void);       // Creates a status bar at the bottom of the screen
     void       createMenuBar(void);         // Creates a menu bar at the top of the screen
@@ -372,16 +385,24 @@ public:
     /* Boil Settings */
     int   boil_time;              // Total boiling time in minutes (read from maisch.sch)
 
-    mash_schedule ms[MAX_MS];     // struct containing mash-schedule
+    mash_schedule      ms[MAX_MS];      // struct containing mash-schedule
+    hop_gift           hops[MAX_HOPS];  // struct containing hop-gift times and descriptions
+    QList<int>         hopTimes;        // List with hop-times in minutes
+    QStringList        hopTexts;        // List with hop descriptions
+    bool               hopCb[MAX_HOPS]; // List with checkboxes
+    int                hopIdx = 0;      // Index in hop-times
+    QCheckBox          cbHops;          // Checkbox for msgBox()
 
     /* Communications channel variables */
-    bool       ReadDataAvailable; // true = ReadData is available, set by CommPortRead() slot
-    QByteArray ReadData;          // Data read from virtual COM port by CommPortRead() slot
-    bool       comPortIsOpen;     // true = communication channel is opened
+    bool         ReadDataAvailable; // true = ReadData is available, set by CommPortRead() slot
+    QByteArray   ReadData;          // Data read from virtual COM port by CommPortRead() slot
+    bool         comPortIsOpen;     // true = communication channel is opened
+    QHostAddress ipAddress;         // IP-address of Ebrew hardware
+    int          ipPort;            // Port number of Ebrew hardware
 
     /* Time-stamps for Sparge, Boil and Chilling*/
-    QStringList mlt2boil; // strings for time-stamp moment of MLT -> BOIL
-    QStringList hlt2mlt;  // MAX_SP strings for time-stamp moment of HLT -> MLT
+    QStringList mlt2boil; // Strings for time-stamp moment of MLT -> BOIL
+    QStringList hlt2mlt;  // Strings for time-stamp moment of HLT -> MLT
     QStringList Boil;     // Boil-start and Boil-End time-stamps
     QStringList Chill;    // Chill-start and Chill-End time-stamps
 
@@ -420,6 +441,7 @@ private:
     // Labels in Statusbar at bottom of screen
     QLabel    *statusAlarm;       // Statusbar Sensor Alarm label
     QLabel    *statusMashScheme;  // Statusbar Mash-scheme label
+    QLabel    *statusHops;        // Statusbar Hop-gift times
     QLabel    *statusMashVol;     // Statusbar Mash-volume value
     QLabel    *statusSpargeVol;   // Statusbar Sparge-volume value
     QLabel    *statusBoilTime;    // Statusbar total boil-time value

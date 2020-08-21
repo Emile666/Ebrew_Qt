@@ -121,6 +121,8 @@ void DialogOptionsSystemSettings::on_buttonBox_accepted()
     pEbrew->RegEbrew->setValue("COMM_CHANNEL",ui->cbCommCh->currentIndex());
     pEbrew->RegEbrew->setValue("COM_PORT_SETTINGS",ui->leComPort->text());
     pEbrew->RegEbrew->setValue("UDP_IP_PORT",ui->leIPaddr->text());
+    pEbrew->splitIpAddressPort(); // Split Registry IP-address and port-number
+
     int x = ui->cbDbgLog->isChecked() ? 1 : 0;
     pEbrew->RegEbrew->setValue("CB_DEBUG_COM_PORT",x);
     if ((ui->cbCommCh->currentIndex() != commChannel) || (ui->leComPort->text() != commSettings) || (ui->leIPaddr->text() != commUdp) || (x != commCb))

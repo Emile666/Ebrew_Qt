@@ -71,6 +71,7 @@ DialogBrewDaySettings::DialogBrewDaySettings(QWidget *parent) :
     ui->sbBoil4->setValue(pEbrew->RegEbrew->value("SP_BOIL").toDouble());
     ui->sbBoil5->setValue(pEbrew->RegEbrew->value("LIMIT_BOIL").toInt());
     ui->cbBoil1->setChecked(pEbrew->RegEbrew->value("CB_Boil_Rest").toInt() ? true : false);
+    ui->cbHopAlarm->setChecked(pEbrew->RegEbrew->value("CB_Hop_Alarm").toInt() ? true : false);
 
     //-------------------------------
     // Clean in Place (CIP)
@@ -118,6 +119,7 @@ void DialogBrewDaySettings::on_buttonBox_accepted()
     pEbrew->RegEbrew->setValue("SP_BOIL"      ,ui->sbBoil4->value());
     pEbrew->RegEbrew->setValue("LIMIT_BOIL"   ,ui->sbBoil5->value());
     pEbrew->RegEbrew->setValue("CB_Boil_Rest" ,ui->cbBoil1->isChecked() ? 1 : 0);
+    pEbrew->RegEbrew->setValue("CB_Hop_Alarm" ,ui->cbHopAlarm->isChecked() ? 1 : 0);
 
     //-------------------------------
     // Clean in Place (CIP)

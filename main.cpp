@@ -21,14 +21,11 @@
 #include <QThread>
 #include <QTimer>
 #include <QLabel>
-#include <QDebug>
 
 #include "hmi_objects.h"
 #include "MainEbrew.h"
 #include "draw_hmi_screen.h"
 #include "scheduler.h"
-
-// NOTE add hop-duration timers to mash-scheme file
 
 /*-----------------------------------------------------------------------------
   Purpose    : Main-entry program of Ebrew v3 Qt.
@@ -88,13 +85,11 @@ int main(int argc, char **argv)
     Ebrew->setCentralWidget(frame);
     app.setApplicationName("Ebrew 3.0 Qt: Automating your Home-Brewery!");
     draw_hmi_screen(&scene,Ebrew); // Draw the total Human-Machine Interface on screen
-    view.showNormal();
+    view.showMaximized();
     view.fitInView(scene.sceneRect().adjusted(-50, -50, 50, 50), Qt::KeepAspectRatio);
     frame->layout()->addWidget(&view);
     Ebrew->setFixedSize(scene.sceneRect().width(),scene.sceneRect().height());
-    //Ebrew->setFixedSize(1300,900);
-    //Ebrew->showNormal();
-    Ebrew->showMaximized();
+    Ebrew->showNormal();
     scheduler->start();  // start scheduler if everything is initialized
 
     return app.exec();

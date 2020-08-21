@@ -39,7 +39,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -401,8 +401,8 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>361</width>
-       <height>231</height>
+       <width>338</width>
+       <height>181</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout_3">
@@ -579,6 +579,13 @@
         </property>
         <property name="text">
          <string>Apply time-rest of 5 minutes after Boiling</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QCheckBox" name="cbHopAlarm">
+        <property name="text">
+         <string>Add 4-beep Alarm for hop-gift during boiling</string>
         </property>
        </widget>
       </item>
