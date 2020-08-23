@@ -327,19 +327,19 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     p->pipeH9 = pipeH9;         // add reference to MainEbrew
     scene->addItem(pipeH9);
 
-    Display *std_text = new Display(QPointF(-800,450),700);
-    std_text->setText("00. Initialisation");
-    std_text->setSubText("Press the HLT PID Controller button to advance to the next state");
-    scene->addItem(std_text);
-    p->std_text = std_text;
+    Display *stdText = new Display(QPointF(-800,450),700);
+    stdText->setText("00. Initialisation");
+    stdText->setSubText("Press the HLT PID Controller button to advance to the next state");
+    scene->addItem(stdText);
+    p->stdText = stdText;
 
-    PowerButton *hlt_pid = new PowerButton(-850,200,270,60,"HLT PID Controller");
-    scene->addWidget(hlt_pid);
-    p->hlt_pid = hlt_pid; // add hlt_pid reference to MainEbrew
+    PowerButton *hltPid = new PowerButton(-850,200,270,60,"HLT PID Controller");
+    scene->addWidget(hltPid);
+    p->hltPid = hltPid; // add hltPid reference to MainEbrew
 
-    PowerButton *boil_pid = new PowerButton(-850,270,270,60,"BOIL PID Controller");
-    scene->addWidget(boil_pid);
-    p->boil_pid = boil_pid; // add boil_pid reference to MainEbrew
+    PowerButton *boilPid = new PowerButton(-850,270,270,60,"BOIL PID Controller");
+    scene->addWidget(boilPid);
+    p->boilPid = boilPid; // add boilPid reference to MainEbrew
 
     p->setKettleNames(); // Init. titles of kettles with volumes found in Registry
 

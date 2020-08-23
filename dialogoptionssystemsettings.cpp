@@ -55,6 +55,11 @@ DialogOptionsSystemSettings::DialogOptionsSystemSettings(QWidget *parent) :
     {
         string.append(info.portName() + ": " + info.description() + "\n");
     } // for
+    if (pEbrew->ebrewHwIp != QHostAddress::AnyIPv4)
+    {
+        string.append("\nIP-address:");
+        string.append(pEbrew->ebrewHwIp.toString());
+    } // if
     ui->lblAvailable->setText(string);
     ui->cbCommCh->setCurrentIndex(commChannel = pEbrew->RegEbrew->value("COMM_CHANNEL").toInt());
     ui->leComPort->setText(commSettings = pEbrew->RegEbrew->value("COM_PORT_SETTINGS").toString());

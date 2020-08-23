@@ -3,9 +3,9 @@
 ** Author      : Emile
 ** Purpose     : This file contains all graphical objects that are used by MainEbrew:
 **               PowerButton: A push-button with a green/red LED in it.
-**               Meter      : a flowmeter or temperaturesensor, showing actual values.
-**               Tank       : a tank object for constructing a HLT, MLT or boil-kettle.
-**               Pipe       : a pipe which is used to connect everything. A pipe can have
+**               Meter      : A flowmeter or temperaturesensor, showing actual values.
+**               Tank       : A tank object for constructing a HLT, MLT or boil-kettle.
+**               Pipe       : A pipe which is used to connect everything. A pipe can have
 **                            just 2 pipes, but also 3 and 4 pipes.
 **               Display    : A display with a sub-text for displaying the actual state.
 **               Actuator   : A base object for actuators
@@ -90,7 +90,7 @@ Tank::Tank(int x, int y, int width, int height, uint8_t options, QString name)
     setOrientation(width,height,options);
     setName(name);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
-    setFlag(QGraphicsItem::ItemIsSelectable,true);
+    //setFlag(QGraphicsItem::ItemIsSelectable,true);
     //setFlag(QGraphicsItem::ItemIsMovable,true);
 } // Tank()
 
@@ -599,7 +599,7 @@ Display::Display(QPointF point, int w)
     setBrush(QBrush(Qt::red));
     setPen(QPen(Qt::red));
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
-    setFlag(QGraphicsItem::ItemIsSelectable,true);
+    //setFlag(QGraphicsItem::ItemIsSelectable,true);
     setPos(point);
     boundary = QRectF(-5,-20,width,height+20);
 } // Display::Display()
@@ -659,7 +659,7 @@ Meter::Meter(QPointF point, uint8_t type, QString name)
         setTempValue(TEMP_DEFAULT); // default temperature
     } // else
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
-    setFlag(QGraphicsItem::ItemIsSelectable,true);
+    //setFlag(QGraphicsItem::ItemIsSelectable,true);
     if ((meterType == METER_HFLOW) || (meterType == METER_HTEMP))
          boundary = QRectF(-20,-15,100,100); // horizontal lay-out
     else boundary = QRectF(-35,-10,160, 60); // vertical   lay-out
@@ -874,7 +874,7 @@ Actuator::Actuator(QPointF point, QString name)
     setColor(Qt::red);
     setName(name);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
-    setFlag(QGraphicsItem::ItemIsSelectable,true);
+    //setFlag(QGraphicsItem::ItemIsSelectable,true);
     //setFlag(QGraphicsItem::ItemIsMovable,true);
     left = top = right = bottom = QPoint(0,0); // init. all coordinates
 } // Actuator()
@@ -1131,7 +1131,7 @@ void Pump::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     painter->restore();
     QGraphicsPolygonItem::paint(painter,option,widget);
     painter->setBrush(Qt::white);
-    painter->drawChord(-10,-10,20,20,0,5760);
+    painter->drawChord(-10,-10,20,20,0,5760); // hole in the middle
 } // Pump::paint()
 
 

@@ -96,14 +96,18 @@ MainEbrew::MainEbrew(void) : QMainWindow()
     ReadDataAvailable = false;
     while (comPortIsOpen && !ReadDataAvailable && (count-- > 0) && !found)
     {
+        ebrewHwIp = QHostAddress::AnyIPv4;
+        QHostAddress tempIp = ipAddress; // save ipAddress
+        ipAddress = QHostAddress::Broadcast; // comPortWrite() generates broadcast on subnet
         commPortWrite("S0"); // retry
         sleep(100);          // wait until data available
         if (ReadDataAvailable)
         {
             found = (ReadData.indexOf(EBREW_HW_ID,0) != -1);
             ReadDataAvailable = false;
-            qDebug() << "Found(" << found << "): " << ReadData;
+            qDebug() << "Found(" << found << "): " << ReadData << "IP:" << ebrewHwIp;
         } // if
+        ipAddress = tempIp; // restore IP-address from Registry
     } // while
     if (found)
     {
@@ -900,10 +904,10 @@ void MainEbrew::task_pid_control(void)
     if (++pidCntr >= RegEbrew->value("TS").toInt())
     {   // call PID-controllers every TS seconds
         pidCntr = 0;                                          // reset counter
-        PidCtrlHlt->pidEnable(hlt_pid->getButtonState());     // PID is enabled if PowerButton state is ON
+        PidCtrlHlt->pidEnable(hltPid->getButtonState());      // PID is enabled if PowerButton state is ON
         gamma_hlt = PidCtrlHlt->pidControl(thlt,tset_hlt);    // run pid-controller for HLT
         if (PidCtrlBk->pidGetStatus() != PID_FFC)             // PID_FFC is set by the STD
-            PidCtrlBk->pidEnable(boil_pid->getButtonState()); // PID is enabled if PowerButton state is ON
+            PidCtrlBk->pidEnable(boilPid->getButtonState());  // PID is enabled if PowerButton state is ON
         gamma_boil = PidCtrlBk->pidControl(tboil,tset_boil);  // run pid-controller for Boil-kettle
     } // if
 
@@ -1523,8 +1527,7 @@ void MainEbrew::commPortWrite(QByteArray s)
         {
             ReadDataAvailable = false;
             ReadData.clear();
-            //s.append('\n'); // add newline character
-            int x = udpSocket->writeDatagram(s+"\n",QHostAddress("192.168.192.111"),8888);
+            int x = udpSocket->writeDatagram(s+"\n",ipAddress,8888);
             if (x == -1) qDebug() << "UDP write error";
         }   // if
     } // else
@@ -1560,7 +1563,7 @@ void MainEbrew::commPortRead(void)
     else
     {   // Ethernet UDP connection
         ReadData.resize(udpSocket->pendingDatagramSize());
-        udpSocket->readDatagram(ReadData.data(), ReadData.size());
+        udpSocket->readDatagram(ReadData.data(), ReadData.size(),&ebrewHwIp);
         removeLF(ReadData); // remove \n
         ReadDataAvailable = true;
     } // else
@@ -1656,8 +1659,8 @@ uint16_t MainEbrew::stateMachine(void)
                            /* 30 */ 0x0006, 0x0003, 0x0000}; /* 32 */
 
     bool      maltAdded; // help var. in state S01_WAIT_FOR_HLT_TEMP
-    QString   string;    // For std_text->setText()
-    QString   substring; // For std_text->setSubText()
+    QString   string;    // For stdText->setText()
+    QString   substring; // For stdText->setSubText()
 
     switch (ebrew_std)
     {
@@ -1672,8 +1675,8 @@ uint16_t MainEbrew::stateMachine(void)
             tset_mlt  = ms[ms_idx].temp;         // get temp. from mash-scheme
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
             tset_boil = 0.0;                     // Setpoint Temp. for Boil-kettle
-            boil_pid->setButtonState(false);     // Disable PID-Controller button for Boil-kettle
-            if (hlt_pid->getButtonState())       // Is PowerButton pressed for HLT PID controller?
+            boilPid->setButtonState(false);      // Disable PID-Controller button for Boil-kettle
+            if (hltPid->getButtonState())        // Is PowerButton pressed for HLT PID controller?
             {  // start with normal brewing states
                 ebrew_std = S01_WAIT_FOR_HLT_TEMP;
             } // if
@@ -1935,10 +1938,10 @@ uint16_t MainEbrew::stateMachine(void)
             substring = QString("After timeout, wort is pumped to the Boil-kettle");
             tset_mlt = ms[ms_idx].temp;
             tset_hlt = tset_mlt + RegEbrew->value("TOffset").toDouble(); // Single offset
-            if ((tboil > RegEbrew->value("BOIL_MIN_TEMP").toDouble()) || boil_pid->getButtonState())
+            if ((tboil > RegEbrew->value("BOIL_MIN_TEMP").toDouble()) || boilPid->getButtonState())
             {  // There is sufficient wort in the Boil-kettle
                 tset_boil = RegEbrew->value("SP_PREBOIL").toDouble(); // PreBoil Temperature Setpoint
-                boil_pid->setButtonState(true); // Enable PID-Controller for Boil-kettle
+                boilPid->setButtonState(true); // Enable PID-Controller for Boil-kettle
             } // if
             else tset_boil = 0.0;
             if (++timer1 >= sp_time_ticks)
@@ -1970,10 +1973,10 @@ uint16_t MainEbrew::stateMachine(void)
             substring = QString("Wort is pumped to the Boil-kettle");
             tset_mlt  = ms[ms_idx].temp;
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset").toDouble(); // Single offset
-            if ((tboil > RegEbrew->value("BOIL_MIN_TEMP").toDouble()) || boil_pid->getButtonState())
+            if ((tboil > RegEbrew->value("BOIL_MIN_TEMP").toDouble()) || boilPid->getButtonState())
             {  // There is sufficient wort in the Boil-kettle
                 tset_boil = RegEbrew->value("SP_PREBOIL").toDouble(); // PreBoil Temperature Setpoint
-                boil_pid->setButtonState(true); // Enable PID-Controller for Boil-kettle
+                boilPid->setButtonState(true); // Enable PID-Controller for Boil-kettle
             } // if
             else tset_boil = 0.0;
 
@@ -1994,10 +1997,10 @@ uint16_t MainEbrew::stateMachine(void)
             substring = QString("A batch of fresh sparge water is added from the HLT");
             tset_mlt  = ms[ms_idx].temp;
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset").toDouble(); // Single offset
-            if ((tboil > RegEbrew->value("BOIL_MIN_TEMP").toDouble()) || boil_pid->getButtonState())
+            if ((tboil > RegEbrew->value("BOIL_MIN_TEMP").toDouble()) || boilPid->getButtonState())
             {  // There is sufficient wort in the Boil-kettle
                 tset_boil = RegEbrew->value("SP_PREBOIL").toDouble(); // PreBoil Temperature Setpoint
-                boil_pid->setButtonState(true); // Enable PID-Controller for Boil-kettle
+                boilPid->setButtonState(true); // Enable PID-Controller for Boil-kettle
             } // if
             else tset_boil = 0.0;
 
@@ -2017,10 +2020,10 @@ uint16_t MainEbrew::stateMachine(void)
             substring = QString("Short delay of 10 seconds");
             tset_mlt  = ms[ms_idx].temp;
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset").toDouble(); // Single offset
-            if ((tboil > RegEbrew->value("BOIL_MIN_TEMP").toDouble()) || boil_pid->getButtonState())
+            if ((tboil > RegEbrew->value("BOIL_MIN_TEMP").toDouble()) || boilPid->getButtonState())
             {  // There is sufficient wort in the Boil-kettle
                 tset_boil = RegEbrew->value("SP_PREBOIL").toDouble(); // PreBoil Temperature Setpoint
-                boil_pid->setButtonState(true); // Enable PID-Controller for Boil-kettle
+                boilPid->setButtonState(true); // Enable PID-Controller for Boil-kettle
             } // if
             else tset_boil = 0.0;
 
@@ -2048,9 +2051,9 @@ uint16_t MainEbrew::stateMachine(void)
             substring = QString("All remaining wort from the MLT is pumped to the Boil-kettle");
             tset_mlt  = ms[ms_idx].temp;
             tset_hlt  = 0.0;                // Disable HLT PID-Controller
-            hlt_pid->setButtonState(false); // Disable PID-controller for HLT
+            hltPid->setButtonState(false);  // Disable PID-controller for HLT
             tset_boil = RegEbrew->value("SP_BOIL").toDouble();  // Boil Temperature Setpoint
-            boil_pid->setButtonState(true); // Enable PID-Controller for Boil-kettle
+            boilPid->setButtonState(true);  // Enable PID-Controller for Boil-kettle
             if (toolMLTEmpty->isChecked() || F2->isFlowRateLow())
             {
                 ebrew_std = S10_WAIT_FOR_BOIL;
@@ -2072,7 +2075,7 @@ uint16_t MainEbrew::stateMachine(void)
             tset_hlt  = 0.0; // disable heating element
             tset_boil = RegEbrew->value("SP_BOIL").toDouble(); // Boil Temperature Setpoint
             toolBoilStarted->setEnabled(true); // Enable checkbox at top-toolbar
-            boil_pid->setButtonState(true);    // Enable PID-Controller for Boil-kettle
+            boilPid->setButtonState(true);     // Enable PID-Controller for Boil-kettle
             if (toolBoilStarted->isChecked() || (tboil > RegEbrew->value("BOIL_DETECT").toDouble()))
             {
                 toolBoilStarted->setChecked(true);       // Set checkbox to checked
@@ -2091,7 +2094,7 @@ uint16_t MainEbrew::stateMachine(void)
             string    = QString("11. Now Boiling (%1/%2 min.)").arg(timer5/60).arg(boil_time);
             substring = QString("Now boiling");
             tset_boil = RegEbrew->value("SP_BOIL").toDouble(); // Boil Temperature Setpoint
-            boil_pid->setButtonState(true); // Enable PID-Controller for Boil-kettle
+            boilPid->setButtonState(true); // Enable PID-Controller for Boil-kettle
             if (++timer5 >= boil_time_ticks)
             {
                 toolStartChilling->setEnabled(true);     // Enable checkbox at top-toolbar
@@ -2126,7 +2129,7 @@ uint16_t MainEbrew::stateMachine(void)
         //---------------------------------------------------------------------------
         case S12_BOILING_FINISHED:
             tset_boil = 0.0;                 // Boil Temperature Setpoint
-            boil_pid->setButtonState(false); // Disable PID-Controller for Boil-kettle
+            boilPid->setButtonState(false);  // Disable PID-Controller for Boil-kettle
             if (((RegEbrew->value("CB_Boil_Rest").toInt() == 0) || (++brest_tmr > TMR_BOIL_REST_5_MIN)) && toolStartChilling->isChecked())
             {  // Init flow3 (cfc-out) flowrate-low detector
                 F3->initFlowRateDetector(RegEbrew->value("MIN_FR_BOIL_PERC").toInt());
@@ -2154,7 +2157,7 @@ uint16_t MainEbrew::stateMachine(void)
             string    = QString("16. Chill & Pump to Fermentation Bin (M)");
             substring = QString("If end of chilling is not detected automatically, click \'Chilling is finished\' at top toolbar");
             tset_boil = 0.0;  // Boil Temperature Setpoint
-            boil_pid->setButtonState(false); // Disable PID-Controller for Boil-kettle
+            boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
             if (toolReadyChilling->isChecked() || F3->isFlowRateLow()) // flowRate of CFC-output
             {
                 toolReadyChilling->setChecked(true);      // Set checkbox to checked
@@ -2172,7 +2175,7 @@ uint16_t MainEbrew::stateMachine(void)
             string    = QString("17. Finished!");
             substring = QString("You need to close and restart this program for a new brew session");
             tset_boil = 0.0;  // Boil Temperature Setpoint
-            boil_pid->setButtonState(false); // Disable PID-Controller for Boil-kettle
+            boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
             // Remain in this state until Program Exit.
             break;
 
@@ -2188,7 +2191,7 @@ uint16_t MainEbrew::stateMachine(void)
             tset_hlt  = 0.0; // HLT setpoint temperature
             tset_boil = 0.0; // Boil-kettle setpoint temperature
             cip_circ  = 0;   // Init. CIP circulation counter
-            boil_pid->setButtonState(false);   // Disable PID-Controller for Boil-kettle
+            boilPid->setButtonState(false);    // Disable PID-Controller for Boil-kettle
             if (toolCipInitDone->isChecked())  // User indicated that Boil-kettle is filled
             {
                 toolCipInitDone->setEnabled(false); // disable checkbox, no longer needed
@@ -2210,7 +2213,7 @@ uint16_t MainEbrew::stateMachine(void)
              substring = QString("NaOH solution is pomped through while heated to setpoint temperature");
              tset_boil = RegEbrew->value("CIP_SP").toDouble(); // Boil-kettle Temperature Setpoint
              PidCtrlBk->pidEnable(PID_FFC);  // Enable Feed-forward control for Boil-kettle
-             boil_pid->setButtonState(true); // Enabled PID-Controller Power-button
+             boilPid->setButtonState(true);  // Enabled PID-Controller Power-button
              if (tboil > tset_boil - 5.0)    // Almost at setpoint temperature
              {
                 cip_tmr1  = 0;        // Init. CIP timer
@@ -2230,8 +2233,8 @@ uint16_t MainEbrew::stateMachine(void)
               string    = QString("22. CIP: Circulating (%1/%2 sec.)").arg(cip_tmr1).arg(RegEbrew->value("CIP_CIRC_TIME").toInt());
               substring = QString("NaOH solution is circulated through all pipes");
               tset_boil = RegEbrew->value("CIP_SP").toDouble(); // Boil-kettle Temperature Setpoint
-              PidCtrlBk->pidEnable(PID_ON);      // Enable normal control for Boil-kettle
-              boil_pid->setButtonState(true);    // Enable PID-Controller Power-button
+              PidCtrlBk->pidEnable(PID_ON);     // Enable normal control for Boil-kettle
+              boilPid->setButtonState(true);    // Enable PID-Controller Power-button
               if (++cip_tmr1 >= RegEbrew->value("CIP_CIRC_TIME").toInt())
               {
                  cip_tmr1  = 0;        // Reset CIP timer
@@ -2261,7 +2264,7 @@ uint16_t MainEbrew::stateMachine(void)
                string    = QString("23. CIP: Resting (%1/%2 sec.)").arg(cip_tmr1).arg(RegEbrew->value("CIP_REST_TIME").toInt());
                substring = QString("Pipes are being cleaned with the NaOH solution");
                tset_boil = RegEbrew->value("CIP_SP").toDouble(); // Boil-kettle Temperature Setpoint
-               boil_pid->setButtonState(true);    // Enable PID-Controller for Boil-kettle
+               boilPid->setButtonState(true);    // Enable PID-Controller for Boil-kettle
                if (++cip_tmr1 >= RegEbrew->value("CIP_REST_TIME").toInt())
                {
                   cip_tmr1  = 0;        // Reset CIP timer
@@ -2282,7 +2285,7 @@ uint16_t MainEbrew::stateMachine(void)
                 string    = QString("24. CIP: Drain Boil-kettle 1");
                 substring = QString("NAOH solution is removed from the Boil-kettle");
                 tset_boil = 0.0; // Boil-kettle Temperature Setpoint
-                boil_pid->setButtonState(false); // Disable PID-Controller for Boil-kettle
+                boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
                 if (toolCipDrainBK->isChecked())
                 {  // Init flowrate-low detector
                    F3->initFlowRateDetector(RegEbrew->value("MIN_FR_BOIL_PERC").toInt());
@@ -2303,7 +2306,7 @@ uint16_t MainEbrew::stateMachine(void)
                  string    = QString("25. CIP: Drain Boil-kettle 2");
                  substring = QString("NAOH solution is removed, now fill HLT with fresh water");
                  tset_boil = 0.0; // Boil-kettle Temperature Setpoint
-                 boil_pid->setButtonState(false); // Disable PID-Controller for Boil-kettle
+                 boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
                  if (F3->isFlowRateLow()) // flowrate of CFC-output
                  {
                      toolCipHltFilled->setEnabled(true);  // enable Checkbox at toolbar top
@@ -2458,8 +2461,8 @@ uint16_t MainEbrew::stateMachine(void)
                 break;
     } // switch
 
-    std_text->setText(string);       // Update STD label
-    std_text->setSubText(substring); // Update STD sub-text
+    stdText->setText(string);       // Update STD label
+    stdText->setSubText(substring); // Update STD sub-text
 
     //-------------------------------------------------
     // Now calculate the proper settings for the valves

@@ -573,9 +573,9 @@
     <widget class="QLabel" name="lblAvailable">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>90</x>
        <y>130</y>
-       <width>151</width>
+       <width>201</width>
        <height>101</height>
       </rect>
      </property>

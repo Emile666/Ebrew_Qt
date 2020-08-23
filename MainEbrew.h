@@ -227,9 +227,9 @@ public:
     Meter       *F3;             // Flowmeter 3: CFC-output
     Meter       *F4;             // Flowmeter 4: at MLT top return-manifold
     Meter       *T3;             // Temp. meter 3: Tcfc, other temp. meters are inside Tank objects
-    Display     *std_text;       // STD state description with sub-text
-    PowerButton *hlt_pid;        // HLT PID on/off powerButton
-    PowerButton *boil_pid;       // Boil-kettle PID on/off powerButton
+    Display     *stdText;        // STD state description with sub-text
+    PowerButton *hltPid;         // HLT PID on/off powerButton
+    PowerButton *boilPid;        // Boil-kettle PID on/off powerButton
 
     SlopeLimiter *slopeLimHLT;   // Slope-limiter object for tset_hlt
     SlopeLimiter *slopeLimBK;    // Slope-limiter object for tset_boil
@@ -397,8 +397,9 @@ public:
     bool         ReadDataAvailable; // true = ReadData is available, set by CommPortRead() slot
     QByteArray   ReadData;          // Data read from virtual COM port by CommPortRead() slot
     bool         comPortIsOpen;     // true = communication channel is opened
-    QHostAddress ipAddress;         // IP-address of Ebrew hardware
-    int          ipPort;            // Port number of Ebrew hardware
+    QHostAddress ipAddress;         // IP-address of Ebrew hardware in Reqistry
+    int          ipPort;            // Port number of Ebrew hardware in Registry
+    QHostAddress ebrewHwIp;         // Actual IP-address of Ebrew hardware
 
     /* Time-stamps for Sparge, Boil and Chilling*/
     QStringList mlt2boil; // Strings for time-stamp moment of MLT -> BOIL
