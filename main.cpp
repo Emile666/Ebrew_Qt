@@ -85,10 +85,11 @@ int main(int argc, char **argv)
     Ebrew->setCentralWidget(frame);
     app.setApplicationName("Ebrew 3.0 Qt: Automating your Home-Brewery!");
     draw_hmi_screen(&scene,Ebrew); // Draw the total Human-Machine Interface on screen
-    view.showMaximized();
-    view.fitInView(scene.sceneRect().adjusted(-50, -50, 50, 50), Qt::KeepAspectRatio);
+    view.showNormal();
+    view.setBackgroundBrush(QBrush(COLOR_BACKGROUND));
+    view.fitInView(scene.sceneRect().adjusted(-50, -50, 50, 50), Qt::KeepAspectRatioByExpanding);
     frame->layout()->addWidget(&view);
-    Ebrew->setFixedSize(scene.sceneRect().width(),scene.sceneRect().height());
+    Ebrew->setFixedSize(scene.sceneRect().width(),scene.sceneRect().height()+100);
     Ebrew->showNormal();
     scheduler->start();  // start scheduler if everything is initialized
 

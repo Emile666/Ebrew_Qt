@@ -1130,7 +1130,7 @@ void Pump::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     } // if
     painter->restore();
     QGraphicsPolygonItem::paint(painter,option,widget);
-    painter->setBrush(Qt::white);
+    painter->setBrush(COLOR_BACKGROUND);
     painter->drawChord(-10,-10,20,20,0,5760); // hole in the middle
 } // Pump::paint()
 
