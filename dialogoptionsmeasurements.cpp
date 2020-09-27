@@ -39,7 +39,9 @@ DialogOptionsMeasurements::DialogOptionsMeasurements(QWidget *parent) :
     ui->cbTcomp->setChecked(pEbrew->RegEbrew->value("FLOW_TEMP_CORR").toInt() == 1);
     ui->sbMltEmpty->setValue(pEbrew->RegEbrew->value("MIN_FR_MLT_PERC").toDouble());
     ui->sbBkEmpty->setValue(pEbrew->RegEbrew->value("MIN_FR_BOIL_PERC").toDouble());
-}
+    // Valve Measurements
+    ui->sbValveDelay->setValue(pEbrew->RegEbrew->value("VALVE_DELAY").toDouble());
+} // DialogOptionsMeasurements::DialogOptionsMeasurements()
 
 DialogOptionsMeasurements::~DialogOptionsMeasurements()
 {
@@ -61,4 +63,6 @@ void DialogOptionsMeasurements::on_buttonBox_accepted()
     pEbrew->RegEbrew->setValue("FLOW_TEMP_CORR",ui->cbTcomp->isChecked() ? 1 : 0);
     pEbrew->RegEbrew->setValue("MIN_FR_MLT_PERC",ui->sbMltEmpty->value());
     pEbrew->RegEbrew->setValue("MIN_FR_BOIL_PERC",ui->sbBkEmpty->value());
+    // Valve Measurements
+    pEbrew->RegEbrew->setValue("VALVE_DELAY",ui->sbValveDelay->value());
 } // DialogOptionsMeasurements::on_buttonBox_accepted()

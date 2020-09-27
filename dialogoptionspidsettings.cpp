@@ -39,7 +39,7 @@ DialogOptionsPidSettings::DialogOptionsPidSettings(QWidget *parent) :
     else
     {
         ui->dtDstart->setMinimumDate(QDate::currentDate());
-        ui->dtDstart->setMaximumDate(QDate::currentDate().addDays(5));
+        ui->dtDstart->setMaximumDate(QDate::currentDate().addDays(1));
     } // else
 } // DialogOptionsPidSettings::DialogOptionsPidSettings()
 
@@ -61,10 +61,15 @@ void DialogOptionsPidSettings::on_buttonBox_accepted()
     {
         pEbrew->delayedStart = true;
         pEbrew->dlyStartTime = ui->dtDstart->dateTime();
+        qint64 minutes = QDateTime::currentDateTime().secsTo(ui->dtDstart->dateTime()) / 60;
+        //qDebug() << "minutes:"<<minutes;
+        QString string = QString("D1 %1").arg(minutes); // send delayed-start command to Ebrew HW
+        pEbrew->commPortWrite(string.toUtf8());
     } // if
     else
     {
         pEbrew->delayedStart = false;
+        pEbrew->commPortWrite("D0"); // send disable delayed-start command to Ebrew HW
     } // else
 } // DialogOptionsPidSettings::on_buttonBox_accepted()
 

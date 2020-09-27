@@ -700,6 +700,7 @@ void Meter::setFlowValue(qreal value,qreal temp)
             meterValue /= (1.0 + 0.00021 * (temp - 20.0));
         // Apply Calibration error correction
         meterValue *= 1.0 + 0.01 * flowErr;
+        if (meterValue < 0.0) meterValue = 0.0;
         // Calculate Flow-rate in L per minute: Ts [msec.]
         flowRateRaw = (60000.0 / Ts) * (meterValue - meterValueOld);
         meterValueOld = meterValue;
@@ -707,6 +708,11 @@ void Meter::setFlowValue(qreal value,qreal temp)
     } // if
     update();
 } // Meter::setValue()
+
+qreal Meter::getFlowValue(void)
+{
+    return meterValue;
+} // Meter::getFlowValue()
 
 qreal Meter::getFlowRate(uint8_t fil)
 {

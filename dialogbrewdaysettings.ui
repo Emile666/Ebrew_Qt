@@ -39,7 +39,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -292,6 +292,9 @@
      <layout class="QFormLayout" name="formLayout_2">
       <item row="0" column="0">
        <widget class="QLabel" name="lblSparge1">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The total number of batch-sparging.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Total number of sparge batches </string>
         </property>
@@ -311,6 +314,9 @@
           <height>16777215</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>The total number of batch-sparging.</string>
+        </property>
         <property name="maximum">
          <number>10</number>
         </property>
@@ -318,6 +324,9 @@
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="lblSparge2">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time between two sparge batches. With 5 L/min. pump flow and 80 L of wort, 16 min. are needed to cycle everything once.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Time between two sparge batches</string>
         </property>
@@ -337,8 +346,11 @@
           <height>16777215</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>The time between two sparge batches. With 5 L/min. pump flow and 80 L of wort, 16 min. are needed to cycle everything once.</string>
+        </property>
         <property name="suffix">
-         <string> minutes</string>
+         <string> min.</string>
         </property>
         <property name="maximum">
          <number>60</number>
@@ -584,6 +596,9 @@
       </item>
       <item row="6" column="0">
        <widget class="QCheckBox" name="cbHopAlarm">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox to give an audible alarm when hops need to be added to the boil-kettle&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Add 4-beep Alarm for hop-gift during boiling</string>
         </property>
@@ -620,6 +635,9 @@
           <height>16777215</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>Setpoint temperature value during CIP. This is the temperature for the cleaning solution</string>
+        </property>
         <property name="text">
          <string>CIP Setpoint Temperature</string>
         </property>
@@ -632,6 +650,9 @@
           <width>80</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Setpoint temperature value during CIP. This is the temperature for the cleaning solution&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="suffix">
          <string> °C</string>
@@ -649,6 +670,9 @@
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="lblCip2">
+        <property name="toolTip">
+         <string>The time to circulate the cleaning solution through the pipes</string>
+        </property>
         <property name="text">
          <string>CIP Circulating-time</string>
         </property>
@@ -662,8 +686,11 @@
           <height>16777215</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time to circulate the cleaning solution through the pipes&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="suffix">
-         <string> seconds</string>
+         <string> sec.</string>
         </property>
         <property name="maximum">
          <number>999</number>
@@ -675,6 +702,9 @@
       </item>
       <item row="2" column="0">
        <widget class="QLabel" name="lblCip3">
+        <property name="toolTip">
+         <string>The time in minutes to shut-off the pump during CIP</string>
+        </property>
         <property name="text">
          <string>CIP rest-time between circulations </string>
         </property>
@@ -688,8 +718,11 @@
           <height>16777215</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time in minutes to shut-off the pump during CIP&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="suffix">
-         <string> seconds</string>
+         <string> sec.</string>
         </property>
         <property name="maximum">
          <number>999</number>
@@ -704,6 +737,9 @@
           <height>0</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time needed to clean every output. Fresh water is pumped through the output to clean this output pipe&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>CIP Time for cleaning every output-pipe</string>
         </property>
@@ -717,8 +753,11 @@
           <height>16777215</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>The time needed to clean every output. Fresh water is pumped through the output to clean this output pipe</string>
+        </property>
         <property name="suffix">
-         <string> seconds</string>
+         <string> sec.</string>
         </property>
         <property name="maximum">
          <number>999</number>
@@ -727,6 +766,9 @@
       </item>
       <item row="4" column="0">
        <widget class="QLabel" name="lblCip5">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time needed to clean every input. Fresh water flows through the input to clean this input pipe&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>CIP time for cleaning every input-pipe</string>
         </property>
@@ -740,8 +782,11 @@
           <height>16777215</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>The time needed to clean every input. Fresh water flows through the input to clean this input pipe</string>
+        </property>
         <property name="suffix">
-         <string> seconds</string>
+         <string> sec.</string>
         </property>
        </widget>
       </item>

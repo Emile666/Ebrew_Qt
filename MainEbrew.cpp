@@ -48,6 +48,9 @@
 //------------------------------------------------------------------------------------------
 // CLASS MainEbrew
 //------------------------------------------------------------------------------------------
+// TODO Add tooltips texts
+// TODO Add Help-file
+// TODO Switch between English/Dutch language
 
 /*------------------------------------------------------------------
   Purpose  : This is the main constructor for MainEbrew.
@@ -172,25 +175,40 @@ void MainEbrew::sleep(uint16_t msec)
   ------------------------------------------------------------------*/
 void MainEbrew::closeEvent(QCloseEvent *event)
 {
-    schedulerEbrew->stop(); // stop all tasks
-
-    commPortWrite("B0"); // Disable Boil-kettle gas-burner
-    commPortWrite("H0"); // Disable HLT gas-burner
-    commPortWrite("L0"); // Disable Alive-LED
-    commPortWrite("P0"); // Disable Pump
-    commPortWrite("V0"); // Disable All Valves
-    sleep(100);          // Give comm. channel some time to send it
-
-    if (comPortIsOpen)
+    int ret = QMessageBox::Ok;
+    if ((ebrew_std > S00_INITIALISATION) && (ebrew_std != S17_FINISHED))
     {
-        commPortClose(); // close the communications port
+        QMessageBox msgBox;
+        msgBox.setText("<span style='text-align: center'><p style='font-size: 11pt;'><b>A Brewing session is in progress...     <b></p></span>");
+        msgBox.setInformativeText("Are you sure you want to quit?");
+        msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        msgBox.setIcon(QMessageBox::Question);
+        ret = msgBox.exec();
     } // if
-    if (fEbrewLog)
+    if (ret == QMessageBox::Ok)
     {
-        fEbrewLog->flush(); // flush the log-file
-        fEbrewLog->close(); // close the log-file
+        schedulerEbrew->stop(); // stop all tasks
+
+        commPortWrite("B0"); // Disable Boil-kettle gas-burner
+        commPortWrite("H0"); // Disable HLT gas-burner
+        commPortWrite("L0"); // Disable Alive-LED
+        commPortWrite("P0"); // Disable Pump
+        commPortWrite("V0"); // Disable All Valves
+        sleep(100);          // Give comm. channel some time to send it
+
+        if (comPortIsOpen)
+        {
+            commPortClose(); // close the communications port
+        } // if
+        if (fEbrewLog)
+        {
+            fEbrewLog->flush(); // flush the log-file
+            fEbrewLog->close(); // close the log-file
+        } // if
+        event->accept(); // Accept and continue with the close-event
     } // if
-    event->accept(); // Accept and continue with the close-event
+    else event->ignore(); // Do not accept, continue with Ebrew program
 } // MainEbrew::closeEvent()
 
 /*------------------------------------------------------------------
@@ -436,6 +454,7 @@ void MainEbrew::createRegistry(void)
     RegEbrew->setValue("FLOW_TEMP_CORR",1);   // Use Temperature Correction
     RegEbrew->setValue("MIN_FR_MLT_PERC",10); // Min. Flowrate for MLT Empty detection
     RegEbrew->setValue("MIN_FR_BOIL_PERC",2); // Min. Flowrate for Boil-kettle Empty detection
+    RegEbrew->setValue("VALVE_DELAY",0.3);    // Valve delay/dead-time when closing valve V2 in L
 } // MainEbrew::createRegistry()
 
 /*------------------------------------------------------------------
@@ -676,7 +695,7 @@ void MainEbrew::task_alive_led(void)
     hlt->setValues(thlt,tset_hlt,Vhlt,gamma_hlt); // temp, sp, vol, power
     hlt->update();
 
-    mlt->setValues(tmlt,0.0,Vmlt,0.0);
+    mlt->setValues(tmlt,tset_mlt,Vmlt,0.0);
     mlt->update();
 
     boil->setValues(tboil,tset_boil,Vboil,gamma_boil); // temp, sp, vol, power
@@ -1082,6 +1101,7 @@ void MainEbrew::task_read_flows(void)
 
     F1->setFlowValue(FlowHltMlt ,thlt);
     F2->setFlowValue(FlowMltBoil,tmlt);
+    FlowCfcOut -= FlowCfcOutResetValue; // reset flow4 at end of boiling
     F3->setFlowValue(FlowCfcOut ,tcfc);
     F4->setFlowValue(Flow4      ,thlt);
 
@@ -1100,7 +1120,7 @@ void MainEbrew::task_read_flows(void)
         sensorAlarmInfo &= ~SENS_FLOW1;
         F1->setError(false);
     } // else
-    Vhlt = RegEbrew->value("VHLT_MAX").toDouble()- FlowHltMlt;
+    Vhlt = RegEbrew->value("VHLT_MAX").toDouble()- F1->getFlowValue();
     if (vhlt_sw)
     {  // Switch & Fix
        Vhlt = vhlt_fx;
@@ -1121,7 +1141,7 @@ void MainEbrew::task_read_flows(void)
         sensorAlarmInfo &= ~SENS_FLOW2;
         F2->setError(false);
     } // else
-    Vmlt = FlowHltMlt - FlowMltBoil;
+    Vmlt = F1->getFlowValue() - F2->getFlowValue(); //use these values instead of FlowHltMlt - FlowMltBoil
     if (vmlt_sw)
     {  // Switch & Fix
        Vmlt = vmlt_fx;
@@ -1142,7 +1162,7 @@ void MainEbrew::task_read_flows(void)
         sensorAlarmInfo &= ~SENS_FLOW3;
         F3->setError(false);
     } // else
-    Vboil = FlowMltBoil - FlowCfcOut;
+    Vboil = F2->getFlowValue() - F3->getFlowValue(); // use these values instead of FlowMltBoil - FlowCfcOut
     if (vboil_sw)
     {  // Switch & Fix
        Vboil = vboil_fx;
@@ -1674,8 +1694,7 @@ uint16_t MainEbrew::stateMachine(void)
             ms_idx    = 0;                       // init. index in mash schem
             tset_mlt  = ms[ms_idx].temp;         // get temp. from mash-scheme
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
-            tset_boil = 0.0;                     // Setpoint Temp. for Boil-kettle
-            boilPid->setButtonState(false);      // Disable PID-Controller button for Boil-kettle
+            tset_boil = TEMP_DEFAULT;            // Setpoint Temp. for Boil-kettle
             if (hltPid->getButtonState())        // Is PowerButton pressed for HLT PID controller?
             {  // start with normal brewing states
                 ebrew_std = S01_WAIT_FOR_HLT_TEMP;
@@ -1711,7 +1730,7 @@ uint16_t MainEbrew::stateMachine(void)
             } // if
             tset_mlt  = ms[ms_idx].temp;         // get temp. from mash-scheme
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
-            tset_boil = 0.0;                     // Setpoint Temp. for Boil-kettle
+            tset_boil = TEMP_DEFAULT;            // Setpoint Temp. for Boil-kettle
             maltAdded = (RegEbrew->value("CB_Malt_First").toInt() == 0) || toolMaltAdded->isChecked();
             if ((thlt >= tset_hlt) && maltAdded)
             {   // HLT TEMP is OK and malt is added when MaltFirst option is selected
@@ -1736,7 +1755,7 @@ uint16_t MainEbrew::stateMachine(void)
             substring = QString("The pump needs to be primed for 1 minute, before being switched on");
             tset_mlt  = ms[ms_idx].temp;         // get temp. from mash-scheme
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
-            tset_boil = 0.0;                     // Setpoint Temp. for Boil-kettle
+            tset_boil = TEMP_DEFAULT;            // Setpoint Temp. for Boil-kettle
             if (++timer3 >= TMR_PREFILL_PUMP)    // Stay-here timer timeout?
             {
                 timer3    = 0; // reset timer
@@ -1754,8 +1773,8 @@ uint16_t MainEbrew::stateMachine(void)
             substring = QString("MLT needs to be filled with the required amount of mash water");
             tset_mlt  = ms[ms_idx].temp;         // get temp. from mash-scheme
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
-            tset_boil = 0.0;                     // Setpoint Temp. for Boil-kettle
-            if (Vmlt >= mash_vol)
+            tset_boil = TEMP_DEFAULT;            // Setpoint Temp. for Boil-kettle
+            if (Vmlt >= mash_vol - RegEbrew->value("VALVE_DELAY").toDouble())
             {
                 ebrew_std = S03_WAIT_FOR_MLT_TEMP;
             } // if
@@ -1774,7 +1793,7 @@ uint16_t MainEbrew::stateMachine(void)
             // Add double offset as long as Tmlt < Tset_mlt + Offset2
             tset_mlt  = ms[ms_idx].temp; // get temp. from mash-scheme
             // tset_hlt is NOT set here, but in previous state (FILL_MLT or MASH_PREHEAT_HLT)
-            tset_boil = 0.0;             // Setpoint Temp. for Boil-kettle
+            tset_boil = TEMP_DEFAULT;    // Setpoint Temp. for Boil-kettle
             if (tmlt >= ms[ms_idx].temp + RegEbrew->value("TOffset2").toDouble())
             {  // Tmlt has reached Tset_mlt + Offset2, start mash timer
                 if ((ms_idx == 0) && (RegEbrew->value("CB_Malt_First").toInt() == 0))
@@ -1837,14 +1856,13 @@ uint16_t MainEbrew::stateMachine(void)
         //---------------------------------------------------------------------------
         case S04_MASH_TIMER_RUNNING:
             string = QString("04. Mash-Timer Running (%1/%2 min.)").arg(ms[ms_idx].timer/60).arg(ms[ms_idx].time/60.0,1,'f',0);
-            substring = QString("After timeout, HLT is heated to the next temperature");
             ms[ms_idx].timer++; // increment mash timer
             tset_mlt  = ms[ms_idx].temp;
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset").toDouble();  // Single offset
-            tset_boil = 0.0; // Setpoint Temp. for Boil-kettle
+            tset_boil = TEMP_DEFAULT; // Setpoint Temp. for Boil-kettle
             if (ms_idx < ms_tot - 1)
             {  // There's a next mash phase
-                //if (ms[std->ms_idx].timer >= ms[std->ms_idx].time - sps->ph_timer)
+                substring = QString("After timeout, HLT is heated to the next temperature");
                 if (ms[ms_idx].timer >= ms[ms_idx].preht)
                 {
                     ebrew_std = S13_MASH_PREHEAT_HLT;
@@ -1853,6 +1871,7 @@ uint16_t MainEbrew::stateMachine(void)
             } // if
             else
             {  // This is the last mash phase, continue with sparging
+                substring = QString("After timeout, mashing is finished and sparging will start");
                 if (ms[ms_idx].timer >= ms[ms_idx].time) // time-out?
                 {
                     sp_idx    = 0;                        // init. sparging index
@@ -1876,7 +1895,7 @@ uint16_t MainEbrew::stateMachine(void)
             ms[ms_idx].timer++; // increment mash timer
             tset_mlt  = ms[ms_idx].temp;
             tset_hlt  = ms[ms_idx + 1].temp + 2 * RegEbrew->value("TOffset").toDouble();
-            tset_boil = 0.0; // Setpoint Temp. for Boil-kettle
+            tset_boil = TEMP_DEFAULT; // Setpoint Temp. for Boil-kettle
             if (ms[ms_idx].timer >= ms[ms_idx].time) // time-out?
             {
                 ms_idx++; // increment index in mash scheme
@@ -1898,7 +1917,7 @@ uint16_t MainEbrew::stateMachine(void)
             ms[ms_idx].timer++; // increment mash timer
             tset_mlt  = ms[ms_idx].temp;
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset").toDouble(); // Single offset
-            tset_boil = 0.0; // Setpoint Temp. for Boil-kettle
+            tset_boil = TEMP_DEFAULT; // Setpoint Temp. for Boil-kettle
             if (ms_idx < ms_tot - 1)
             {  // There's a next mash phase
                 if (ms[ms_idx].timer >= ms[ms_idx].preht)
@@ -1935,7 +1954,9 @@ uint16_t MainEbrew::stateMachine(void)
         //---------------------------------------------------------------------------
         case S05_SPARGE_TIMER_RUNNING:
             string    = QString("05. Sparge-Timer Running (%1/%2 min.)").arg(timer1/60).arg(RegEbrew->value("SP_TIME").toInt());
-            substring = QString("After timeout, wort is pumped to the Boil-kettle");
+            if (sp_idx < RegEbrew->value("SP_BATCHES").toInt())
+                 substring = QString("After timeout, wort is pumped from the MLT to the Boil-kettle");
+            else substring = QString("After timeout, sparging is finished and the MLT is emptied");
             tset_mlt = ms[ms_idx].temp;
             tset_hlt = tset_mlt + RegEbrew->value("TOffset").toDouble(); // Single offset
             if ((tboil > RegEbrew->value("BOIL_MIN_TEMP").toDouble()) || boilPid->getButtonState())
@@ -1943,7 +1964,7 @@ uint16_t MainEbrew::stateMachine(void)
                 tset_boil = RegEbrew->value("SP_PREBOIL").toDouble(); // PreBoil Temperature Setpoint
                 boilPid->setButtonState(true); // Enable PID-Controller for Boil-kettle
             } // if
-            else tset_boil = 0.0;
+            else tset_boil = TEMP_DEFAULT;
             if (++timer1 >= sp_time_ticks)
             {
                 Vmlt_old  = Vmlt;  // save Vmlt  for states 6 & 9
@@ -1978,7 +1999,7 @@ uint16_t MainEbrew::stateMachine(void)
                 tset_boil = RegEbrew->value("SP_PREBOIL").toDouble(); // PreBoil Temperature Setpoint
                 boilPid->setButtonState(true); // Enable PID-Controller for Boil-kettle
             } // if
-            else tset_boil = 0.0;
+            else tset_boil = TEMP_DEFAULT;
 
             if (Vmlt <= Vmlt_old - (sp_idx == 0 ? sp_vol_batch0 : sp_vol_batch))
             {
@@ -2002,11 +2023,10 @@ uint16_t MainEbrew::stateMachine(void)
                 tset_boil = RegEbrew->value("SP_PREBOIL").toDouble(); // PreBoil Temperature Setpoint
                 boilPid->setButtonState(true); // Enable PID-Controller for Boil-kettle
             } // if
-            else tset_boil = 0.0;
+            else tset_boil = TEMP_DEFAULT;
 
-            if (Vmlt >= Vmlt_old + sp_vol_batch)
+            if (Vmlt >= Vmlt_old + sp_vol_batch - RegEbrew->value("VALVE_DELAY").toDouble())
             {
-                sp_idx++;      // Increase #Sparging Sessions done
                 timer1    = 0; // init timer1
                 ebrew_std = S05_SPARGE_TIMER_RUNNING;
             } // if
@@ -2025,11 +2045,12 @@ uint16_t MainEbrew::stateMachine(void)
                 tset_boil = RegEbrew->value("SP_PREBOIL").toDouble(); // PreBoil Temperature Setpoint
                 boilPid->setButtonState(true); // Enable PID-Controller for Boil-kettle
             } // if
-            else tset_boil = 0.0;
+            else tset_boil = TEMP_DEFAULT;
 
             if (++timer2 >= TMR_DELAY_xSEC)
             {
                 hlt2mlt << QTime::currentTime().toString(); // New transition, copy time-stamp into array of strings
+                sp_idx++;          // Increase #Sparging Sessions
                 Vhlt_old  = Vhlt;  // remember old value
                 Vmlt_old  = Vmlt;  // remember current MLT volume
                 timer2    = 0;     // reset timer2
@@ -2050,7 +2071,7 @@ uint16_t MainEbrew::stateMachine(void)
             string    = QString("09. Empty MLT");
             substring = QString("All remaining wort from the MLT is pumped to the Boil-kettle");
             tset_mlt  = ms[ms_idx].temp;
-            tset_hlt  = 0.0;                // Disable HLT PID-Controller
+            tset_hlt  = TEMP_DEFAULT;       // Disable HLT PID-Controller
             hltPid->setButtonState(false);  // Disable PID-controller for HLT
             tset_boil = RegEbrew->value("SP_BOIL").toDouble();  // Boil Temperature Setpoint
             boilPid->setButtonState(true);  // Enable PID-Controller for Boil-kettle
@@ -2072,7 +2093,7 @@ uint16_t MainEbrew::stateMachine(void)
         case S10_WAIT_FOR_BOIL:
             string    = QString("10. Waiting for Boil (M)");
             substring = QString("If boiling is not detected automatically, click \'Boiling Started\' at top toolbar");
-            tset_hlt  = 0.0; // disable heating element
+            tset_hlt  = TEMP_DEFAULT;          // disable heating element
             tset_boil = RegEbrew->value("SP_BOIL").toDouble(); // Boil Temperature Setpoint
             toolBoilStarted->setEnabled(true); // Enable checkbox at top-toolbar
             boilPid->setButtonState(true);     // Enable PID-Controller for Boil-kettle
@@ -2128,7 +2149,7 @@ uint16_t MainEbrew::stateMachine(void)
         // a longer boiling time, to achieve final gravity of the wort.
         //---------------------------------------------------------------------------
         case S12_BOILING_FINISHED:
-            tset_boil = 0.0;                 // Boil Temperature Setpoint
+            tset_boil = TEMP_DEFAULT;        // Boil Temperature Setpoint
             boilPid->setButtonState(false);  // Disable PID-Controller for Boil-kettle
             if (((RegEbrew->value("CB_Boil_Rest").toInt() == 0) || (++brest_tmr > TMR_BOIL_REST_5_MIN)) && toolStartChilling->isChecked())
             {  // Init flow3 (cfc-out) flowrate-low detector
@@ -2156,7 +2177,7 @@ uint16_t MainEbrew::stateMachine(void)
         case S16_CHILL_PUMP_FERMENTOR:
             string    = QString("16. Chill & Pump to Fermentation Bin (M)");
             substring = QString("If end of chilling is not detected automatically, click \'Chilling is finished\' at top toolbar");
-            tset_boil = 0.0;  // Boil Temperature Setpoint
+            tset_boil = TEMP_DEFAULT;       // Boil Temperature Setpoint
             boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
             if (toolReadyChilling->isChecked() || F3->isFlowRateLow()) // flowRate of CFC-output
             {
@@ -2174,7 +2195,7 @@ uint16_t MainEbrew::stateMachine(void)
         case S17_FINISHED:
             string    = QString("17. Finished!");
             substring = QString("You need to close and restart this program for a new brew session");
-            tset_boil = 0.0;  // Boil Temperature Setpoint
+            tset_boil = TEMP_DEFAULT;       // Boil Temperature Setpoint
             boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
             // Remain in this state until Program Exit.
             break;
@@ -2188,9 +2209,9 @@ uint16_t MainEbrew::stateMachine(void)
         case S20_CIP_INIT:
             string    = QString("20. CIP: Initialisation, fill Boil-kettle with 1% NaOH");
             substring = QString("Put MLT-return & CFC-output in Boil-kettle, click \'CIP init. done\' at top toolbar");
-            tset_hlt  = 0.0; // HLT setpoint temperature
-            tset_boil = 0.0; // Boil-kettle setpoint temperature
-            cip_circ  = 0;   // Init. CIP circulation counter
+            tset_hlt  = TEMP_DEFAULT; // HLT setpoint temperature
+            tset_boil = TEMP_DEFAULT; // Boil-kettle setpoint temperature
+            cip_circ  = 0;            // Init. CIP circulation counter
             boilPid->setButtonState(false);    // Disable PID-Controller for Boil-kettle
             if (toolCipInitDone->isChecked())  // User indicated that Boil-kettle is filled
             {
@@ -2284,7 +2305,7 @@ uint16_t MainEbrew::stateMachine(void)
            case S24_CIP_DRAIN_BOIL1:
                 string    = QString("24. CIP: Drain Boil-kettle 1");
                 substring = QString("NAOH solution is removed from the Boil-kettle");
-                tset_boil = 0.0; // Boil-kettle Temperature Setpoint
+                tset_boil = TEMP_DEFAULT;       // Boil-kettle Temperature Setpoint
                 boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
                 if (toolCipDrainBK->isChecked())
                 {  // Init flowrate-low detector
@@ -2305,7 +2326,7 @@ uint16_t MainEbrew::stateMachine(void)
             case S25_CIP_DRAIN_BOIL2:
                  string    = QString("25. CIP: Drain Boil-kettle 2");
                  substring = QString("NAOH solution is removed, now fill HLT with fresh water");
-                 tset_boil = 0.0; // Boil-kettle Temperature Setpoint
+                 tset_boil = TEMP_DEFAULT;       // Boil-kettle Temperature Setpoint
                  boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
                  if (F3->isFlowRateLow()) // flowrate of CFC-output
                  {
@@ -2348,7 +2369,7 @@ uint16_t MainEbrew::stateMachine(void)
         // S27_CIP_CLEAN_OUTPUT_V7: Clean output V7 of brewing system with fresh water
         //---------------------------------------------------------------------------
         case S27_CIP_CLEAN_OUTPUT_V7:
-             string    = QString("27. CIP: Clean Output V7");
+             string    = QString("27. CIP: Clean Output V7 (%1/%2 sec.)").arg(cip_tmr1).arg(RegEbrew->value("CIP_OUT_TIME").toInt());
              substring = QString("Output V7 (Boil-kettle input) is being cleaned");
              if (++cip_tmr1 >= RegEbrew->value("CIP_OUT_TIME").toInt())
              {
@@ -2366,7 +2387,7 @@ uint16_t MainEbrew::stateMachine(void)
          // S28_CIP_CLEAN_OUTPUT_V6: Clean output V6 of brewing system with fresh water
          //---------------------------------------------------------------------------
          case S28_CIP_CLEAN_OUTPUT_V6:
-              string    = QString("28. CIP: Clean Output V6");
+              string    = QString("28. CIP: Clean Output V6 (%1/%2 sec.)").arg(cip_tmr1).arg(RegEbrew->value("CIP_OUT_TIME").toInt());
               substring = QString("Output V6 (CFC-output) is being cleaned");
               if (++cip_tmr1 >= RegEbrew->value("CIP_OUT_TIME").toInt())
               {
@@ -2384,7 +2405,7 @@ uint16_t MainEbrew::stateMachine(void)
           // S29_CIP_CLEAN_OUTPUT_V4: Clean output V4 of brewing system with fresh water
           //---------------------------------------------------------------------------
           case S29_CIP_CLEAN_OUTPUT_V4:
-               string    = QString("29. CIP: Clean Output V4");
+               string    = QString("29. CIP: Clean Output V4 (%1/%2 sec.)").arg(cip_tmr1).arg(RegEbrew->value("CIP_OUT_TIME").toInt());
                substring = QString("Output V4 (MLT top return manifold) is being cleaned");
                if (++cip_tmr1 >= RegEbrew->value("CIP_OUT_TIME").toInt())
                {
@@ -2403,7 +2424,7 @@ uint16_t MainEbrew::stateMachine(void)
            //                         This is done by gravity-feed, not with a pump.
            //---------------------------------------------------------------------------
            case S30_CIP_CLEAN_INPUT_V3:
-                string    = QString("30. CIP: Clean Input V3");
+                string    = QString("30. CIP: Clean Input V3 (%1/%2 sec.)").arg(cip_tmr1).arg(RegEbrew->value("CIP_INP_TIME").toInt());
                 substring = QString("Input V3 (Boil-kettle output) is being cleaned");
                 if (++cip_tmr1 >= RegEbrew->value("CIP_INP_TIME").toInt())
                 {
@@ -2422,7 +2443,7 @@ uint16_t MainEbrew::stateMachine(void)
             //                         This is done by gravity-feed, not with a pump.
             //---------------------------------------------------------------------------
             case S31_CIP_CLEAN_INPUT_V1:
-                 string    = QString("31. CIP: Clean Input V1");
+                 string    = QString("31. CIP: Clean Input V1 (%1/%2 sec.)").arg(cip_tmr1).arg(RegEbrew->value("CIP_INP_TIME").toInt());
                  substring = QString("Input V1 (MLT output) is being cleaned");
                  if (++cip_tmr1 >= RegEbrew->value("CIP_INP_TIME").toInt())
                  {

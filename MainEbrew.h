@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.00 $"                      /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.01 $"                      /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -319,7 +319,7 @@ public:
     qreal FlowMltBoil;          // Flow-meter 2 value
     qreal FlowCfcOut;           // Flow-meter 3 value
     qreal Flow4;                // Flow-meter 4 value
-    qreal FlowCfcOutResetValue; // Needed in boiling phase to reset flowmeter
+    qreal FlowCfcOutResetValue = 0.0; // Needed in boiling phase to reset flowmeter
     bool  flow1Running;         // True = flowsensor 1 should see a flow
     bool  flow2Running;         // True = flowsensor 2 should see a flow
     bool  flow3Running;         // True = flowsensor 3 should see a flow

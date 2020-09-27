@@ -40,6 +40,9 @@ DialogEditTerminal::DialogEditTerminal(QWidget *parent) :
     // Disconnect the serialport readyRead slot from Ebrew and connect it to this dialog screen
     disconnect(pEbrew->serialPort, &QSerialPort::readyRead,pEbrew,&MainEbrew::commPortRead);
     connect(   pEbrew->serialPort, &QSerialPort::readyRead,this  ,&DialogEditTerminal::readSerialPort);
+    // Disconnect the UdpSocket readyRead slot from Ebrew and connect it to this dialog screen
+    disconnect(pEbrew->udpSocket , &QUdpSocket::readyRead ,pEbrew,&MainEbrew::commPortRead);
+    connect(   pEbrew->udpSocket , &QUdpSocket::readyRead ,this  ,&DialogEditTerminal::readSerialPort);
 } // DialogEditTerminal::DialogEditTerminal()
 
 DialogEditTerminal::~DialogEditTerminal()
@@ -80,14 +83,24 @@ bool DialogEditTerminal::eventFilter(QObject* obj, QEvent* event)
 
 void DialogEditTerminal::readSerialPort(void)
 {
+    QByteArray ba;
     ui->teTerminal->setTextColor(Qt::yellow);
-    QByteArray ba = pEbrew->serialPort->readAll();
+    if (pEbrew->RegEbrew->value("COMM_CHANNEL").toInt() > 0)
+    {   // any of the virtual USB com ports
+        ba = pEbrew->serialPort->readAll();
+    } // if
+    else
+    {   // Ethernet UDP port
+        ba.resize(pEbrew->udpSocket->pendingDatagramSize());
+        pEbrew->udpSocket->readDatagram(ba.data(), ba.size(),&(pEbrew->ebrewHwIp));
+    } // else
     ui->teTerminal->append(ba);
     ui->teTerminal->setTextColor(Qt::green);
 } // DialogEditTerminal::readSerialPort()
 
 void DialogEditTerminal::on_buttonBox_clicked(QAbstractButton *)
 {
+    connect(pEbrew->udpSocket , &QUdpSocket::readyRead ,pEbrew,&MainEbrew::commPortRead); // Restore Ebrew udp-socket connection
     connect(pEbrew->serialPort, &QSerialPort::readyRead,pEbrew,&MainEbrew::commPortRead); // Restore Ebrew serialport connection
     pEbrew->commPortClose();
     pEbrew->commPortOpen();

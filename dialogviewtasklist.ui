@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>389</width>
-    <height>602</height>
+    <width>462</width>
+    <height>694</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <rect>
      <x>10</x>
      <y>30</y>
-     <width>371</width>
+     <width>331</width>
      <height>181</height>
     </rect>
    </property>
@@ -53,7 +53,7 @@
     <rect>
      <x>10</x>
      <y>240</y>
-     <width>371</width>
+     <width>331</width>
      <height>181</height>
     </rect>
    </property>
@@ -88,8 +88,8 @@
     <rect>
      <x>10</x>
      <y>450</y>
-     <width>371</width>
-     <height>111</height>
+     <width>421</width>
+     <height>201</height>
     </rect>
    </property>
    <property name="font">
@@ -118,23 +118,16 @@
     <string>Ebrew hardware List of I2C and One-Wire devices</string>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>220</x>
-     <y>570</y>
+     <x>270</x>
+     <y>660</y>
      <width>158</width>
      <height>25</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <widget class="QPushButton" name="refreshButton">
-      <property name="text">
-       <string>Refresh</string>
-      </property>
-     </widget>
-    </item>
     <item>
      <widget class="QDialogButtonBox" name="buttonBox">
       <property name="orientation">
@@ -142,6 +135,13 @@
       </property>
       <property name="standardButtons">
        <set>QDialogButtonBox::Ok</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="refreshButton">
+      <property name="text">
+       <string>Refresh</string>
       </property>
      </widget>
     </item>
