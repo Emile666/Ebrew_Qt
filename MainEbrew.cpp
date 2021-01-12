@@ -305,6 +305,20 @@ void MainEbrew::createStatusBar(void)
     setTopToolBar(TOOLBAR_BREWING); // start in normal brewing mode
 } // MainEbrew::createStatusBar()
 
+void MainEbrew::updateMsIdxStatusBar(void)
+{
+    QString sbar;
+    sbar = QString(" Mash index: %1 ").arg(ms_idx);
+    statusMsIdx->setText(sbar);
+} // MainEbrew::updateMsIdxStatusBar()
+
+void MainEbrew::updateSpIdxStatusBar(void)
+{
+    QString sbar;
+    sbar = QString(" Sparge index: %1 ").arg(sp_idx);
+    statusSpIdx->setText(sbar);
+} // MainEbrew::updateSpIdxStatusBar()
+
 /*------------------------------------------------------------------
   Purpose  : This function makes the various checkboxes visible at
              the top toolbar. There are two sets of checkboxes, one
@@ -617,7 +631,7 @@ void MainEbrew::initBrewDaySettings(void)
         ms[i].preht = ms[i].time;
         if (RegEbrew->value("CB_dpht").toInt())
         {   // dynamic preheat time
-            if (i < ms_tot - 1)
+            if ((i < ms_tot - 1) && (ms[i+1].temp > ms[i].temp))
                  ms[i].preht -= RegEbrew->value("HLT_Bcap").toInt() * (ms[i+1].temp - ms[i].temp);
             else ms[i].preht = 0;
         } // if
@@ -1899,6 +1913,7 @@ uint16_t MainEbrew::stateMachine(void)
             if (ms[ms_idx].timer >= ms[ms_idx].time) // time-out?
             {
                 ms_idx++; // increment index in mash scheme
+                updateMsIdxStatusBar(); // update ms_idx in Statusbar
                 ebrew_std = S03_WAIT_FOR_MLT_TEMP;
             } // if
             break;
@@ -1920,7 +1935,7 @@ uint16_t MainEbrew::stateMachine(void)
             tset_boil = TEMP_DEFAULT; // Setpoint Temp. for Boil-kettle
             if (ms_idx < ms_tot - 1)
             {  // There's a next mash phase
-                if (ms[ms_idx].timer >= ms[ms_idx].preht)
+                if ((ms[ms_idx].preht > 0) && (ms[ms_idx].timer >= ms[ms_idx].preht))
                 {  // Preheat timer has priority, since it also switches off the pump
                     ebrew_std = S13_MASH_PREHEAT_HLT;
                 } // if
@@ -2050,10 +2065,11 @@ uint16_t MainEbrew::stateMachine(void)
             if (++timer2 >= TMR_DELAY_xSEC)
             {
                 hlt2mlt << QTime::currentTime().toString(); // New transition, copy time-stamp into array of strings
-                sp_idx++;          // Increase #Sparging Sessions
-                Vhlt_old  = Vhlt;  // remember old value
-                Vmlt_old  = Vmlt;  // remember current MLT volume
-                timer2    = 0;     // reset timer2
+                sp_idx++;               // Increase #Sparging Sessions
+                updateSpIdxStatusBar(); // update sp_idx in Statusbar
+                Vhlt_old  = Vhlt;       // remember old value
+                Vmlt_old  = Vmlt;       // remember current MLT volume
+                timer2    = 0;          // reset timer2
                 ebrew_std = S07_PUMP_FROM_HLT_TO_MLT;
             } // if
             else if (Vmlt > Vmlt_old - sp_vol_batch)

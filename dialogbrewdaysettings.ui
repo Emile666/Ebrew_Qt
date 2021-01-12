@@ -39,7 +39,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -512,6 +512,9 @@
         <property name="minimum">
          <double>95.000000000000000</double>
         </property>
+        <property name="maximum">
+         <double>105.000000000000000</double>
+        </property>
         <property name="singleStep">
          <double>0.100000000000000</double>
         </property>
@@ -547,8 +550,11 @@
         <property name="minimum">
          <double>95.000000000000000</double>
         </property>
+        <property name="maximum">
+         <double>105.000000000000000</double>
+        </property>
         <property name="singleStep">
-         <double>0.100000000000000</double>
+         <double>1.000000000000000</double>
         </property>
        </widget>
       </item>

@@ -448,11 +448,19 @@ void DialogEditFixParameters::set_switch_fix(void)
     if (ui->cbSpIdx->checkState())
     {   // sp_idx
         int x = ui->sbSpIdx->value();
-        if (x < pEbrew->RegEbrew->value("SP_BATCHES").toInt()) pEbrew->sp_idx = x;
+        if (x < pEbrew->RegEbrew->value("SP_BATCHES").toInt())
+        {
+            pEbrew->sp_idx = x;
+            pEbrew->updateSpIdxStatusBar();
+        } // if
     } // if
     if (ui->cbMsIdx->checkState())
     {   // ms_idx
         int x = ui->sbMsIdx->value();
-        if (x < pEbrew->ms_tot) pEbrew->ms_idx = x;
+        if (x < pEbrew->ms_tot)
+        {
+            pEbrew->ms_idx = x;
+            pEbrew->updateMsIdxStatusBar();
+        } // if
     } // if
 } // set_switch_fix()

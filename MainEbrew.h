@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.01 $"                      /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.02 $"                      /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -288,6 +288,8 @@ public:
     void       splitIpAddressPort(void);    // Split Registry variable into IP-address and port-number
     void       createRegistry(void);        // Create default Registry entries for Ebrew
     void       createStatusBar(void);       // Creates a status bar at the bottom of the screen
+    void       updateMsIdxStatusBar(void);  // Update ms_idx in Statusbar
+    void       updateSpIdxStatusBar(void);  // Update sp_idx in Statusbar
     void       createMenuBar(void);         // Creates a menu bar at the top of the screen
     void       initBrewDaySettings(void);   // Update brew-day settings from Registry values
     void       sleep(uint16_t msec);        // Sleep msec milliseconds
