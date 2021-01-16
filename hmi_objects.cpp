@@ -861,7 +861,22 @@ bool Meter::isFlowRateLow(void)
             break;
         case 3:  // Now check if flow-rate decreases
             if (flowRate < frl_det_lim) // flow-rate < percentage of average flow-rate?
-                retv = true;
+            {
+                frl_tmr = 0; // reset timer
+                frl_std = 4; // check if active for > 10 seconds
+            } // if
+            break;
+        case 4:  // Now check if flow-rate is decreased for at least 10 seconds
+            if (flowRate >= frl_det_lim) // flow-rate >= percentage of average flow-rate?
+            {
+                frl_tmr = 0; // reset timer
+                frl_std = 3; // check again
+            } // if
+            else if (++frl_tmr > 10)
+            {
+                frl_tmr = 10;
+                retv    = true;
+            } // else if
             break;
         default: frl_std = 0;
                  frl_tmr = 0;

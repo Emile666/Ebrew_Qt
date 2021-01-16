@@ -65,4 +65,11 @@ void DialogOptionsMeasurements::on_buttonBox_accepted()
     pEbrew->RegEbrew->setValue("MIN_FR_BOIL_PERC",ui->sbBkEmpty->value());
     // Valve Measurements
     pEbrew->RegEbrew->setValue("VALVE_DELAY",ui->sbValveDelay->value());
+
+    bool flow_temp_corr = ui->cbTcomp->isChecked();
+    pEbrew->F1->setFlowParameters(TS_FLOWS_MSEC,flow_temp_corr,ui->sbFlow1->value());
+    pEbrew->F2->setFlowParameters(TS_FLOWS_MSEC,flow_temp_corr,ui->sbFlow2->value());
+    pEbrew->F3->setFlowParameters(TS_FLOWS_MSEC,flow_temp_corr,ui->sbFlow3->value());
+    pEbrew->F4->setFlowParameters(TS_FLOWS_MSEC,flow_temp_corr,ui->sbFlow4->value());
+
 } // DialogOptionsMeasurements::on_buttonBox_accepted()
