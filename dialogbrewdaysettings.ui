@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>411</width>
-    <height>334</height>
+    <height>323</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>210</x>
-     <y>300</y>
+     <y>290</y>
      <width>181</width>
      <height>32</height>
     </rect>
@@ -360,7 +360,7 @@
       <item row="2" column="0">
        <widget class="QLabel" name="lblSparge3">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The first run-off to the boil-kettle can be made larger than the other run-offs. The batch sparge volume is typically the total sparge volume divided by the number of sparge batches. The first run-off volume is multiplied with this factor. A typical value is 2, meaning that this is double the amount of the other run-offs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The first run-off to the Boil-kettle can be made larger than the other run-offs. The batch sparge volume is typically the total sparge volume divided by the number of sparge batches. The first run-off volume is multiplied with this factor. A typical value is 2, meaning that this is double the amount of the other run-offs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Volume Multiply factor for first Sparge run-off  </string>
@@ -382,7 +382,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The first run-off to the boil-kettle can be made larger than the other run-offs. The batch sparge volume is typically the total sparge volume divided by the number of sparge batches. The first run-off volume is multiplied with this factor. A typical value is 2, meaning that this is double the amount of the other run-offs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The first run-off to the Boil-kettle can be made larger than the other run-offs. The batch sparge volume is typically the total sparge volume divided by the number of sparge batches. The first run-off volume is multiplied with this factor. A typical value is 2, meaning that this is double the amount of the other run-offs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="decimals">
          <number>1</number>
@@ -414,17 +414,17 @@
        <x>10</x>
        <y>10</y>
        <width>338</width>
-       <height>181</height>
+       <height>221</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout_3">
       <item row="0" column="0">
        <widget class="QLabel" name="lblBoil1">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The gas-burner of the Boil-Kettle is enabled after the boil-kettle temperature exceeds this value. This is an indication that there is a minimum amount of wort in the boil-kettle. And therefore the gas-burner can be enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The gas-burner of the Boil-kettle is enabled after the Boil-kettle temperature exceeds this value. This is an indication that there is a minimum amount of wort in the Boil-kettle. And therefore the gas-burner can be enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>Minimum Boil-Kettle temperature to enable Gas-Burner </string>
+         <string>Minimum Boil-kettle temperature to enable Gas-Burner </string>
         </property>
        </widget>
       </item>
@@ -437,7 +437,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The gas-burner of the Boil-Kettle is enabled after the boil-kettle temperature exceeds this value. This is an indication that there is a minimum amount of wort in the boil-kettle. And therefore the gas-burner can be enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The gas-burner of the Boil-kettle is enabled after the Boil-kettle temperature exceeds this value. This is an indication that there is a minimum amount of wort in the Boil-kettle. And therefore the gas-burner can be enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="suffix">
          <string> °C</string>
@@ -447,7 +447,7 @@
       <item row="1" column="0">
        <widget class="QLabel" name="lblBoil2">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The temperature setpoint for the boil-kettle during sparging and before boiling.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The temperature setpoint for the Boil-kettle during sparging and before boiling.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Pre-boil Temperature Setpoint </string>
@@ -463,7 +463,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The temperature setpoint for the boil-kettle during sparging and before boiling.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The temperature setpoint for the Boil-kettle during sparging and before boiling.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="suffix">
          <string> °C</string>
@@ -485,7 +485,7 @@
       <item row="2" column="0">
        <widget class="QLabel" name="lblBoil3">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When the boil-kettle temperature exceeds this value, the boiling phase is started.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When the Boil-kettle temperature exceeds this value, the boiling phase is started.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Lower-limit Temperature for boiling-detection</string>
@@ -501,7 +501,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When the boil-kettle temperature exceeds this value, the boiling phase is started.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When the Boil-kettle temperature exceeds this value, the boiling phase is started.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="suffix">
          <string> °C</string>
@@ -564,7 +564,7 @@
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If boiling is too wild, this value is used to limit the power of the gas-burner. If you want full power, set this value to 100 %.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>Limit Boil-Kettle power-output during Boil</string>
+         <string>Limit Boil-kettle power-output during Boil</string>
         </property>
        </widget>
       </item>
@@ -593,20 +593,65 @@
       <item row="5" column="0">
        <widget class="QCheckBox" name="cbBoil1">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox to let the wort rest after boiling and before start of Cooling. This is done to prevent clogging of the boil-kettle filter and flowmeters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox to let the wort rest after boiling and before start of Cooling. This is done to prevent clogging of the Boil-kettle filter and flowmeters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Apply time-rest of 5 minutes after Boiling</string>
         </property>
        </widget>
       </item>
+      <item row="7" column="0">
+       <widget class="QCheckBox" name="cbBKrecirc">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox to start Chilling with the contents in the Boil-kettle. For this it is necessary to put the CFC-output into the Boil-kettle. If this checkbox is cleared, the wort is chilled and sent directly to the fermentation-bin.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Start Chilling with recirculating through Boil-kettle</string>
+        </property>
+       </widget>
+      </item>
       <item row="6" column="0">
        <widget class="QCheckBox" name="cbHopAlarm">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox to give an audible alarm when hops need to be added to the boil-kettle&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox to give an audible alarm when hops need to be added to the Boil-kettle&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Add 4-beep Alarm for hop-gift during boiling</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QLabel" name="lblBKrecirc">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Chilling the wort and recirculating it through the Boil-kettle is stopped when the Boil-kettle temperature decreases below this temperature. The CFC-output is then placed into a fermentation-bin and the wort is then chilled and pumped into the bin.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Lower-Limit Temperature for Boil-kettle recirculation</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QSpinBox" name="sbBKrecirc">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Chilling the wort and recirculating it through the Boil-kettle is stopped when the Boil-kettle temperature decreases below this temperature. The CFC-output is then placed into a fermentation-bin and the wort is then chilled and pumped into the bin.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="suffix">
+         <string> °C</string>
+        </property>
+        <property name="minimum">
+         <number>50</number>
+        </property>
+        <property name="maximum">
+         <number>100</number>
+        </property>
+        <property name="value">
+         <number>100</number>
         </property>
        </widget>
       </item>

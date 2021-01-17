@@ -226,30 +226,39 @@ void MainEbrew::createStatusBar(void)
     //-----------------------------------
     statusAlarm      = new QLabel(" Sensor Alarm: TEMP + FLOW ");
     statusAlarm->setAlignment(Qt::AlignHCenter);
+    statusAlarm->setToolTip("Shows which sensor error results in an audible alarm (one or more beeps). Use \'<b>S</b>\' to cycle through the following options:<br><b>OFF</b>: No audible alarm.<br><b>TEMP</b>: Only alarm if one or more temperature sensors fail.<br><b>FLOW</b>: Only alarm if one or more flow sensors fail.<br><b>TEMP+FLOW</b>: alarm on every sensor failure.");
     statusBar->addPermanentWidget(statusAlarm,1);
     statusMashScheme = new QLabel("     ");
     statusMashScheme->setAlignment(Qt::AlignHCenter);
+    statusMashScheme->setToolTip("Shows the Mash Scheme read from the default Mash Scheme File maisch.sch.<br>See also Edit->Mash Scheme...");
     statusBar->addPermanentWidget(statusMashScheme,1);
     statusHops = new QLabel("");
     statusHops->setAlignment(Qt::AlignHCenter);
+    statusHops->setToolTip("Shows the Hops Scheme read from the default Mash Scheme File maisch.sch.<br>See also Edit->Mash Scheme...");
     statusBar->addPermanentWidget(statusHops);
     statusMashVol    = new QLabel(" Mash Volume: 0 L ");
     statusMashVol->setAlignment(Qt::AlignHCenter);
+    statusMashVol->setToolTip("Shows the mash volume, which is the total amount of water for the MLT used for mashing.<br>Value is read from the default Mash Scheme File maisch.sch.<br>See also Edit->Mash Scheme...");
     statusBar->addPermanentWidget(statusMashVol,1);
     statusSpargeVol  = new QLabel(" Sparge Volume: 0 L ");
     statusSpargeVol->setAlignment(Qt::AlignHCenter);
+    statusSpargeVol->setToolTip("Shows the sparge volume, which is the total amount of water used for batch-sparging.<br>Value is read from the default Mash Scheme File maisch.sch.<br>See also Edit->Mash Scheme...");
     statusBar->addPermanentWidget(statusSpargeVol,1);
     statusBoilTime  = new QLabel(" Boil-time: 0 min. ");
     statusBoilTime->setAlignment(Qt::AlignHCenter);
+    statusBoilTime->setToolTip("This is the total boil-time in minutes for the boil-kettle.<br>Value is read from the default Mash Scheme File maisch.sch.<br>See also Edit->Mash Scheme...");
     statusBar->addPermanentWidget(statusBoilTime,1);
     statusMsIdx      = new QLabel(" Mash index: 0 ");
     statusMsIdx->setAlignment(Qt::AlignHCenter);
+    statusMsIdx->setToolTip("The actual mash scheme index: it points to the current temperature in the mash-scheme, 0 = the first temperature.<br>Value is read from the default Mash Scheme File maisch.sch.<br>See also Edit->Mash Scheme...");
     statusBar->addPermanentWidget(statusMsIdx,1);
     statusSpIdx      = new QLabel(" Sparge index: 0 ");
     statusSpIdx->setAlignment(Qt::AlignHCenter);
+    statusSpIdx->setToolTip("The actual sparging index: it points to the current batch-sparge, 0 = the first batch sparge.<br>The total number of batch-sparge can be adjusted with Options->Brew Day Settings->Sparging");
     statusBar->addPermanentWidget(statusSpIdx,1);
     statusSwRev      = new QLabel(" SW r1.99 HW r1.24 ");
     statusSwRev->setAlignment(Qt::AlignHCenter);
+    statusSwRev->setToolTip("Shows the software and hardware revision number. The hardware revision number is read during power-up from the Ebrew hardware. If it reads <b>?.?</b>, then no connection could be made to the Ebrew hardware.<br>See also Options->System Settings->Communications");
     statusBar->addPermanentWidget(statusSwRev,1);
     setStatusBar(statusBar); // connect the statusBar to Ebrew
 
@@ -258,6 +267,7 @@ void MainEbrew::createStatusBar(void)
     toolBar1->setMovable(false); // fixed at top of screen
     toolBar1->setOrientation(Qt::Horizontal);
     toolStartCIP = new QCheckBox("Start Clean-In-Place (CIP)");
+    toolStartCIP->setToolTip("Enable this checkbox to start cleaning of the brew system, disable to resume normal operation.");
     toolBar1->addWidget(toolStartCIP);
     addToolBar(Qt::TopToolBarArea,toolBar1);
 
@@ -269,21 +279,27 @@ void MainEbrew::createStatusBar(void)
 
     toolStartAddMalt = new QCheckBox("Start Adding Malt");
     toolStartAddMalt->setEnabled(false); // default not enabled
+    toolStartAddMalt->setToolTip("Enable this checkbox if you are ready to start adding malt to the MLT (the pump is then switched off).");
     toolBar2->addWidget(toolStartAddMalt);
     toolMaltAdded = new QCheckBox("Malt added to MLT");
     toolMaltAdded->setEnabled(false); // default not enabled
+    toolMaltAdded->setToolTip("Enable this checkbox if all malt has been added to the MLT and mashing can continu");
     toolBar2->addWidget(toolMaltAdded);
     toolMLTEmpty = new QCheckBox("MLT is empty");
     toolMLTEmpty->setEnabled(false); // default not enabled
+    toolMLTEmpty->setToolTip("Enable this checkbox only if the brew system does not detect automatically that the MLT is empty.<br>It does this by monitoring flow sensor 2, in case of a failure, this checkbox can be used instead.");
     toolBar2->addWidget(toolMLTEmpty);
     toolBoilStarted = new QCheckBox("Boiling Started");
     toolBoilStarted->setEnabled(false); // default not enabled
+    toolBoilStarted->setToolTip("Enable this checkbox only if the brew system does not detect automatically that boiling has started.<br>It does this by monitoring the boil-kettle temperature sensor. In case of a failure, this checkbox can be used instead.");
     toolBar2->addWidget(toolBoilStarted);
     toolStartChilling = new QCheckBox("CFC Prepared, start Chilling");
     toolStartChilling->setEnabled(false); // default not enabled
+    toolStartChilling->setToolTip("Enable this checkbox if the counter flow chiller (CFC) is connected to the water tap for cooling water AND that the CFC output hose is placed in the fermentation bin.");
     toolBar2->addWidget(toolStartChilling);
     toolReadyChilling = new QCheckBox("Chilling is finished");
     toolReadyChilling->setEnabled(false); // default not enabled
+    toolReadyChilling->setToolTip("Enable this checkbox only if the brew system does not detect automatically that the Boil-kettle is empty.<br>It does this by monitoring flow sensor 3 at the CFC-output, in case of a failure, this checkbox can be used instead.");
     toolBar2->addWidget(toolReadyChilling);
     addToolBar(Qt::TopToolBarArea,toolBar2);
 
@@ -294,10 +310,13 @@ void MainEbrew::createStatusBar(void)
     toolBar3->setOrientation(Qt::Horizontal);
     toolCipInitDone = new QCheckBox("CIP init. done");
     toolCipInitDone->setEnabled(false); // default not enabled
+    toolCipInitDone->setToolTip("This checkbox is enabled when the user presses OK in the Dialog Box to indicate that CIP initialisation is done.");
     toolCipDrainBK = new QCheckBox("CIP Drain Boil-kettle");
     toolCipDrainBK->setEnabled(false); // default not enabled
+    toolCipDrainBK->setToolTip("This checkbox is enabled when the user presses OK in the Dialog Box to indicate that the Boil-kettle is drained completely.");
     toolCipHltFilled = new QCheckBox("CIP HLT Filled");
     toolCipHltFilled->setEnabled(false); // default not enabled
+    toolCipHltFilled->setToolTip("This checkbox is enabled when the user presses OK in the Dialog Box to indicate that the HLT is filled with fresh water.");
     toolBar3->addWidget(toolCipInitDone);
     toolBar3->addWidget(toolCipDrainBK);
     toolBar3->addWidget(toolCipHltFilled);
@@ -437,13 +456,15 @@ void MainEbrew::createRegistry(void)
     RegEbrew->setValue("HLT_Bcap",90);       // HLT burner capacity in sec./°C
     RegEbrew->setValue("CB_pumps_on",1);     // 1= Leave pumps runnings after MLT temp. is reached
     // Boil Settings
-    RegEbrew->setValue("BOIL_MIN_TEMP",60);  // Min. Temp. for Boil-kettle (Celsius)
-    RegEbrew->setValue("SP_PREBOIL",95);     // Pre-Boil Temperature (Celsius)
-    RegEbrew->setValue("BOIL_DETECT",99.3);  // Boiling-Detection minimum Temperature (Celsius)
-    RegEbrew->setValue("SP_BOIL",105);       // Boil Temperature (Celsius)
-    RegEbrew->setValue("LIMIT_BOIL",100);    // Limit output during boil (%)
-    RegEbrew->setValue("CB_Boil_Rest",1);    // Let wort rest for 5 minutes after boiling
-    RegEbrew->setValue("CB_Hop_Alarm",1);    // Sound 4-beeps alarm when hop-gift is needed
+    RegEbrew->setValue("BOIL_MIN_TEMP",60);   // Min. Temp. for Boil-kettle (Celsius)
+    RegEbrew->setValue("SP_PREBOIL",95);      // Pre-Boil Temperature (Celsius)
+    RegEbrew->setValue("BOIL_DETECT",99.3);   // Boiling-Detection minimum Temperature (Celsius)
+    RegEbrew->setValue("SP_BOIL",105);        // Boil Temperature (Celsius)
+    RegEbrew->setValue("LIMIT_BOIL",100);     // Limit output during boil (%)
+    RegEbrew->setValue("CB_Boil_Rest",1);     // Let wort rest for 5 minutes after boiling
+    RegEbrew->setValue("CB_Hop_Alarm",1);     // Sound 4-beeps alarm when hop-gift is needed
+    RegEbrew->setValue("CB_BK_recirc",1);     // Start Chilling with recirculating through Boil-kettle
+    RegEbrew->setValue("LIMIT_BK_recirc",70); // Limit output during boil (%)
 
     // Clean in Place (CIP) Settings
     RegEbrew->setValue("CIP_SP",65);         // CIP Temperature Setpoint (Celsius)
@@ -1245,15 +1266,19 @@ void MainEbrew::task_write_logfile()
   ------------------------------------------------------------------*/
 void MainEbrew::about(void)
 {
-   QMessageBox::about(this,"About Ebrew 3.0 Qt",
-                "This program is used to fully control a HERMS system. "
-                "It communicates with the <b>Ebrew hardware</b>, which is a"
-                " dedicated hardware solution, based around an Arduino Nano<br><br>"
-                "This version is a redesign from Ebrew 2.0, that was created"
-                " with Borland C++ Builder and was in use from 2003 - 2020. It's latest revision was r1.99.<br><br>"
-                "This version (Ebrew 3.0 Qt) is a complete redesign and is built with Qt 5.14<br><br>"
-                "Web-site: <a href=\"www.vandelogt.nl\">www.vandelogt.nl</a><br>"
-                "Brewery: Brouwerij de Boezem, The Netherlands");
+   QMessageBox::about(this,QString("About Ebrew 3.0 Qt r%1").arg(ebrewRevision.mid(11,4)),
+                QString("This program is used to fully control a HERMS home-brewing system. "
+                        "It communicates with the <b>Ebrew hardware</b>, which is a"
+                        " dedicated hardware solution, based around an <b>Arduino Nano</b> with a <b>Wiz550io</b> Ethernet Controller.<br><br>"
+
+                        "This version is a redesign from Ebrew 2.0, that was created"
+                        " with Borland C++ Builder and was in use from 2003 - 2020. It's latest revision was r1.99.<br><br>"
+
+                        "This version (Ebrew 3.0 Qt r%1) is a complete redesign from that Borland version and is now built with Qt 5.14.<br><br>"
+
+                        "Web-site: <a href=\"www.vandelogt.nl\">www.vandelogt.nl</a><br>"
+                        "Github: <a href=\"https://github.com/Emile666/Ebrew_Qt\">https://github.com/Emile666/Ebrew_Qt</a><br>"
+                        "Brewery: Brouwerij de Boezem, The Netherlands").arg(ebrewRevision.mid(11,4)));
 } // MainEbrew::about()
 
 /*------------------------------------------------------------------
@@ -1683,14 +1708,16 @@ uint16_t MainEbrew::stateMachine(void)
     // State 30: 0  0  0  0  0  0  0  1  1  0  CIP: Clean Input V3       0x0006
     // State 31: 0  0  0  0  0  0  0  0  1  1  CIP: Clean Input V1       0x0003
     // State 32: 0  0  0  0  0  0  0  0  0  0  CIP: End                  0x0000
+    // State 33: 0  1  0  0  1  0  0  1  0  0  Chill wort in Boil-kettle 0x0124
+    // State 34: 0  0  0  0  0  0  0  0  0  0  Boil-kettle chill ready   0x0000
  //----------------------------------------------------------------------------
-    uint16_t  actuatorSettings[] = {0x0000, 0x0200, 0x030B, 0x0309, 0x0309, /* 04 */
-                           /* 05 */ 0x0309, 0x0141, 0x030B, 0x0000, 0x0141, /* 09 */
-                           /* 10 */ 0x0000, 0x0000, 0x0000, 0x0200, 0x0003, /* 14 */
-                           /* 15 */ 0x0000, 0x0124, 0x0000, 0x0000, 0x0309, /* 19 */
-                           /* 20 */ 0x0000, 0x016C, 0x016C, 0x0000, 0x012C, /* 24 */
-                           /* 25 */ 0x0124, 0x0000, 0x0142, 0x0122, 0x010A, /* 29 */
-                           /* 30 */ 0x0006, 0x0003, 0x0000}; /* 32 */
+    uint16_t  actuatorSettings[] = {0x0000, 0x0200, 0x030B, 0x0309, 0x0309,  /* 04 */
+                           /* 05 */ 0x0309, 0x0141, 0x030B, 0x0000, 0x0141,  /* 09 */
+                           /* 10 */ 0x0000, 0x0000, 0x0000, 0x0200, 0x0003,  /* 14 */
+                           /* 15 */ 0x0000, 0x0124, 0x0000, 0x0000, 0x0309,  /* 19 */
+                           /* 20 */ 0x0000, 0x016C, 0x016C, 0x0000, 0x012C,  /* 24 */
+                           /* 25 */ 0x0124, 0x0000, 0x0142, 0x0122, 0x010A,  /* 29 */
+                           /* 30 */ 0x0006, 0x0003, 0x0000, 0x0124, 0x0000}; /* 34 */
 
     bool      maltAdded; // help var. in state S01_WAIT_FOR_HLT_TEMP
     QString   string;    // For stdText->setText()
@@ -2136,15 +2163,14 @@ uint16_t MainEbrew::stateMachine(void)
             {
                 toolStartChilling->setEnabled(true);     // Enable checkbox at top-toolbar
                 Boil << QTime::currentTime().toString(); // New transition, copy time-stamp into array of strings
-                FlowCfcOutResetValue = FlowCfcOut;       // reset Flow_cfc_out
                 brest_tmr = 0; // init boil-rest timer
                 ebrew_std = S12_BOILING_FINISHED;
             } // if
-            else if ((hopIdx < hopTimes.size()-1) && !hopCb[hopIdx] &&
+            else if ((hopIdx < hopTimes.size()) && !hopCb[hopIdx] &&
                      (hopTimes.at(hopIdx) >= (boil_time_ticks - timer5)/60))
             {
                 cbHops.setChecked(false);
-                msgBox(QString("Add hop-gift %1 to Boil-kettle").arg(hopIdx+1),hopTexts.at(hopIdx),&cbHops);
+                msgBox(QString("Add hop-gift %1 to Boil-kettle at %2 minutes remaining").arg(hopIdx+1).arg(hopTimes.at(hopIdx)),hopTexts.at(hopIdx),&cbHops);
                 if (cbHops.isChecked())
                 {
                     hopCb[hopIdx] = true;
@@ -2169,21 +2195,70 @@ uint16_t MainEbrew::stateMachine(void)
             boilPid->setButtonState(false);  // Disable PID-Controller for Boil-kettle
             if (((RegEbrew->value("CB_Boil_Rest").toInt() == 0) || (++brest_tmr > TMR_BOIL_REST_5_MIN)) && toolStartChilling->isChecked())
             {  // Init flow3 (cfc-out) flowrate-low detector
-                F3->initFlowRateDetector(RegEbrew->value("MIN_FR_BOIL_PERC").toInt());
-                toolStartChilling->setChecked(true);      // Set checkbox to checked
-                toolStartChilling->setEnabled(false);     // ... and disable again, no longer needed
-                toolReadyChilling->setEnabled(true);      // Enable checkbox 'Chilling finished'
+                toolStartChilling->setChecked(false);     // Uncheck checkbox \'CFC Prepared, start Chilling\'
                 Chill << QTime::currentTime().toString(); // New transition, copy time-stamp into array of strings
-                ebrew_std = S16_CHILL_PUMP_FERMENTOR;
+                if (RegEbrew->value("CB_BK_recirc").toInt() == 1)
+                {
+                     ebrew_std = S33_CHILL_BOIL_KETTLE;   // Chill wort in Boil-kettle through recirculation
+                } // if
+                else
+                {
+                    toolStartChilling->setEnabled(false); // Disable checkbox \'CFC Prepared, start Chilling\', no longer needed
+                    toolReadyChilling->setEnabled(true);  // Enable checkbox 'Chilling finished'
+                    FlowCfcOutResetValue = FlowCfcOut;    // reset Flow_cfc_out to count actual volume in Fermenter
+                    F3->initFlowRateDetector(RegEbrew->value("MIN_FR_BOIL_PERC").toInt());
+                    ebrew_std = S16_CHILL_PUMP_FERMENTOR; // Chill wort and pump directly to Fermenter
+                } // else
             } // if
             else if (RegEbrew->value("CB_Boil_Rest").toInt() == 1)
             {
                if (brest_tmr > TMR_BOIL_REST_5_MIN)
-                    string = QString("12. Boiling Finished, prepare Chiller (M)");
-               else string = QString("12. Boiling Finished, wait %1/%2 min., prepare Chiller (M)").arg(brest_tmr/60).arg(TMR_BOIL_REST_5_MIN/60);
+                    string = QString("12. Boil Finished, prepare Chiller (M)");
+               else string = QString("12. Boil Finished, wait %1/%2 min., prepare Chiller (M)").arg(brest_tmr/60).arg(TMR_BOIL_REST_5_MIN/60);
             } // if
-            else string = QString("12. Boiling Finished, prepare Chiller (M)");
+            else
+            {
+                string = QString("12. Boil Finished, prepare Chiller (M), CFC-output in ");
+                if (RegEbrew->value("CB_BK_recirc").toInt() == 1)
+                     string.append("Boil-kettle.");
+                else string.append("Fermenter.");
+            } // else
             substring   = QString("Prepare chiller. If ready, click \'CFC Prepared, start Chilling\' at top toolbar");
+            break;
+
+        //---------------------------------------------------------------------------
+        // S33_CHILL_BOIL_KETTLE: The boiled wort is sent through the counterflow
+        // chiller and pumped back to the Boil-kettle.
+        //---------------------------------------------------------------------------
+        case S33_CHILL_BOIL_KETTLE:
+            string    = QString("33. Chill wort in Boil-kettle, CFC-output in Boil-kettle");
+            substring = QString("Boil-kettle wort cooling as long as temperature is more than %1 °C").arg(RegEbrew->value("LIMIT_BK_recirc").toInt());
+            tset_boil = TEMP_DEFAULT;       // Boil Temperature Setpoint
+            boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
+            if (tboil < RegEbrew->value("LIMIT_BK_recirc").toDouble())
+            {   // Boil-kettle temperature decreased below minimum
+                toolStartChilling->setChecked(false); // Uncheck checkbox \'CFC Prepared, start Chilling\'
+                ebrew_std = S34_CHILL_BK_READY;
+            } // if
+            break;
+
+        //---------------------------------------------------------------------------
+        // S34_CHILL_BK_READY: The partially cooled wort in the Boil-kettle can
+        // now be transferred to the Fermenter.
+        //---------------------------------------------------------------------------
+        case S34_CHILL_BK_READY:
+            string    = QString("34. Place CFC-output in Fermenter (M)");
+            substring = QString("If CFC-output is in Fermenter, press \'CFC Prepared, start Chilling\' at top toolbar");
+            tset_boil = TEMP_DEFAULT;       // Boil Temperature Setpoint
+            boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
+            if (toolStartChilling->isChecked())
+            {   // CFC-output is now placed in fermentation-bin
+                toolStartChilling->setEnabled(false); // Disable checkbox \'CFC Prepared, start Chilling\', no longer needed
+                toolReadyChilling->setEnabled(true);  // Enable checkbox 'Chilling finished'
+                FlowCfcOutResetValue = FlowCfcOut;    // reset Flow_cfc_out to count actual volume in Fermenter
+                F3->initFlowRateDetector(RegEbrew->value("MIN_FR_BOIL_PERC").toInt());
+                ebrew_std = S16_CHILL_PUMP_FERMENTOR;
+            } // if
             break;
 
         //---------------------------------------------------------------------------
@@ -2247,7 +2322,7 @@ uint16_t MainEbrew::stateMachine(void)
         //---------------------------------------------------------------------------
         case S21_CIP_HEAT_UP:
              string    = QString("21. CIP: Heat-up and circulate");
-             substring = QString("NaOH solution is pomped through while heated to setpoint temperature");
+             substring = QString("NaOH solution is pumped through while heated to setpoint temperature");
              tset_boil = RegEbrew->value("CIP_SP").toDouble(); // Boil-kettle Temperature Setpoint
              PidCtrlBk->pidEnable(PID_FFC);  // Enable Feed-forward control for Boil-kettle
              boilPid->setButtonState(true);  // Enabled PID-Controller Power-button
@@ -2299,7 +2374,7 @@ uint16_t MainEbrew::stateMachine(void)
           //---------------------------------------------------------------------------
           case S23_CIP_REST_5_MIN:
                string    = QString("23. CIP: Resting (%1/%2 sec.)").arg(cip_tmr1).arg(RegEbrew->value("CIP_REST_TIME").toInt());
-               substring = QString("Pipes are being cleaned with the NaOH solution");
+               substring = QString("Pipes are being cleaned with NaOH solution");
                tset_boil = RegEbrew->value("CIP_SP").toDouble(); // Boil-kettle Temperature Setpoint
                boilPid->setButtonState(true);    // Enable PID-Controller for Boil-kettle
                if (++cip_tmr1 >= RegEbrew->value("CIP_REST_TIME").toInt())
@@ -2363,23 +2438,23 @@ uint16_t MainEbrew::stateMachine(void)
                  } // else
                  break;
 
-             //---------------------------------------------------------------------------
-             // S26_CIP_FILL_HLT: Fill HLT with sufficient fresh water
-             //---------------------------------------------------------------------------
-             case S26_CIP_FILL_HLT:
-                  string    = QString("26. CIP: Fill HLT with fresh water");
-                  substring = QString("Fill HLT with fresh water, then continue");
-                  if (toolCipHltFilled->isChecked())
-                  {  // User indicated that HLT has been filled with fresh water
-                     cip_tmr1  = 0;
-                     ebrew_std = S27_CIP_CLEAN_OUTPUT_V7;
-                  } // if
-                  else if (!toolStartCIP->isChecked())
-                  {
-                     setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
-                     ebrew_std = S00_INITIALISATION;
-                  } // else
-                  break;
+         //---------------------------------------------------------------------------
+         // S26_CIP_FILL_HLT: Fill HLT with sufficient fresh water
+         //---------------------------------------------------------------------------
+         case S26_CIP_FILL_HLT:
+              string    = QString("26. CIP: Fill HLT with fresh water");
+              substring = QString("Fill HLT with fresh water, then continue");
+              if (toolCipHltFilled->isChecked())
+              {  // User indicated that HLT has been filled with fresh water
+                 cip_tmr1  = 0;
+                 ebrew_std = S27_CIP_CLEAN_OUTPUT_V7;
+              } // if
+              else if (!toolStartCIP->isChecked())
+              {
+                 setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
+                 ebrew_std = S00_INITIALISATION;
+              } // else
+              break;
 
         //---------------------------------------------------------------------------
         // S27_CIP_CLEAN_OUTPUT_V7: Clean output V7 of brewing system with fresh water
@@ -2504,7 +2579,10 @@ uint16_t MainEbrew::stateMachine(void)
     //-------------------------------------------------
     // Now calculate the proper settings for the valves
     //-------------------------------------------------
-    uint16_t actuators = actuatorSettings[ebrew_std];
+    uint16_t actuators;
+    if (ebrew_std > STD_MAX)
+         actuators = actuatorSettings[S00_INITIALISATION];
+    else actuators = actuatorSettings[ebrew_std];
     P2->setActuator(actuators,P1b); // Main pump
     P1->setActuator(actuators,P0b); // Pump for HLT heat-exchanger
     // V8: Future use

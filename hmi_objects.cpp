@@ -4,7 +4,7 @@
 ** Purpose     : This file contains all graphical objects that are used by MainEbrew:
 **               PowerButton: A push-button with a green/red LED in it.
 **               Meter      : A flowmeter or temperaturesensor, showing actual values.
-**               Tank       : A tank object for constructing a HLT, MLT or boil-kettle.
+**               Tank       : A tank object for constructing a HLT, MLT or Boil-kettle.
 **               Pipe       : A pipe which is used to connect everything. A pipe can have
 **                            just 2 pipes, but also 3 and 4 pipes.
 **               Display    : A display with a sub-text for displaying the actual state.
@@ -270,7 +270,7 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
         yb = 100;
     } // if
     else
-    {   // No return manifold in top, this is an HLT or boil-kettle
+    {   // No return manifold in top, this is an HLT or Boil-kettle
         yb = 20;
     } // else
     int xbase = -10-(tankWidth>>2); // top-left coord. of temperature display

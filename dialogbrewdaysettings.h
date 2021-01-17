@@ -38,6 +38,8 @@ private slots:
     void on_buttonBox_accepted();
     void on_cbMash1_stateChanged(int arg1);
 
+    void on_cbBKrecirc_stateChanged(int arg1);
+
 private:
     Ui::DialogBrewDaySettings *ui;
     MainEbrew *pEbrew; // pointer to parent (MainEbrew)

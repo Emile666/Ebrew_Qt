@@ -41,8 +41,11 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     scene->addItem(hlt); // Hot-Liquid Tun (HLT)
     p->hlt = hlt;        // save hlt reference to MainEbrew
     point = hlt->getCoordinates(COORD_LEFT_PIPE1) + QPoint(-60,20); // get coordinates of top-left pipe of heat-exchanger
+    hlt->setToolTip("<b>Hot Liquid Tun (HLT)</b>: contains fresh water for the brew system and has a built-in temperature sensor and a heat-exchanger.<br>The following information is shown:<br>1) The actual temperature and the setpoint temperature.<br>2) Actual volume showing the remaining water in the HLT.<br>3) Actual power applied to the HLT, this is the PID controller output as a percentage from 0 to 100 %.");
+
     Pump *pump2 = new Pump(point,OUT_RIGHT,"P2");
     pump2->setStatus(AUTO_OFF);
+    pump2->setToolTip("<b>HLT pump</b>: controls water circulation inside HLT and pumps water through internal HLT heat-exchanger. Red=Off, Green=Running. Press \'<b>Q</b>\' for manual control, \'<b>A</b>\' for automated control. Click <b>right mouse button</b> for popup menu");
     scene->addItem(pump2);
     p->P2 = pump2;            // add pump2 reference to MainEbrew
     point = pump2->getCoordinates(COORD_LEFT) + QPoint(-50,0);
@@ -75,6 +78,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     //----------------------------------------------------------
     point = hlt->getCoordinates(COORD_BOTTOM_PIPE1) + QPoint(0,30); // get coordinates of bottom-left pipe
     Valve *valve2 = new Valve(point,VERTICAL,"V2");
+    valve2->setToolTip("<b>Solenoid ball valve V2</b>, HLT-output, red=closed, green=open. Press \'<b>2</b>\' for manual control, \'<b>A</b>\' for automated control. Click <b>right mouse button</b> for popup menu");
     scene->addItem(valve2);
     p->V2 = valve2;          // Add valve2 reference to MainEbrew
     point = valve2->getCoordinates(COORD_BOTTOM) + QPoint(0,50);
@@ -84,6 +88,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     point = elbow2->getCoordinates(COORD_RIGHT) + QPoint(12,-25);
     Meter *flow1 = new Meter(point,METER_HFLOW,"flow1");
     flow1->setFlowParameters(TS_FLOWS_MSEC,p->RegEbrew->value("FLOW_TEMP_CORR").toInt()==1,p->RegEbrew->value("FLOW1_ERR").toDouble());
+    flow1->setToolTip("<b>Flowsensor 1</b>: measures water volume (L) coming from HLT: Red=Error, Orange=No flow, Green=Flow detected.<br>Calibrate sensor with Options->Measurements Settings->Flows Dialog screen");
     p->F1 = flow1;           // Add flow1 reference to MainEbrew
     point = flow1->getCoordinates(COORD_RIGHT) + QPoint(50,1);
     Pipe *Tpipe1 = new Pipe(point,PIPE3_NO_TOP,50,COLOR_IN0); // T-pipe right of flowmeter 1
@@ -96,10 +101,12 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     // Objects: mlt, valve1, Tpipe2, pipeH2
     //----------------------------------------------------------
     Tank *mlt = new Tank(-270,0,250,300,TANK_MANIFOLD_BOTTOM|TANK_MANIFOLD_TOP,"MLT 110L");
+    mlt->setToolTip("<b>Mash Lauter Tun (MLT)</b>: contains the grains and the wort and has a built-in temperature sensor. The MLT is heated indirectly, which is what it makes a HERMS system.<br>The following information is shown:<br>1) The actual temperature and the setpoint temperature.<br>2) Actual volume showing the wort volume in the MLT.<br>");
     scene->addItem(mlt);     // Mash-Lauter Tun (MLT)
     p->mlt = mlt;            // add MLT reference to MainEbrew
     point = mlt->getCoordinates(COORD_BOTTOM_PIPE1) + QPoint(0,30); // get coordinates of bottom-left pipe
     Valve *valve1 = new Valve(point,VERTICAL,"V1");
+    valve1->setToolTip("<b>Solenoid ball valve V1</b>, MLT output, red=closed, green=open. Press \'<b>1</b>\' for manual control, \'<b>A</b>\' for automated control. Click <b>right mouse button</b> for popup menu");
     scene->addItem(valve1);  // valve V1
     p->V1 = valve1;          // add valve1 reference to MainEbrew
     point += QPoint(0,80);
@@ -113,14 +120,16 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     scene->addItem(pipeH2);   // horizontal connecting pipe between HLT and MLT
 
     //----------------------------------------------------------
-    // Draw boil-kettle with output pipe and valve V3
+    // Draw Boil-kettle with output pipe and valve V3
     // Objects: boil, valve3, elbow3, pipeH3
     //----------------------------------------------------------
     Tank *boil = new Tank(60,0,275,300,TANK_MANIFOLD_BOTTOM|TANK_RETURN_BOTTOM,"BOIL 140L");
     scene->addItem(boil);
+    boil->setToolTip("<b>Boil-kettle (BOIL)</b>: contains the boiling wort and has a built-in temperature sensor.<br>The following information is shown:<br>1) The actual temperature and the setpoint temperature.<br>2) Actual volume showing the wort volume in the Boil-kettle.<br>3) Actual power applied to the Boil-kettle, this is the PID controller output as a percentage from 0 to 100 %.");
     p->boil = boil;          // add boil reference to MainEbrew
     point = boil->getCoordinates(COORD_BOTTOM_PIPE1) + QPoint(0,30); // get coordinates of bottom-left pipe
     Valve *valve3 = new Valve(point,VERTICAL,"V3");
+    valve3->setToolTip("<b>Solenoid ball valve V3</b>, Boil-kettle output, red=closed, green=open. Press \'<b>3</b>\' for manual control, \'<b>A</b>\' for automated control. Click <b>right mouse button</b> for popup menu");
     scene->addItem(valve3);  // Valve V3 at input-side of pump
     p->V3 = valve3;          // add valve3 reference to MainEbrew
     point += QPoint(0,80);
@@ -134,11 +143,12 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     scene->addItem(pipeH3);  // horizontal connecting pipe between MLT and Boil-kettle
 
     //----------------------------------------------------------
-    // Draw boil-kettle input pipe with valve V7
+    // Draw Boil-kettle input pipe with valve V7
     // Objects: valve7, pipeV5, elbow4, pipeH8, flow2, Tpipe4
     //----------------------------------------------------------
     point = boil->getCoordinates(COORD_BOTTOM_PIPE2) + QPoint(0,30); // get coordinates of bottom-right pipe
     Valve *valve7 = new Valve(point,VERTICAL,"V7");
+    valve7->setToolTip("<b>Solenoid ball valve V7</b>, Boil-kettle input, red=closed, green=open. Press \'<b>7</b>\' for manual control, \'<b>A</b>\' for automated control. Click <b>right mouse button</b> for popup menu");
     scene->addItem(valve7);  // valve V7
     p->V7 = valve7;          // add valve7 reference to MainEbrew
     point = valve7->getCoordinates(COORD_BOTTOM) + QPoint(0,60);
@@ -156,6 +166,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     point = pipeH8->getCoordinates(COORD_LEFT) + QPoint(-34,-25);
     Meter *flow2 = new Meter(point,METER_HFLOW,"flow2");
     flow2->setFlowParameters(TS_FLOWS_MSEC,p->RegEbrew->value("FLOW_TEMP_CORR").toInt()==1,p->RegEbrew->value("FLOW2_ERR").toDouble());
+    flow2->setToolTip("<b>Flowsensor 2</b>: measures wort volume (L) flowing into Boil-kettle: Red=Error, Orange=No flow, Green=Flow detected.<br>Calibrate sensor with Options->Measurements Settings->Flows Dialog screen");
     p->F2 = flow2;           // Add flow2 reference to MainEbrew
     point = flow2->getCoordinates(COORD_LEFT) + QPoint(-50,0);
     Pipe *Tpipe4 = new Pipe(point,PIPE3_NO_TOP,50,COLOR_OUT0);
@@ -170,6 +181,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     point = Tpipe4->getCoordinates(COORD_BOTTOM) + QPoint(0,30);
     Valve *valve6 = new Valve(point,VERTICAL,"V6");
     scene->addItem(valve6);  // valve V6
+    valve6->setToolTip("<b>Solenoid ball valve V6</b>, CFC-output, red=closed, green=open. Press \'<b>6</b>\' for manual control, \'<b>A</b>\' for automated control. Click <b>right mouse button</b> for popup menu");
     p->V6 = valve6;          // add valve6 reference to MainEbrew
     point = valve6->getCoordinates(COORD_BOTTOM) + QPoint(0,20);
 
@@ -180,6 +192,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
 
     Meter *flow3 = new Meter(point,METER_VFLOW,"flow3");
     flow3->setFlowParameters(TS_FLOWS_MSEC,p->RegEbrew->value("FLOW_TEMP_CORR").toInt()==1,p->RegEbrew->value("FLOW3_ERR").toDouble());
+    flow3->setToolTip("<b>Flowsensor 3</b>: measures wort volume (L) flowing into Fermentation Bin: Red=Error, Orange=No flow, Green=Flow detected.<br>Calibrate sensor with Options->Measurements Settings->Flows Dialog screen");
     point = flow3->getCoordinates(COORD_BOTTOM) + QPoint(0,48);
     p->F3 = flow3;           // Add flow3 reference to MainEbrew
 
@@ -190,6 +203,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
 
     point = elbow5->getCoordinates(COORD_RIGHT) + QPoint(13,-25);
     Meter *temp3 = new Meter(point,METER_HTEMP,"Tcfc");
+    temp3->setToolTip("<b>Temperature sensor 3</b>: measures temperature (°C) at output of Counterflow Chiller (CFC). Use it to control wort temperature flowing into fermentation bin. Red=Error reading sensor, Green=No error. Calibrate sensor with Options->Measurements Settings->Temperatures Dialog screen");
     scene->addItem(temp3);
     p->T3 = temp3;           // Add temp3 reference to MainEbrew
 
@@ -201,7 +215,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     point += QPoint(-140,40);
     font.setPointSize(12);
     font.setBold(true);
-    QGraphicsTextItem *text = scene->addText("To CFC (Counterflow Chiller)",font);
+    QGraphicsTextItem *text = scene->addText("To Fermenter",font);
     text->setPos(point);     // insert text
 
     //----------------------------------------------------------
@@ -228,6 +242,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     point = elbow6->getCoordinates(COORD_LEFT) + QPoint(-60,20);
     Pump *pump1 = new Pump(point,OUT_RIGHT,"P1");
     pump1->setStatus(AUTO_OFF);
+    pump1->setToolTip("<b>Main pump</b> for the HERMS brewing system. Red=Off, Green=Running. Press \'<b>P</b>\' for manual control, \'<b>A</b>\' for automated control. Click <b>right mouse button</b> for popup menu");
     scene->addItem(pump1);   // Pump 1
     p->P1 = pump1;           // Add pump1 reference to MainEbrew
 
@@ -267,6 +282,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     point = elbow8->getCoordinates(COORD_TOP) + QPoint(-11,-47);
     Meter *flow4 = new Meter(point,METER_VFLOW,"flow4");
     flow4->setFlowParameters(TS_FLOWS_MSEC,p->RegEbrew->value("FLOW_TEMP_CORR").toInt()==1,p->RegEbrew->value("FLOW4_ERR").toDouble());
+    flow4->setToolTip("<b>Flowsensor 4</b>: measures water volume (L) flowing into top of MLT: Red=Error, Orange=No flow, Green=Flow detected.<br>Calibrate sensor with Options->Measurements Settings->Flows Dialog screen");
     // Calculate size for top-left elbow, so that a separate vertical pipe is not needed
     point.setX(elbow8->x()); // set x-coordinate to lower elbow pipe
     point.setY(mlt->getCoordinates(COORD_LEFT_TOP_PIPE).y()); // get y-coordinate of top-left pipe for return-manifold in top
@@ -303,6 +319,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     //-------------------------------------------------------------------------------------------------
     point.setY(valve1->y()); // get y-coordinate from one of the valves
     Valve *valve4 = new Valve(point,VERTICAL,"V4");
+    valve4->setToolTip("<b>Solenoid ball valve V4</b>, MLT-return valve, red=closed, green=open. Press \'<b>4</b>\' for manual control, \'<b>A</b>\' for automated control. Click <b>right mouse button</b> for popup menu");
     scene->addItem(valve4);  // valve V4
     p->V4 = valve4;          // add valve4 reference to MainEbrew
 
@@ -328,16 +345,19 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     scene->addItem(pipeH9);
 
     Display *stdText = new Display(QPointF(-800,450),700);
+    stdText->setToolTip("<b>Current State</b>: shows the current state of the brew-session, together with a hint of what to do next. If <b>(M)</b> is shown, it indicates that a manual action is needed");
     stdText->setText("00. Initialisation");
     stdText->setSubText("Press the HLT PID Controller button to advance to the next state");
     scene->addItem(stdText);
     p->stdText = stdText;
 
     PowerButton *hltPid = new PowerButton(-850,200,270,60,"HLT PID Controller");
+    hltPid->setToolTip("<b>HLT Power Switch</b>: switches the HLT PID controller On or Off. Press it after power-up to start a new brew-session");
     scene->addWidget(hltPid);
     p->hltPid = hltPid; // add hltPid reference to MainEbrew
 
     PowerButton *boilPid = new PowerButton(-850,270,270,60,"BOIL PID Controller");
+    boilPid->setToolTip("<b>Boil-kettle Power Switch</b>: switches the PID controller for the Boil-kettle On or Off. Use it if you want to manually control the Boil-kettle");
     scene->addWidget(boilPid);
     p->boilPid = boilPid; // add boilPid reference to MainEbrew
 

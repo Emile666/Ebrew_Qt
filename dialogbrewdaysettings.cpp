@@ -72,6 +72,18 @@ DialogBrewDaySettings::DialogBrewDaySettings(QWidget *parent) :
     ui->sbBoil5->setValue(pEbrew->RegEbrew->value("LIMIT_BOIL").toInt());
     ui->cbBoil1->setChecked(pEbrew->RegEbrew->value("CB_Boil_Rest").toInt() ? true : false);
     ui->cbHopAlarm->setChecked(pEbrew->RegEbrew->value("CB_Hop_Alarm").toInt() ? true : false);
+    ui->cbBKrecirc->setChecked(pEbrew->RegEbrew->value("CB_BK_recirc").toInt() ? true : false);
+    ui->sbBKrecirc->setValue(pEbrew->RegEbrew->value("LIMIT_BK_recirc").toInt());
+    if (ui->cbBKrecirc->isChecked())
+    {
+        ui->lblBKrecirc->setEnabled(true);
+        ui->sbBKrecirc->setEnabled(true);
+    } // if
+    else
+    {
+        ui->lblBKrecirc->setEnabled(false);
+        ui->sbBKrecirc->setEnabled(false);
+    } // else
 
     //-------------------------------
     // Clean in Place (CIP)
@@ -113,13 +125,15 @@ void DialogBrewDaySettings::on_buttonBox_accepted()
     //-------------------------------
     // Boiling
     //-------------------------------
-    pEbrew->RegEbrew->setValue("BOIL_MIN_TEMP",ui->sbBoil1->value());
-    pEbrew->RegEbrew->setValue("SP_PREBOIL"   ,ui->sbBoil2->value());
-    pEbrew->RegEbrew->setValue("BOIL_DETECT"  ,ui->sbBoil3->value());
-    pEbrew->RegEbrew->setValue("SP_BOIL"      ,ui->sbBoil4->value());
-    pEbrew->RegEbrew->setValue("LIMIT_BOIL"   ,ui->sbBoil5->value());
-    pEbrew->RegEbrew->setValue("CB_Boil_Rest" ,ui->cbBoil1->isChecked() ? 1 : 0);
-    pEbrew->RegEbrew->setValue("CB_Hop_Alarm" ,ui->cbHopAlarm->isChecked() ? 1 : 0);
+    pEbrew->RegEbrew->setValue("BOIL_MIN_TEMP"  ,ui->sbBoil1->value());
+    pEbrew->RegEbrew->setValue("SP_PREBOIL"     ,ui->sbBoil2->value());
+    pEbrew->RegEbrew->setValue("BOIL_DETECT"    ,ui->sbBoil3->value());
+    pEbrew->RegEbrew->setValue("SP_BOIL"        ,ui->sbBoil4->value());
+    pEbrew->RegEbrew->setValue("LIMIT_BOIL"     ,ui->sbBoil5->value());
+    pEbrew->RegEbrew->setValue("CB_Boil_Rest"   ,ui->cbBoil1->isChecked() ? 1 : 0);
+    pEbrew->RegEbrew->setValue("CB_Hop_Alarm"   ,ui->cbHopAlarm->isChecked() ? 1 : 0);
+    pEbrew->RegEbrew->setValue("CB_BK_recirc"   ,ui->cbBKrecirc->isChecked() ? 1 : 0);
+    pEbrew->RegEbrew->setValue("LIMIT_BK_recirc",ui->sbBKrecirc->value());
 
     //-------------------------------
     // Clean in Place (CIP)
@@ -150,3 +164,17 @@ void DialogBrewDaySettings::on_cbMash1_stateChanged(int arg1)
         ui->sbMash5->setEnabled(true);
     } // else
 } // DialogBrewDaySettings::on_cbMash1_stateChanged()
+
+void DialogBrewDaySettings::on_cbBKrecirc_stateChanged(int arg1)
+{
+    if (arg1)
+    {
+        ui->lblBKrecirc->setEnabled(true);
+        ui->sbBKrecirc->setEnabled(true);
+    } // if
+    else
+    {
+        ui->lblBKrecirc->setEnabled(false);
+        ui->sbBKrecirc->setEnabled(false);
+    } // else
+} // DialogBrewDaySettings::on_cbBKrecirc_stateChanged()

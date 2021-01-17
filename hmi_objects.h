@@ -5,7 +5,7 @@
 **               are used by MainEbrew:
 **               PowerButton: A push-button with a green/red LED in it.
 **               Meter      : a flowmeter or temperaturesensor, showing actual values.
-**               Tank       : a tank object for constructing a HLT, MLT or boil-kettle.
+**               Tank       : a tank object for constructing a HLT, MLT or Boil-kettle.
 **               Pipe       : a pipe which is used to connect everything. A pipe can have
 **                            just 2 pipes, but also 3 and 4 pipes.
 **               Display    : A display with a sub-text for displaying the actual state.

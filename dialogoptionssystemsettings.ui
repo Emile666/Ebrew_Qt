@@ -701,7 +701,7 @@
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The total volume of the Boil-kettle&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>Boil-Kettle Total Volume</string>
+         <string>Boil-kettle Total Volume</string>
         </property>
        </widget>
       </item>

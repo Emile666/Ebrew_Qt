@@ -40,6 +40,9 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox if you want to manually control the HLT setpoint temperature. This value is normally calculated from the mash-scheme and some preset parameters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>Setpoint Temperature</string>
       </property>
@@ -55,6 +58,9 @@
         <width>60</width>
         <height>16777215</height>
        </size>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value to set as the HLT setpoint temperature. &lt;/p&gt;&lt;p&gt;Minimum: 20 °C, Maximum 110 °C, increment: 1 °C&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="suffix">
        <string> °C</string>
@@ -99,6 +105,9 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox if you want to manually set the actual temperature for the HLT. It overrules the value read from the temperature sensor.&lt;/p&gt;&lt;p&gt;If you disable this checkbox, the normal value that is read from the temperature sensor is used again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>Actual Temperature</string>
       </property>
@@ -114,6 +123,9 @@
         <width>60</width>
         <height>16777215</height>
        </size>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value to set as the actual HLT temperature. &lt;/p&gt;&lt;p&gt;Minimum: 20 °C, Maximum 100 °C, increment: 1 °C&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="suffix">
        <string> °C</string>
@@ -155,6 +167,9 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox if you want to manually set the actual volume for the HLT. It overrules the value calculated from the flow sensor reading.&lt;/p&gt;&lt;p&gt;If you disable this checkbox, the normal calculated value is used again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>Actual Volume</string>
       </property>
@@ -170,6 +185,9 @@
         <width>60</width>
         <height>16777215</height>
        </size>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value to set as the actual HLT volume. &lt;/p&gt;&lt;p&gt;Minimum: 0 L, Maximum 200 L, increment: 1 L&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="suffix">
        <string> L</string>
@@ -214,6 +232,9 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox if you want to manually control the HLT PID-controller output. It overrules the value calculated by the PID-controller. The PID-controller output directly control the gas-burner or the electrical heating element. &lt;/p&gt;&lt;p&gt;If you disable this checkbox, the calculated value from the HLT PID-controller is used again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>PID-controller output</string>
       </property>
@@ -235,6 +256,9 @@
         <width>50</width>
         <height>16777215</height>
        </size>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value to set as PID-controller output. &lt;/p&gt;&lt;p&gt;Minimum: 0 %, Maximum 100 %, increment: 1 %&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="suffix">
        <string> %</string>
@@ -301,6 +325,9 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox if you want to manually set the actual temperature for the MLT. It overrules the value read from the temperature sensor.&lt;/p&gt;&lt;p&gt;If you disable this checkbox, the normal value that is read from the temperature sensor is used again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>Actual Temperature</string>
       </property>
@@ -316,6 +343,9 @@
         <width>60</width>
         <height>16777215</height>
        </size>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value to set as the actual MLT temperature. &lt;/p&gt;&lt;p&gt;Minimum: 20 °C, Maximum 100 °C, increment: 1 °C&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="suffix">
        <string> °C</string>
@@ -357,6 +387,9 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox if you want to manually set the actual volume for the MLT. It overrules the value calculated from the flow sensor reading.&lt;/p&gt;&lt;p&gt;If you disable this checkbox, the normal calculated value is used again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>Actual Volume</string>
       </property>
@@ -372,6 +405,9 @@
         <width>60</width>
         <height>16777215</height>
        </size>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value to set as the actual MLT volume. &lt;/p&gt;&lt;p&gt;Minimum: 0 L, Maximum 200 L, increment: 1 L&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="suffix">
        <string> L</string>
@@ -460,6 +496,9 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox if you want to manually control theBoil-kettle PID-controller output. It overrules the value calculated by the PID-controller. The PID-controller output directly control the gas-burner or the electrical heating element. &lt;/p&gt;&lt;p&gt;If you disable this checkbox, the calculated value from theBoil-kettle PID-controller is used again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>PID-controller output</string>
       </property>
@@ -481,6 +520,9 @@
         <width>50</width>
         <height>16777215</height>
        </size>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value to set as PID-controller output. &lt;/p&gt;&lt;p&gt;Minimum: 0 %, Maximum 100 %, increment: 1 %&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="suffix">
        <string> %</string>
@@ -525,6 +567,9 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox if you want to manually control the Boil-kettle setpoint temperature. This value is normally calculated from some preset parameters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>Setpoint Temperature</string>
       </property>
@@ -540,6 +585,9 @@
         <width>60</width>
         <height>16777215</height>
        </size>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value to set as the Boil-kettle setpoint temperature. &lt;/p&gt;&lt;p&gt;Minimum: 20 °C, Maximum 110 °C, increment: 1 °C&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="suffix">
        <string> °C</string>
@@ -584,6 +632,9 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox if you want to manually set the actual temperature for the Boil-kettle. It overrules the value read from the temperature sensor.&lt;/p&gt;&lt;p&gt;If you disable this checkbox, the normal value that is read from the temperature sensor is used again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>Actual Temperature</string>
       </property>
@@ -599,6 +650,9 @@
         <width>60</width>
         <height>16777215</height>
        </size>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value to set as the actual Boil-kettle temperature. &lt;/p&gt;&lt;p&gt;Minimum: 20 °C, Maximum 100 °C, increment: 1 °C&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="suffix">
        <string> °C</string>
@@ -640,6 +694,9 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox if you want to manually set the actual volume for the HLT. It overrules the value calculated from the flow sensor reading.&lt;/p&gt;&lt;p&gt;If you disable this checkbox, the normal calculated value is used again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>Actual Volume</string>
       </property>
@@ -655,6 +712,9 @@
         <width>60</width>
         <height>16777215</height>
        </size>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value to set as the actual Boil-kettle volume. &lt;/p&gt;&lt;p&gt;Minimum: 0 L, Maximum 200 L, increment: 1 L&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="suffix">
        <string> L</string>
@@ -689,7 +749,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Boil-Kettle</string>
+    <string>Boil-kettle</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_2">
@@ -759,6 +819,9 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable this checkbox if you want to manually set the actual temperature inside the hardware box. It overrules the value read from the temperature sensor. This temperature is typically to check if the power-electronics do not overheat.&lt;/p&gt;&lt;p&gt;If you disable this checkbox, the normal value that is read from the temperature sensor is used again.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>Actual Temperature Electronics</string>
       </property>
@@ -775,6 +838,9 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The value to set as the actual Power-electronics internal temperature. &lt;/p&gt;&lt;p&gt;Minimum: 20 °C, Maximum 110 °C, increment: 1 °C&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="suffix">
        <string> °C</string>
       </property>
@@ -783,6 +849,9 @@
       </property>
       <property name="minimum">
        <double>20.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>110.000000000000000</double>
       </property>
      </widget>
     </item>
@@ -835,6 +904,9 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The mash scheme index indicates which temperature of the mash-scheme is currently being used. Normally there's no need to set this index manually and use of this is highly discouraged, because it can mess up the entire mash scheme of your brew!&lt;/p&gt;&lt;p&gt;Use this only if you want to set the mash scheme index after a power-failure and you want to continu with the interrupted mash scheme.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>Mash Index (ms_idx)</string>
       </property>
@@ -850,6 +922,9 @@
         <width>60</width>
         <height>16777215</height>
        </size>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The actual value for the mash-scheme index number.&lt;/p&gt;&lt;p&gt;Minimum: 0, Maximum 10, increment: 1&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="suffix">
        <string/>
@@ -897,6 +972,9 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The sparge index indicates which batch sparge number is currently active. Normally there's no need to set this index manually and use of this is highly discouraged, because it can mess up the entire batch sparge of your brew!&lt;/p&gt;&lt;p&gt;Use this only if you want to set the batch sparge index after a power-failure and you want to continu with the interrupted batch sparge.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>Sparge Index (sp_idx)</string>
       </property>
@@ -912,6 +990,9 @@
         <width>60</width>
         <height>16777215</height>
        </size>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The actual value for the current batch sparge number.&lt;/p&gt;&lt;p&gt;Minimum: 0, Maximum 10, increment: 1&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="suffix">
        <string/>
@@ -959,6 +1040,9 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Index into the current state of the State Transition Diagram (STD) that controls the entire brew program. Normally there's no need to set this state number manually and use of this is highly discouraged, because it can mess up the entire brewsession!&lt;/p&gt;&lt;p&gt;Use this only during debugging or testing of the brew program.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="text">
        <string>STD state</string>
       </property>
@@ -968,6 +1052,9 @@
      <widget class="QComboBox" name="comboStd">
       <property name="enabled">
        <bool>false</bool>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a state by clicking a row in the dropdown combobox.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="currentIndex">
        <number>0</number>
@@ -1019,7 +1106,7 @@
       </item>
       <item>
        <property name="text">
-        <string>06. Pump from MLT to Boil-Kettle</string>
+        <string>06. Pump from MLT to Boil-kettle</string>
        </property>
       </item>
       <item>
@@ -1050,6 +1137,16 @@
       <item>
        <property name="text">
         <string>12. Boiling Finished</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>33. Chill Boil-kettle</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>34. Chill Boil-kettle ready</string>
        </property>
       </item>
       <item>
@@ -1104,6 +1201,9 @@
     </item>
     <item>
      <widget class="QDialogButtonBox" name="buttonBox">
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;OK&lt;/span&gt; Apply the changes and close the Dialog Box.&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Cancel &lt;/span&gt;Disable all checkboxes and close the Dialog Box.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>

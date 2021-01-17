@@ -308,7 +308,7 @@ void DialogEditFixParameters::on_buttonBox_rejected()
     pEbrew->vmlt_sw      = false;
     pEbrew->vmlt_fx      = 0.0;
     //----------------------
-    // Boil-Kettle
+    // Boil-kettle
     //----------------------
     pEbrew->tset_boil_sw  = false;
     pEbrew->tset_boil_fx  = 0.0;
@@ -393,7 +393,7 @@ void DialogEditFixParameters::set_switch_fix(void)
         pEbrew->vmlt_fx = 0.0;
     } // else
     //----------------------
-    // Boil-Kettle
+    // Boil-kettle
     //----------------------
     if (ui->cbBkSp->checkState())
     {

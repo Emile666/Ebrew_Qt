@@ -83,7 +83,7 @@ int main(int argc, char **argv)
     auto frame = new QFrame;
     frame->setLayout(new QVBoxLayout);
     Ebrew->setCentralWidget(frame);
-    app.setApplicationName("Ebrew 3.0 Qt: Automating your Home-Brewery!");
+    app.setApplicationName(QString("Ebrew 3.0 Qt r%1: Automating your Home-Brewery!").arg(Ebrew->ebrewRevision.mid(11,4)));
     draw_hmi_screen(&scene,Ebrew); // Draw the total Human-Machine Interface on screen
     view.showNormal();
     view.setBackgroundBrush(QBrush(COLOR_BACKGROUND));

@@ -28,7 +28,7 @@
     </font>
    </property>
    <property name="toolTip">
-    <string>This is the Text Editor for the Mash Scheme File</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the Text Editor for the Mash Scheme File. Do &lt;span style=&quot; font-weight:600;&quot;&gt;NOT&lt;/span&gt; add/delete lines or improve formatting! Only change the numbers and text on the lines itself.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
   <widget class="QWidget" name="layoutWidget">
@@ -36,7 +36,7 @@
     <rect>
      <x>70</x>
      <y>390</y>
-     <width>416</width>
+     <width>425</width>
      <height>25</height>
     </rect>
    </property>
@@ -54,7 +54,7 @@
     <item>
      <widget class="QPushButton" name="pushButton_2">
       <property name="toolTip">
-       <string>Save the Mash Scheme into a new File</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save the Mash Scheme into a new File. Note that if you actually want to use this mash scheme in a brew-session, you have to set it to default with the 'Save as default' button.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="text">
        <string>Save As...</string>
@@ -64,15 +64,18 @@
     <item>
      <widget class="QPushButton" name="pushButton_3">
       <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save the Mash Scheme into maisch.sch. It also sets the values for this brew-session, so there's no need to load maisch.sch again&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save the Mash Scheme into the default file &lt;span style=&quot; font-weight:600;&quot;&gt;maisch.sch&lt;/span&gt;. It also sets the values for this brew-session, so there's no need to load maisch.sch again&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="text">
-       <string>Save</string>
+       <string>Save as default</string>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QDialogButtonBox" name="buttonBox">
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Closes the Mash Scheme Editor. Note that you have to set a default mash scheme first (with the 'Save as default' button), this button only closes the editor!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>

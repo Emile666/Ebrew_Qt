@@ -169,7 +169,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the actual boil-kettle Temperature. Use this to calibrate the measured temperature&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the actual Boil-kettle Temperature. Use this to calibrate the measured temperature&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="suffix">
          <string> °C</string>
@@ -240,7 +240,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the actual boil-kettle Temperature. Use this to calibrate the measured temperature&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the actual Boil-kettle Temperature. Use this to calibrate the measured temperature&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="suffix">
          <string> °C</string>
@@ -445,10 +445,10 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Error correction in % for the flowsensor between MLT and the boil-kettle&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Error correction in % for the flowsensor between MLT and the Boil-kettle&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flowsensor 2 (between MLT and boil-kettle) error correction&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flowsensor 2 (between MLT and Boil-kettle) error correction&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
@@ -467,7 +467,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Error correction in % for the flowsensor between MLT and the boil-kettle&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Error correction in % for the flowsensor between MLT and the Boil-kettle&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="suffix">
          <string> %</string>
@@ -769,7 +769,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If the flowrate is less than this percentage of the nominal flowrate, then the boil-kettle is considered to be empty and the pump is switched off&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If the flowrate is less than this percentage of the nominal flowrate, then the Boil-kettle is considered to be empty and the pump is switched off&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Minimum flowrate for detection of '&lt;span style=&quot; font-style:italic;&quot;&gt;Boil-kettle is empty&lt;/span&gt;'&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -791,7 +791,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If the flowrate is less than this percentage of the nominal flowrate, then the boil-kettle is considered to be empty and the pump is switched off&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If the flowrate is less than this percentage of the nominal flowrate, then the Boil-kettle is considered to be empty and the pump is switched off&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="suffix">
          <string> %</string>

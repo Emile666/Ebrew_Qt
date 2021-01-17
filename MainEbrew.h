@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.03 $"                      /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.04 $"                      /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -121,14 +121,16 @@
 #define S07_PUMP_FROM_HLT_TO_MLT   (7)
 #define S08_DELAY_xSEC             (8)
 
-#define S09_EMPTY_MLT              (9)
-#define S10_WAIT_FOR_BOIL         (10)
-#define S11_BOILING               (11)
-#define S12_BOILING_FINISHED      (12)
-#define S16_CHILL_PUMP_FERMENTOR  (16)
-#define S17_FINISHED              (17)
-#define S18_MASH_REST_5_MIN       (18)
-#define S19_RDY_TO_ADD_MALT       (19)
+#define S09_EMPTY_MLT              (9) /* Pump all remaining wort from MLT into Boil-kettle */
+#define S10_WAIT_FOR_BOIL         (10) /* Wait until wort in Boil-kettle start boiling */
+#define S11_BOILING               (11) /* Wort is boiling */
+#define S12_BOILING_FINISHED      (12) /* Boiling finished, prepare for wort chilling */
+#define S33_CHILL_BOIL_KETTLE     (33) /* Boil-kettle Chilling, CFC-output into top of BK */
+#define S34_CHILL_BK_READY        (34) /* Boil-kettle Chilling is finished */
+#define S16_CHILL_PUMP_FERMENTOR  (16) /* Chill and transfer wort from Boil-kettle to CFC */
+#define S17_FINISHED              (17) /* All wort is pumped into fermentation-bin, brewing session finished */
+#define S18_MASH_REST_5_MIN       (18) /* Wait 5 minutes before pump is switched on */
+#define S19_RDY_TO_ADD_MALT       (19) /* Ready to add malt to water inside the MLT */
 
 #define S20_CIP_INIT              (20)
 #define S21_CIP_HEAT_UP           (21)
@@ -143,7 +145,7 @@
 #define S30_CIP_CLEAN_INPUT_V3    (30)
 #define S31_CIP_CLEAN_INPUT_V1    (31)
 #define S32_CIP_END               (32)
-#define STD_MAX                   (S32_CIP_END)
+#define STD_MAX                   (34) /* Max. number for ebrew_std */
 
 //-------------------------------------------------------------
 // Hard-coded Timers.
@@ -173,7 +175,7 @@
 #define ALL_PUMPS  (P0b | P1b)
 
 //-----------------------------------------------------
-// E-brew System Modes for heating HLT and boil-kettle
+// E-brew System Modes for heating HLT and Boil-kettle
 //-----------------------------------------------------
 #define GAS_MODULATING     (0) /* Modulating gas-burner */
 #define GAS_NON_MODULATING (1) /* Non-modulating (on/off) gas-burner */
@@ -244,6 +246,7 @@ public:
     QFile       *fDbgCom;        // Com-port debug file object
     QToolBar    *toolBarB;       // Toolbar with brewing checkboxes
     QToolBar    *toolBarC;       // Toolbar with CIP checkboxes
+    QString     ebrewRevision = EBREW_REVISION; // Ebrew SW revision number
 
     // Pointers to pipes and elbows in graphical scene
     Pipe *elbowP20; // Pump P2 top-left elbow
@@ -305,7 +308,7 @@ public:
     qreal tcfc;             // CFC-output actual temperature
     qreal ttriac;           // Temperature of Power Electronics
     qreal gamma_hlt;        // PID controller output for HLT
-    qreal gamma_boil;       // PID controller output for Boil-Kettle
+    qreal gamma_boil;       // PID controller output for Boil-kettle
     qreal tset_hlt;         // HLT reference temperature
     qreal tset_mlt;         // MLT reference temperature
     qreal tset_boil;        // HLT reference temperature
@@ -437,7 +440,6 @@ protected:
 
     int      pidCntr       = 0;                // counter for task_pid_control()
     bool     toggleLed     = false;            // Indicator for Alive LED
-    QString  ebrewRevision = EBREW_REVISION;   // Ebrew SW revision number
     QString  line1MashScheme;                  // Title line in mash-scheme file, needed for log-file
 
 private:
@@ -461,7 +463,7 @@ private:
     QCheckBox *toolStartChilling; // Toolbar top checkbox prepare chiller
     QCheckBox *toolReadyChilling; // Toolbar top checkbox chilling is finished
     QCheckBox *toolCipInitDone;   // Toolbar top checkbox ready to start CIP program
-    QCheckBox *toolCipDrainBK;    // Toolbar top checkbox drain boil-kettle
+    QCheckBox *toolCipDrainBK;    // Toolbar top checkbox drain Boil-kettle
     QCheckBox *toolCipHltFilled;  // Toolbar top checkbox HLT filled with water
 }; // MainEbrew()
 
