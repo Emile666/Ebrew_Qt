@@ -31,6 +31,20 @@ DialogOptionsMeasurements::DialogOptionsMeasurements(QWidget *parent) :
     ui->sbTmltCal->setValue(pEbrew->RegEbrew->value("TMLT_OFFSET").toDouble());
     ui->sbTboilCal->setValue(pEbrew->RegEbrew->value("TBOIL_OFFSET").toDouble());
     ui->sbTcfcCal->setValue(pEbrew->RegEbrew->value("TCFC_OFFSET").toDouble());
+    ui->sbThltOwCal->setValue(pEbrew->RegEbrew->value("THLT_OW_OFFSET").toDouble());
+    ui->sbTmltOwCal->setValue(pEbrew->RegEbrew->value("TMLT_OW_OFFSET").toDouble());
+    int x = pEbrew->RegEbrew->value("THLT_SENSORS").toInt();
+    if (x == TSENSOR_AVERAGING)
+         ui->rbh1->setChecked(true); // others are set automatically to false
+    else if (x == TSENSOR_USE_I2C)
+         ui->rbh2->setChecked(true);
+    else ui->rbh3->setChecked(true);
+    x = pEbrew->RegEbrew->value("TMLT_SENSORS").toInt();
+    if (x == TSENSOR_AVERAGING)
+         ui->rbm1->setChecked(true); // others are set automatically to false
+    else if (x == TSENSOR_USE_I2C)
+         ui->rbm2->setChecked(true);
+    else ui->rbm3->setChecked(true);
     // Flow Measurements
     ui->sbFlow1->setValue(pEbrew->RegEbrew->value("FLOW1_ERR").toDouble());
     ui->sbFlow2->setValue(pEbrew->RegEbrew->value("FLOW2_ERR").toDouble());
@@ -50,11 +64,26 @@ DialogOptionsMeasurements::~DialogOptionsMeasurements()
 
 void DialogOptionsMeasurements::on_buttonBox_accepted()
 {
+    int x;
     // Temperature Measurements
     pEbrew->RegEbrew->setValue("THLT_OFFSET",ui->sbThltCal->value());
     pEbrew->RegEbrew->setValue("TMLT_OFFSET",ui->sbTmltCal->value());
     pEbrew->RegEbrew->setValue("TBOIL_OFFSET",ui->sbTboilCal->value());
     pEbrew->RegEbrew->setValue("TCFC_OFFSET",ui->sbTcfcCal->value());
+    pEbrew->RegEbrew->setValue("THLT_OW_OFFSET",ui->sbThltOwCal->value());
+    pEbrew->RegEbrew->setValue("TMLT_OW_OFFSET",ui->sbTmltOwCal->value());
+    if (ui->rbh1->isChecked())
+         x = TSENSOR_AVERAGING;
+    else if (ui->rbh2->isChecked())
+         x = TSENSOR_USE_I2C;
+    else x = TSENSOR_USE_OW;
+    pEbrew->RegEbrew->setValue("THLT_SENSORS",x);
+    if (ui->rbm1->isChecked())
+         x = TSENSOR_AVERAGING;
+    else if (ui->rbm2->isChecked())
+         x = TSENSOR_USE_I2C;
+    else x = TSENSOR_USE_OW;
+    pEbrew->RegEbrew->setValue("TMLT_SENSORS",x);
     // Flow Measurements
     pEbrew->RegEbrew->setValue("FLOW1_ERR",ui->sbFlow1->value());
     pEbrew->RegEbrew->setValue("FLOW2_ERR",ui->sbFlow2->value());

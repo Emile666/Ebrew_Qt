@@ -361,6 +361,18 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     scene->addWidget(boilPid);
     p->boilPid = boilPid; // add boilPid reference to MainEbrew
 
+    point = QPoint(-1000,100);
+    Meter *temp4 = new Meter(point,METER_HTEMP,"Thlt-ow");
+    temp4->setToolTip("<b>Temperature sensor 4</b>: Auxiliary One-Wire temperature sensor 1 (°C). Red=Error reading sensor, Green=No error. Calibrate sensor with Options->Measurements Settings->Temperatures Dialog screen");
+    scene->addItem(temp4);
+    p->T4 = temp4;        // Add temp4 reference to MainEbrew
+
+    point = QPoint(-1000,200);
+    Meter *temp5 = new Meter(point,METER_HTEMP,"Tmlt-ow");
+    temp5->setToolTip("<b>Temperature sensor 5</b>: Auxiliary One-Wire temperature sensor 2 (°C). Red=Error reading sensor, Green=No error. Calibrate sensor with Options->Measurements Settings->Temperatures Dialog screen");
+    scene->addItem(temp5);
+    p->T5 = temp5;        // Add temp5 reference to MainEbrew
+
     p->setKettleNames(); // Init. titles of kettles with volumes found in Registry
 
 } // draw_hmi_screen()

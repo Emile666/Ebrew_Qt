@@ -48,7 +48,6 @@
 //------------------------------------------------------------------------------------------
 // CLASS MainEbrew
 //------------------------------------------------------------------------------------------
-// TODO Add tooltips texts
 // TODO Add Help-file
 // TODO Switch between English/Dutch language
 
@@ -477,10 +476,14 @@ void MainEbrew::createRegistry(void)
     // Options -> Measurements Dialog
     //------------------------------------
     // Temperatures
-    RegEbrew->setValue("THLT_OFFSET",0.0);    // Offset for Thlt
-    RegEbrew->setValue("TMLT_OFFSET",0.0);    // Offset for Tmlt
-    RegEbrew->setValue("TBOIL_OFFSET",0.0);   // Offset for Tboil
-    RegEbrew->setValue("TCFC_OFFSET",0.0);    // Offset for Tcfc
+    RegEbrew->setValue("THLT_OFFSET"   ,0.0); // Offset for Thlt-I2C sensor
+    RegEbrew->setValue("TMLT_OFFSET"   ,0.0); // Offset for Tmlt-I2C sensor
+    RegEbrew->setValue("TBOIL_OFFSET"  ,0.0); // Offset for Tboil-OW sensor
+    RegEbrew->setValue("TCFC_OFFSET"   ,0.0); // Offset for Tcfc-OW sensor
+    RegEbrew->setValue("THLT_OW_OFFSET",0.0); // Offset for Thlt-OW sensor
+    RegEbrew->setValue("TMLT_OW_OFFSET",0.0); // Offset for Tmlt-OW sensor
+    RegEbrew->setValue("THLT_SENSORS"  ,TSENSOR_USE_I2C); // In case both I2C and OW sensors are present
+    RegEbrew->setValue("TMLT_SENSORS"  ,TSENSOR_USE_I2C); // In case both I2C and OW sensors are present
     // Flows
     RegEbrew->setValue("FLOW1_ERR",0);        // Error Correction for FLOW1
     RegEbrew->setValue("FLOW2_ERR",0);        // Error Correction for FLOW2
@@ -996,18 +999,20 @@ void MainEbrew::task_read_temps(void)
         sleep(NORMAL_READ_TIMEOUT);
     } // while
     // Check string received for header and length "T=0.00,0.00,0.00,0.00,0.00"
-    if (ReadDataAvailable && (ReadData.indexOf("T=") != -1) && (ReadData.size() >= 26))
+    if (ReadDataAvailable && (ReadData.indexOf("T=") != -1) && (ReadData.size() >= 38))
     {
         QByteArrayList list = ReadData.split(','); // split array in sub-arrays
-        if (list.size() >= 5)
-        {   // at least 5 temperature values
+        if (list.size() >= 7)
+        {   // at least 7 temperature values
             QByteArray ba = list.at(0);
             ba.remove(0,2); // remove "T=" in 1st byte-array
-            ttriac  = ba.toDouble();
-            thlt    = list.at(1).toDouble();
-            tmlt    = list.at(2).toDouble();
-            tboil   = list.at(3).toDouble();
-            tcfc    = list.at(4).toDouble();
+            ttriac   = ba.toDouble();
+            thlt_i2c = list.at(1).toDouble();
+            tmlt_i2c = list.at(2).toDouble();
+            tboil    = list.at(3).toDouble();
+            tcfc     = list.at(4).toDouble();
+            thlt_ow  = list.at(5).toDouble();
+            tmlt_ow  = list.at(6).toDouble();
         } // if
     } // if
     else qDebug() << "task_read_temps() error: " << ReadData; // error
@@ -1028,56 +1033,27 @@ void MainEbrew::task_read_temps(void)
     { // set if temp. >= upper-limit
       triacTooHot = (ttriac >= RegEbrew->value("TTRIAC_HLIM").toInt());
     } // else
-    //------------------ TEMP2 (THLT) -----------------------------------------
-    if (thlt > SENSOR_VAL_LIM_OK)
+    //------------------ TEMP2 (THLT-I2C) --------------------------------------
+    if (thlt_i2c > SENSOR_VAL_LIM_OK)
     {
-         thlt += RegEbrew->value("THLT_OFFSET").toDouble(); // update THLT with calibration value
-         sensorAlarmInfo &= ~SENS_THLT;      // reset bit in sensor_alarm
+         thlt_i2c += RegEbrew->value("THLT_OFFSET").toDouble(); // update THLT with calibration value
+         sensorAlarmInfo &= ~SENS_THLT_I2C; // reset bit in sensor_alarm
     } // if
-    else
+    else sensorAlarmInfo |= SENS_THLT_I2C;  // set alarm
+    //------------------ TEMP3 (TMLT-I2C) --------------------------------------
+    if (tmlt_i2c > SENSOR_VAL_LIM_OK)
     {
-         if ((alarmSound == ALARM_TEMP_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS))
-         {
-              commPortWrite("X3");
-              sensorAlarmInfo |= SENS_THLT;
-         } // if
-    } // else
-    if (thlt_sw)
-    {  // Switch & Fix
-       thlt = thlt_fx;
+         tmlt_i2c += RegEbrew->value("TMLT_OFFSET").toDouble(); // update TMLT with calibration value
+         sensorAlarmInfo &= ~SENS_TMLT_I2C; // reset bit in sensor_alarm
     } // if
-    //------------------ TEMP3 (TMLT) -----------------------------------------
-    if (tmlt > SENSOR_VAL_LIM_OK)
-    {
-         tmlt += RegEbrew->value("TMLT_OFFSET").toDouble(); // update TMLT with calibration value
-         sensorAlarmInfo &= ~SENS_TMLT; // reset bit in sensor_alarm
-    } // if
-    else
-    {
-        if ((alarmSound == ALARM_TEMP_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS))
-        {
-             commPortWrite("X3");
-             sensorAlarmInfo |= SENS_TMLT;
-        } // if
-    } // else
-    if (tmlt_sw)
-    {  // Switch & Fix
-       tmlt = tmlt_fx;
-    } // if
+    else sensorAlarmInfo |= SENS_TMLT_I2C;  // set alarm
     //------------------ TEMP4 (TBOIL) ----------------------------------------
     if (tboil > SENSOR_VAL_LIM_OK)
     {
          tboil += RegEbrew->value("TBOIL_OFFSET").toDouble(); // update TBOIL with calibration value
          sensorAlarmInfo &= ~SENS_TBOIL; // reset bit in sensor_alarm
     } // if
-    else
-    {
-         if ((alarmSound == ALARM_TEMP_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS))
-         {
-              commPortWrite("X3");
-              sensorAlarmInfo |= SENS_TBOIL;
-         } // if
-    } // else
+    else sensorAlarmInfo |= SENS_TBOIL;  // set alarm
     if (tboil_sw)
     {  // Switch & Fix
        tboil = tboil_fx;
@@ -1086,17 +1062,112 @@ void MainEbrew::task_read_temps(void)
     if (tcfc > SENSOR_VAL_LIM_OK)
     {
          tcfc += RegEbrew->value("TCFC_OFFSET").toDouble(); // update TCFC with calibration value
-         sensorAlarmInfo &= ~SENS_TCFC;      // reset bit in sensor_alarm
+         sensorAlarmInfo &= ~SENS_TCFC; // reset bit in sensor_alarm
     } // if
-    else
-    {
-         if ((alarmSound == ALARM_TEMP_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS))
-         {
-              commPortWrite("X3");
-              sensorAlarmInfo |= SENS_TCFC;
-         } // if
-    } // else
+    else sensorAlarmInfo |= SENS_TCFC;  // set alarm
     // No switch/fix needed for TCFC
+    //------------------ TEMP6 (THLT-OW) ---------------------------------------
+    if (thlt_ow > SENSOR_VAL_LIM_OK)
+    {
+         thlt_ow += RegEbrew->value("THLT_OW_OFFSET").toDouble(); // update THLT-OW with calibration value
+         sensorAlarmInfo &= ~SENS_THLT_OW; // reset bit in sensor_alarm
+    } // if
+    else sensorAlarmInfo |= SENS_THLT_OW;  // set alarm
+
+    //------------------ TEMP7 (TMLT-OW) ---------------------------------------
+    if (tmlt_ow > SENSOR_VAL_LIM_OK)
+    {
+         tmlt_ow += RegEbrew->value("TMLT_OW_OFFSET").toDouble(); // update TMLT-OW with calibration value
+         sensorAlarmInfo &= ~SENS_TMLT_OW; // reset bit in sensor_alarm
+    } // if
+    else sensorAlarmInfo |= SENS_TMLT_OW;  // set alarm
+
+    // ----------------- Now process thlt_i2c and thlt_ow to form thlt ---------
+    int x = RegEbrew->value("THLT_SENSORS").toInt();
+    switch (sensorAlarmInfo & SENS_THLTS)
+    {
+        case SENS_THLT_I2C:   // I2C sensor is not present, OW sensor is present
+             thlt = thlt_ow;  // use OW sensor for thlt
+             T4->hide();      // Hide temp4 object
+             break;
+        case SENS_THLT_OW:    // OW sensor is not present, I2C sensor is present
+             thlt = thlt_i2c; // use I2C sensor for thlt
+             T4->hide();      // Hide temp4 object
+             break;
+        case 0x0000:          // both OW and I2C sensors are present
+             if (x == TSENSOR_AVERAGING)
+             {
+                  thlt = 0.5*(thlt_i2c + thlt_ow);
+                  T4->hide(); // Hide temp4 object
+             } // if
+             else if (x == TSENSOR_USE_I2C)
+             {
+                  thlt = thlt_i2c;           // thlt_ow can be used for another temperature measurement
+                  T4->show();                // Show temp4 object
+                  T4->setTempValue(thlt_ow); // show this temperature measurement
+                  T4->update();
+             } // else if
+             else
+             {   // x == TSENSOR_USE_OW
+                 thlt = thlt_ow;  // TSENSOR_USE_OW, thlt_i2c is not used
+                 T4->hide();      // Hide temp4 object
+             } // else
+             break;
+        default:              // both OW and I2C sensors are NOT present
+             T4->hide();      // Hide temp4 object
+             break;           // handle in generic alarm part, see below
+    } // switch
+    if (thlt_sw)
+    {  // Switch & Fix
+       thlt = thlt_fx;
+    } // if
+    // ----------------- Now process tmlt_i2c and tmlt_ow to form tmlt ---------
+    x = RegEbrew->value("TMLT_SENSORS").toInt();
+    switch (sensorAlarmInfo & SENS_TMLTS)
+    {
+        case SENS_TMLT_I2C:   // I2C sensor is not present, OW sensor is present
+             tmlt = tmlt_ow;  // use OW sensor for tmlt
+             T5->hide();      // Hide temp5 object
+             break;
+        case SENS_TMLT_OW:    // OW sensor is not present, I2C sensor is present
+             tmlt = tmlt_i2c; // use I2C sensor for tmlt
+             T5->hide();      // Hide temp5 object
+             break;
+        case 0x0000:          // both OW and I2C sensors are present
+             if (x == TSENSOR_AVERAGING)
+             {
+                  tmlt = 0.5*(tmlt_i2c + tmlt_ow);
+                  T5->hide(); // Hide temp5 object
+             } // if
+             else if (x == TSENSOR_USE_I2C)
+             {
+                  tmlt = tmlt_i2c;           // tmlt_ow is now another temperature
+                  T5->show();                // Show temp5 object
+                  T5->setTempValue(tmlt_ow); // show this temperature measurement
+                  T5->update();
+             } // else if
+             else
+             {   // x = TSENSOR_USE_OW
+                 tmlt = tmlt_ow;  // TSENSOR_USE_OW, tmlt_i2c is not used
+                 T5->hide();      // Hide temp5 object
+             } // else
+             break;
+        default:              // both OW and I2C sensors are NOT present
+             T5->hide();      // Hide temp5 object
+             break;           // handle in generic alarm part, see below
+    } // switch
+    if (tmlt_sw)
+    {  // Switch & Fix
+       tmlt = tmlt_fx;
+    } // if
+    // Now test is one or more required sensors have their alarm bit set
+    if (((alarmSound == ALARM_TEMP_SENSORS) || (alarmSound == ALARM_TEMP_FLOW_SENSORS)) &&
+        (((sensorAlarmInfo & SENS_THLTS) == SENS_THLTS) || /* Both HLT temp. sensors are NOT present */
+         ((sensorAlarmInfo & SENS_TMLTS) == SENS_TMLTS) || /* Both MLT temp. sensors are NOT present */
+          (sensorAlarmInfo & (SENS_TBOIL | SENS_TCFC))))   /* The Boil-kettle or the CFC-output sensors are NOT present */
+    {
+         commPortWrite("X3"); // sound the alarm
+    } // if
     schedulerEbrew->updateDuration("readTemps",timer.nsecsElapsed()/1000);
 } // MainEbrew::task_read_temps()
 

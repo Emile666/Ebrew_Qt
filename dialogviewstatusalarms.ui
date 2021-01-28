@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>490</width>
-    <height>393</height>
+    <height>416</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>350</x>
-     <y>360</y>
+     <y>380</y>
      <width>121</width>
      <height>32</height>
     </rect>
@@ -35,7 +35,7 @@
      <x>20</x>
      <y>30</y>
      <width>451</width>
-     <height>151</height>
+     <height>181</height>
     </rect>
    </property>
   </widget>
@@ -44,7 +44,7 @@
     <rect>
      <x>20</x>
      <y>10</y>
-     <width>101</width>
+     <width>171</width>
      <height>16</height>
     </rect>
    </property>
@@ -56,14 +56,14 @@
     </font>
    </property>
    <property name="text">
-    <string>Sensor Alarms</string>
+    <string>Sensor Status &amp; Alarms</string>
    </property>
   </widget>
   <widget class="QLabel" name="lblPidHlt">
    <property name="geometry">
     <rect>
      <x>50</x>
-     <y>190</y>
+     <y>220</y>
      <width>131</width>
      <height>16</height>
     </rect>
@@ -83,9 +83,9 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>210</y>
+     <y>240</y>
      <width>211</width>
-     <height>141</height>
+     <height>131</height>
     </rect>
    </property>
   </widget>
@@ -93,9 +93,9 @@
    <property name="geometry">
     <rect>
      <x>239</x>
-     <y>210</y>
+     <y>240</y>
      <width>231</width>
-     <height>141</height>
+     <height>131</height>
     </rect>
    </property>
   </widget>
@@ -103,7 +103,7 @@
    <property name="geometry">
     <rect>
      <x>280</x>
-     <y>190</y>
+     <y>220</y>
      <width>171</width>
      <height>16</height>
     </rect>

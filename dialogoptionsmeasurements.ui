@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>427</width>
-    <height>300</height>
+    <width>451</width>
+    <height>383</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>250</x>
-     <y>260</y>
+     <x>280</x>
+     <y>350</y>
      <width>161</width>
      <height>32</height>
     </rect>
@@ -32,14 +32,14 @@
   <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>10</x>
      <y>10</y>
-     <width>411</width>
-     <height>251</height>
+     <width>431</width>
+     <height>341</height>
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -48,9 +48,9 @@
     <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>50</y>
-       <width>231</width>
+       <x>0</x>
+       <y>60</y>
+       <width>203</width>
        <height>22</height>
       </rect>
      </property>
@@ -65,21 +65,21 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>150</width>
+          <width>135</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>150</width>
+          <width>135</width>
           <height>16777215</height>
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the actual MLT Temperature. Use this to calibrate the measured temperature&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the&lt;span style=&quot; font-weight:600;&quot;&gt; I&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:super;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt; Temperature sensor (LM92) inside the &lt;span style=&quot; font-weight:600;&quot;&gt;Mash-Lauter Tun (MLT)&lt;/span&gt;. Use this to calibrate the sensor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Tmlt&lt;/span&gt; calibration offset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Tmlt-I&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:super;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt; calibration offset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
@@ -87,18 +87,18 @@
        <widget class="QDoubleSpinBox" name="sbTmltCal">
         <property name="minimumSize">
          <size>
-          <width>70</width>
+          <width>60</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>70</width>
+          <width>60</width>
           <height>16777215</height>
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the actual MLT Temperature. Use this to calibrate the measured temperature&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the&lt;span style=&quot; font-weight:600;&quot;&gt; I&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:super;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt; Temperature sensor (LM92) inside the &lt;span style=&quot; font-weight:600;&quot;&gt;Mash-Lauter Tun (MLT)&lt;/span&gt;. Use this to calibrate the sensor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="suffix">
          <string> °C</string>
@@ -112,6 +112,9 @@
         <property name="maximum">
          <double>10.000000000000000</double>
         </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
        </widget>
       </item>
      </layout>
@@ -119,9 +122,9 @@
     <widget class="QWidget" name="layoutWidget_2">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>80</y>
-       <width>231</width>
+       <x>0</x>
+       <y>90</y>
+       <width>203</width>
        <height>22</height>
       </rect>
      </property>
@@ -136,21 +139,21 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>150</width>
+          <width>135</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>150</width>
+          <width>135</width>
           <height>16777215</height>
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the actual Boil-kettle Temperature. Use this to calibrate the measured temperature&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the &lt;span style=&quot; font-weight:600;&quot;&gt;One-Wire (OW)&lt;/span&gt; Temperature sensor (DS18B20) inside the &lt;span style=&quot; font-weight:600;&quot;&gt;Boil-kettle (BK)&lt;/span&gt;. Use this to calibrate the sensor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Tboil&lt;/span&gt; calibration offset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Tboil-OW&lt;/span&gt; calibration offset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
@@ -158,18 +161,18 @@
        <widget class="QDoubleSpinBox" name="sbTboilCal">
         <property name="minimumSize">
          <size>
-          <width>70</width>
+          <width>60</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>70</width>
+          <width>60</width>
           <height>16777215</height>
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the actual Boil-kettle Temperature. Use this to calibrate the measured temperature&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the &lt;span style=&quot; font-weight:600;&quot;&gt;One-Wire (OW)&lt;/span&gt; Temperature sensor (DS18B20) inside the &lt;span style=&quot; font-weight:600;&quot;&gt;Boil-kettle (BK)&lt;/span&gt;. Use this to calibrate the sensor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="suffix">
          <string> °C</string>
@@ -183,6 +186,9 @@
         <property name="maximum">
          <double>10.000000000000000</double>
         </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
        </widget>
       </item>
      </layout>
@@ -190,9 +196,9 @@
     <widget class="QWidget" name="layoutWidget_3">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>110</y>
-       <width>231</width>
+       <x>220</x>
+       <y>90</y>
+       <width>203</width>
        <height>22</height>
       </rect>
      </property>
@@ -207,21 +213,21 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>150</width>
+          <width>135</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>150</width>
+          <width>135</width>
           <height>16777215</height>
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the actual Boil-kettle Temperature. Use this to calibrate the measured temperature&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the &lt;span style=&quot; font-weight:600;&quot;&gt;One-Wire (OW)&lt;/span&gt; Temperature sensor (DS18B20) at the output of the &lt;span style=&quot; font-weight:600;&quot;&gt;Counter flow Chiller (CFC)&lt;/span&gt;, which is the wort-temperature flowing into the Fermenter. Use this to calibrate the sensor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Tcfc-out&lt;/span&gt; calibration offset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Tcfc-OW&lt;/span&gt; calibration offset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
@@ -229,18 +235,18 @@
        <widget class="QDoubleSpinBox" name="sbTcfcCal">
         <property name="minimumSize">
          <size>
-          <width>70</width>
+          <width>60</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>70</width>
+          <width>60</width>
           <height>16777215</height>
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the actual Boil-kettle Temperature. Use this to calibrate the measured temperature&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the &lt;span style=&quot; font-weight:600;&quot;&gt;One-Wire (OW)&lt;/span&gt; Temperature sensor (DS18B20) at the output of the &lt;span style=&quot; font-weight:600;&quot;&gt;Counter flow Chiller (CFC)&lt;/span&gt;, which is the wort-temperature flowing into the Fermenter. Use this to calibrate the sensor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="suffix">
          <string> °C</string>
@@ -254,8 +260,11 @@
         <property name="maximum">
          <double>10.000000000000000</double>
         </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
         <property name="value">
-         <double>-10.000000000000000</double>
+         <double>0.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -264,9 +273,9 @@
     <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>20</y>
-       <width>231</width>
+       <x>0</x>
+       <y>30</y>
+       <width>203</width>
        <height>22</height>
       </rect>
      </property>
@@ -281,21 +290,21 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>150</width>
+          <width>135</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>150</width>
+          <width>135</width>
           <height>16777215</height>
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the actual HLT Temperature. Use this to calibrate the measured temperature&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the&lt;span style=&quot; font-weight:600;&quot;&gt; I&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:super;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt; Temperature sensor (LM92) inside the &lt;span style=&quot; font-weight:600;&quot;&gt;Hot Liquid Tun (HLT)&lt;/span&gt;. Use this to calibrate the sensor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Thlt&lt;/span&gt; calibration offset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Thlt-I&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:super;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt; calibration offset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
@@ -303,18 +312,18 @@
        <widget class="QDoubleSpinBox" name="sbThltCal">
         <property name="minimumSize">
          <size>
-          <width>70</width>
+          <width>60</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>70</width>
+          <width>60</width>
           <height>16777215</height>
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the actual HLT Temperature. Use this to calibrate the measured temperature&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the&lt;span style=&quot; font-weight:600;&quot;&gt; I&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:super;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt; Temperature sensor (LM92) inside the &lt;span style=&quot; font-weight:600;&quot;&gt;Hot Liquid Tun (HLT)&lt;/span&gt;. Use this to calibrate the sensor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="suffix">
          <string> °C</string>
@@ -327,6 +336,310 @@
         </property>
         <property name="maximum">
          <double>10.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+        <property name="value">
+         <double>0.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>0</y>
+       <width>371</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The brew-system supports a number of temperature-sensors, both I2C and One-Wire. The I2C sensors are LM92 ICs mounted inside the kettles. The One-Wire sensors are DS18B20 types and are more flexible. They can be used as back-up sensor for the I2C sensors, but can also be used to perform other measurements.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sensor is an &lt;span style=&quot; font-weight:600;&quot;&gt;I&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:super;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt;-sensor (LM92) or an &lt;span style=&quot; font-weight:600;&quot;&gt;One-Wire (OW)&lt;/span&gt; sensor (DS18B20)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="hltSensors">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>120</y>
+       <width>371</width>
+       <height>91</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If only&lt;span style=&quot; font-weight:600;&quot;&gt; one&lt;/span&gt; HLT temperature sensor is present (I2C or OW), that one is used for the actual HLT temperature. But if &lt;span style=&quot; font-weight:600;&quot;&gt;both&lt;/span&gt; sensors are present, this checkbox can be used to decide what to do with both values: average them together, use the I2C sensor only or use the OW sensor only. &lt;br/&gt;If only the I2C sensor is used, the OW sensor is free to perform other temperature measurements. In this case, a sensor-object is enabled on-screen, so that this temperature can be monitored independently from the HLT temperature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="title">
+      <string>HLT sensors: what to do if both sensors (I2C and OW) are present?</string>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
+     <widget class="QRadioButton" name="rbh1">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>251</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the most-reliable option when both sensors (I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C and OW) are present. In case one of these sensors fail, the other sensor is automatically used as the HLT temperature sensor. So even with a failure in one of the temperature-sensors, the brew process can continue normally.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>Average both values and use this as Thlt value</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="rbh2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>331</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C sensor is typically built inside the HLT, so it makes sense to continue using this sensor for HLT temperature measurement. With this option, the other (OW) temperature sensor can now be used for another temperature measurement, e.g. the temperature at another point in the brew-system. A sensor-object is created on-screen that displays this temperature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>Use I2C sensor only for Thlt, use OW sensor for other purposes</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="rbh3">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>60</y>
+        <width>331</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If, for some reason, the built-in (I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C) temperature sensor in the HLT needs to be disabled, you can select this option. The other (OW) HLT temperature-sensor is now used for HLT temperature measurements. For best results, this sensor also needs to be built-in inside the HLT.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>Use OW sensor only for Thlt, I2C sensor is not used</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="mltSensors">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>220</y>
+       <width>371</width>
+       <height>91</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If only&lt;span style=&quot; font-weight:600;&quot;&gt; one&lt;/span&gt; MLT temperature sensor is present (I2C or OW), that one is used for the actual MLT temperature. But if &lt;span style=&quot; font-weight:600;&quot;&gt;both&lt;/span&gt; sensors are present, this checkbox can be used to decide what to do with both values: average them together, use the I2C sensor only or use the OW sensor only. &lt;br/&gt;If only the I2C sensor is used, the OW sensor is free to perform other temperature measurements. In this case, a sensor-object is enabled on-screen, so that this temperature can be monitored independently from the MLT temperature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="title">
+      <string>MLT sensors: what to do if both sensors (I2C and OW) are present?</string>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
+     <widget class="QRadioButton" name="rbm1">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>251</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the most-reliable option when both sensors (I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C and OW) are present. In case one of these sensors fail, the other sensor is automatically used as the MLT temperature sensor. So even with a failure in one of the temperature-sensors, the brew process can continue normally.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>Average both values and use this as Tmlt value</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="rbm2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>331</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C sensor is typically built inside the MLT, so it makes sense to continue using this sensor for MLT temperature measurement. With this option, the other (OW) temperature sensor can now be used for another temperature measurement, e.g. the temperature at another point in the brew-system. A sensor-object is created on-screen that displays this temperature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>Use I2C sensor only for Tmlt, use OW sensor for other purposes</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="rbm3">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>60</y>
+        <width>331</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If, for some reason, the built-in (I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C) temperature sensor in the MLT needs to be disabled, you can select this option. The other (OW) MLT temperature-sensor is now used for MLT temperature measurements. For best results, this sensor also needs to be built-in inside the MLT.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>Use OW sensor only for Tmlt, I2C sensor is not used</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="layoutWidget_11">
+     <property name="geometry">
+      <rect>
+       <x>220</x>
+       <y>30</y>
+       <width>203</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_12">
+      <item>
+       <widget class="QLabel" name="lblThltOwCal">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>135</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>135</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the&lt;span style=&quot; font-weight:600;&quot;&gt; I&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:super;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt; Temperature sensor (DS18B20) inside the &lt;span style=&quot; font-weight:600;&quot;&gt;Hot Liquid Tun (HLT)&lt;/span&gt;. Use this to calibrate the sensor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Thlt-OW&lt;/span&gt; calibration offset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="sbThltOwCal">
+        <property name="minimumSize">
+         <size>
+          <width>60</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the&lt;span style=&quot; font-weight:600;&quot;&gt; I&lt;/span&gt;&lt;span style=&quot; font-weight:600; vertical-align:super;&quot;&gt;2&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt; Temperature sensor (LM92) inside the &lt;span style=&quot; font-weight:600;&quot;&gt;Hot Liquid Tun (HLT)&lt;/span&gt;. Use this to calibrate the sensor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="suffix">
+         <string> °C</string>
+        </property>
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="minimum">
+         <double>-10.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>10.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="layoutWidget_12">
+     <property name="geometry">
+      <rect>
+       <x>220</x>
+       <y>60</y>
+       <width>203</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_13">
+      <item>
+       <widget class="QLabel" name="lblTmltOwCal">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>135</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>135</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the&lt;span style=&quot; font-weight:600;&quot;&gt; One-Wire&lt;/span&gt; Temperature sensor (DS18B20) inside the &lt;span style=&quot; font-weight:600;&quot;&gt;Mash-Lauter Tun (MLT)&lt;/span&gt;. Use this to calibrate the sensor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Tmlt-OW&lt;/span&gt; calibration offset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="sbTmltOwCal">
+        <property name="minimumSize">
+         <size>
+          <width>60</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to add to the&lt;span style=&quot; font-weight:600;&quot;&gt; One-Wire&lt;/span&gt; Temperature sensor (DS18B20) inside the &lt;span style=&quot; font-weight:600;&quot;&gt;Mash-Lauter Tun (MLT)&lt;/span&gt;. Use this to calibrate the sensor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="suffix">
+         <string> °C</string>
+        </property>
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="minimum">
+         <double>-10.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>10.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
         </property>
        </widget>
       </item>
@@ -665,7 +978,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>160</y>
+       <y>180</y>
        <width>368</width>
        <height>22</height>
       </rect>
@@ -742,7 +1055,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>190</y>
+       <y>210</y>
        <width>368</width>
        <height>22</height>
       </rect>
@@ -824,7 +1137,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>10</y>
+       <y>20</y>
        <width>368</width>
        <height>22</height>
       </rect>
@@ -851,10 +1164,10 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Error correction in % for the flowsensor at the output of the HLT&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Typically there is a delay between issuing the command to close a valve and the actual closure of the valve, especially with high fluid flows. This result in a small overshoot of the desired volume. This options compensates for this.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Valve delay/dead-time before closing&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Valve delay/dead-time compensation before closing&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
@@ -873,7 +1186,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Error correction in % for the flowsensor at the output of the HLT&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Typically there is a delay between issuing the command to close a valve and the actual closure of the valve, especially with high fluid flows. This result in a small overshoot of the desired volume. This options compensates for this.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="suffix">
          <string> L</string>
@@ -900,6 +1213,29 @@
    </widget>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>sbThltCal</tabstop>
+  <tabstop>sbThltOwCal</tabstop>
+  <tabstop>sbTmltCal</tabstop>
+  <tabstop>sbTmltOwCal</tabstop>
+  <tabstop>sbTboilCal</tabstop>
+  <tabstop>sbTcfcCal</tabstop>
+  <tabstop>rbh1</tabstop>
+  <tabstop>rbh2</tabstop>
+  <tabstop>rbh3</tabstop>
+  <tabstop>rbm1</tabstop>
+  <tabstop>rbm2</tabstop>
+  <tabstop>rbm3</tabstop>
+  <tabstop>sbFlow1</tabstop>
+  <tabstop>sbFlow2</tabstop>
+  <tabstop>sbFlow3</tabstop>
+  <tabstop>sbFlow4</tabstop>
+  <tabstop>cbTcomp</tabstop>
+  <tabstop>sbMltEmpty</tabstop>
+  <tabstop>sbBkEmpty</tabstop>
+  <tabstop>sbValveDelay</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
