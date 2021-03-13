@@ -1113,9 +1113,10 @@ void MainEbrew::task_read_temps(void)
                  T4->hide();      // Hide temp4 object
              } // else
              break;
-        default:              // both OW and I2C sensors are NOT present
-             T4->hide();      // Hide temp4 object
-             break;           // handle in generic alarm part, see below
+        default:                       // both OW and I2C sensors are NOT present
+             thlt = SENSOR_VAL_LIM_OK; // indicate error
+             T4->hide();               // Hide temp4 object
+             break;                    // handle in generic alarm part, see below
     } // switch
     if (thlt_sw)
     {  // Switch & Fix
@@ -1152,9 +1153,10 @@ void MainEbrew::task_read_temps(void)
                  T5->hide();      // Hide temp5 object
              } // else
              break;
-        default:              // both OW and I2C sensors are NOT present
-             T5->hide();      // Hide temp5 object
-             break;           // handle in generic alarm part, see below
+        default:                       // both OW and I2C sensors are NOT present
+             tmlt = SENSOR_VAL_LIM_OK; // indicate error
+             T5->hide();               // Hide temp5 object
+             break;                    // handle in generic alarm part, see below
     } // switch
     if (tmlt_sw)
     {  // Switch & Fix
@@ -1807,11 +1809,7 @@ uint16_t MainEbrew::stateMachine(void)
             tset_mlt  = ms[ms_idx].temp;         // get temp. from mash-scheme
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
             tset_boil = TEMP_DEFAULT;            // Setpoint Temp. for Boil-kettle
-            if (hltPid->getButtonState())        // Is PowerButton pressed for HLT PID controller?
-            {  // start with normal brewing states
-                ebrew_std = S01_WAIT_FOR_HLT_TEMP;
-            } // if
-            else if (toolStartCIP->isChecked())  // Is Start CIP checkbox checked at top toolbar?
+            if (toolStartCIP->isChecked())  // Is Start CIP checkbox checked at top toolbar?
             {  // Clean-in-Place program
                setTopToolBar(TOOLBAR_CIP);         // switch to CIP top-toolbar
                toolCipInitDone->setEnabled(true);  // enable Checkbox at toolbar top
@@ -1823,6 +1821,10 @@ uint16_t MainEbrew::stateMachine(void)
                       "Press OK to continue",toolCipInitDone);
                 ebrew_std = S20_CIP_INIT;
             } // else if
+            else if (hltPid->getButtonState())        // Is PowerButton pressed for HLT PID controller?
+            {  // start with normal brewing states
+                ebrew_std = S01_WAIT_FOR_HLT_TEMP;
+            } // if
             break;
 
         //---------------------------------------------------------------------------
@@ -1835,7 +1837,6 @@ uint16_t MainEbrew::stateMachine(void)
         case S01_WAIT_FOR_HLT_TEMP:
             string    = QString("01. Wait for HLT Temperature (%1 °C)").arg(tset_hlt,2,'f',1);
             substring = QString("HLT is heated to the first mash-scheme temp.");
-            toolStartCIP->setEnabled(false);     // Hide CIP option at toolbar
             if (RegEbrew->value("CB_Malt_First").toInt() > 0)
             {   // Enable 'Malt is added' checkbox at top-toolbar
                 toolMaltAdded->setEnabled(true);
@@ -1846,11 +1847,16 @@ uint16_t MainEbrew::stateMachine(void)
             maltAdded = (RegEbrew->value("CB_Malt_First").toInt() == 0) || toolMaltAdded->isChecked();
             if ((thlt >= tset_hlt) && maltAdded)
             {   // HLT TEMP is OK and malt is added when MaltFirst option is selected
+                toolStartCIP->setEnabled(false);     // Hide CIP option at toolbar
                 if (toolMaltAdded->isChecked()) toolMaltAdded->setEnabled(false); // disable checkbox, no longer needed
                 Vhlt_old  = Vhlt; // remember old value
                 timer3    = 0;    // init. '1 minute' timer
                 ebrew_std = S14_PUMP_PREFILL;
             } // if
+            else if (toolStartCIP->isChecked())  // Is Start CIP checkbox checked at top toolbar?
+            {
+                ebrew_std = S00_INITIALISATION;  // Back to init. state and then to CIP-states
+            } // else if
             else if (!maltAdded)
             {
                 string.append(" + Add Malt to MLT (M)");

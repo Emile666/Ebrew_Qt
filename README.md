@@ -18,7 +18,7 @@ More software design details: see my website: http://www.vandelogt.nl/uk_softwar
 # Software Development Environment
 Qt 5. This version replaces the Ebrew 2.0 version created with Borland C++ Builder 6.
 
-This release is still under heavy development. It is shown here just to have version control active on this project. It is not intended to be actually used in a brewing session!
+This release is under development, but has already been used in the brewhouse.
 
 # Interface with Brew-Arduino
 The Arduino-Nano uses a virtual COM port or an Ethernet connection as its main-connection to the PC. This virtual COM port used the USB port of the Arduino-Nano. At the PC side, the Arduino Nano is recognised by Windows

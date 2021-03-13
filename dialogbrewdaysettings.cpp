@@ -178,3 +178,17 @@ void DialogBrewDaySettings::on_cbBKrecirc_stateChanged(int arg1)
         ui->sbBKrecirc->setEnabled(false);
     } // else
 } // DialogBrewDaySettings::on_cbBKrecirc_stateChanged()
+
+void DialogBrewDaySettings::on_cbMash2_stateChanged(int arg1)
+{
+    if (arg1)
+    {
+        ui->cbMash3->setEnabled(false);
+        ui->cbMash4->setEnabled(false);
+    }
+    else
+    {
+        ui->cbMash3->setEnabled(true);
+        ui->cbMash4->setEnabled(true);
+    }
+} // DialogBrewDaySettings::on_cbMash2_stateChanged()
