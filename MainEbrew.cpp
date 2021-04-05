@@ -616,6 +616,8 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
           line = in.readLine();
        } // while
        done = false;
+       hopTimes.clear(); // clear hop-times list
+       hopTexts.clear(); // clear hop descriptions
        while (!in.atEnd() && !done)
        {
            line  = in.readLine();
@@ -1909,6 +1911,14 @@ uint16_t MainEbrew::stateMachine(void)
             string    = QString("03. Wait for MLT Temperature (%1 °C)").arg(ms[ms_idx].temp + RegEbrew->value("TOffset2").toDouble(),2,'f',1);
             substring = QString("If the MLT Temperature is correct, the mashing phase is started");
             // Add double offset as long as Tmlt < Tset_mlt + Offset2
+            if (ms_idx == 0)
+            {   // make sure that tset_hlt is updated if TOffset0 is changed in this state
+                tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
+            }
+            else
+            {   // this is the value from S13_MASH_PREHEAT_HLT, same here if TOffset is changed
+                tset_hlt  = ms[ms_idx].temp + 2 * RegEbrew->value("TOffset").toDouble();
+            } // else
             tset_mlt  = ms[ms_idx].temp; // get temp. from mash-scheme
             // tset_hlt is NOT set here, but in previous state (FILL_MLT or MASH_PREHEAT_HLT)
             tset_boil = TEMP_DEFAULT;    // Setpoint Temp. for Boil-kettle
@@ -1980,7 +1990,7 @@ uint16_t MainEbrew::stateMachine(void)
             tset_boil = TEMP_DEFAULT; // Setpoint Temp. for Boil-kettle
             if (ms_idx < ms_tot - 1)
             {  // There's a next mash phase
-                substring = QString("After timeout, HLT is heated to the next temperature");
+                substring = QString("After timeout in %1 min., HLT is heated to the next temperature").arg((ms[ms_idx].preht - ms[ms_idx].timer)/60);
                 if (ms[ms_idx].timer >= ms[ms_idx].preht)
                 {
                     ebrew_std = S13_MASH_PREHEAT_HLT;
@@ -2290,15 +2300,17 @@ uint16_t MainEbrew::stateMachine(void)
             else if (RegEbrew->value("CB_Boil_Rest").toInt() == 1)
             {
                if (brest_tmr > TMR_BOIL_REST_5_MIN)
-                    string = QString("12. Boil Finished, prepare Chiller (M)");
-               else string = QString("12. Boil Finished, wait %1/%2 min., prepare Chiller (M)").arg(brest_tmr/60).arg(TMR_BOIL_REST_5_MIN/60);
+                    string = QString("12. Boil Finished");
+               else string = QString("12. Boil Finished, wait %1/%2 min.").arg(brest_tmr/60).arg(TMR_BOIL_REST_5_MIN/60);
+               if (!toolStartChilling->isChecked()) string.append(", prepare Chiller (M)");
             } // if
             else
             {
-                string = QString("12. Boil Finished, prepare Chiller (M), CFC-output in ");
+                string = QString("12. Boil Finished, CFC-output in ");
                 if (RegEbrew->value("CB_BK_recirc").toInt() == 1)
-                     string.append("Boil-kettle.");
-                else string.append("Fermenter.");
+                     string.append("Boil-kettle");
+                else string.append("Fermenter");
+                if (!toolStartChilling->isChecked()) string.append(", prepare Chiller (M)");
             } // else
             substring   = QString("Prepare chiller. If ready, click \'CFC Prepared, start Chilling\' at top toolbar");
             break;
