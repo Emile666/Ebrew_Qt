@@ -72,13 +72,6 @@ void DialogViewProgress::onUpdateProgress(void)
     for (int i = 0; i < pEbrew->ms_tot; i++)
     {
         p = &pEbrew->ms[i];
-        //---------------------------------------------------
-        // Now update time_stamp if a mash-timer has started
-        //---------------------------------------------------
-        if ((p->timer != NOT_STARTED) && (p->time_stamp.isEmpty()))
-        {
-           p->time_stamp = QTime::currentTime().toString();
-        } // if
         string = QString("%1 %2 %3 %4 %5  ").arg(i,2)
                                             .arg(p->temp ,5,'f',0)
                                             .arg(p->time ,5,'f',0)
@@ -180,7 +173,7 @@ void DialogViewProgress::onUpdateProgress(void)
     } // for i
 
     // TIMERS
-    bool timerActive = false;
+    bool timerActive;
     font.setBold(false);
     ui->teTimers->setCurrentFont(font);
     ui->teTimers->setTextColor(Qt::black);
@@ -198,6 +191,7 @@ void DialogViewProgress::onUpdateProgress(void)
         font.setBold(false);
         ui->teTimers->setTextColor(Qt::black);
         string = "  " + string;
+        timerActive = false;
     } // else
     ui->teTimers->setCurrentFont(font);
     ui->teTimers->setText(string);
@@ -214,6 +208,7 @@ void DialogViewProgress::onUpdateProgress(void)
         font.setBold(false);
         ui->teTimers->setTextColor(Qt::black);
         string = "  " + string;
+        timerActive = false;
     } // else
     ui->teTimers->setCurrentFont(font);
     ui->teTimers->append(string);
@@ -230,6 +225,7 @@ void DialogViewProgress::onUpdateProgress(void)
         font.setBold(false);
         ui->teTimers->setTextColor(Qt::black);
         string = "  " + string;
+        timerActive = false;
     } // else
     ui->teTimers->setCurrentFont(font);
     ui->teTimers->append(string);
@@ -246,6 +242,7 @@ void DialogViewProgress::onUpdateProgress(void)
         font.setBold(false);
         ui->teTimers->setTextColor(Qt::black);
         string = "  " + string;
+        timerActive = false;
     } // else
     ui->teTimers->setCurrentFont(font);
     ui->teTimers->append(string);
@@ -262,6 +259,7 @@ void DialogViewProgress::onUpdateProgress(void)
         font.setBold(false);
         ui->teTimers->setTextColor(Qt::black);
         string = "  " + string;
+        timerActive = false;
     } // else
     ui->teTimers->setCurrentFont(font);
     ui->teTimers->append(string);

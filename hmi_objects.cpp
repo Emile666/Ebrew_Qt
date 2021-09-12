@@ -356,6 +356,7 @@ Pipe::Pipe(QPointF point, uint8_t type, uint16_t length, QColor color)
     : QGraphicsPolygonItem()
 {
     setPos(point);
+    setColor(color);
     drawPipe(type,length,color);
 } // Pipe()
 
@@ -553,19 +554,13 @@ void Pipe::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     pen.setColor(Qt::black);
     pen.setWidth(3);
     painter->setPen(pen);
-    if (pipeType == PIPE2_LEFT_RIGHT)
-    {   // draw arrow from left to right
-        painter->drawLine(bottom + QPoint(-20,20), bottom + QPoint(10,20));
-        painter->drawLine(bottom + QPoint(10,20) , bottom + QPoint( 5,15));
-        painter->drawLine(bottom + QPoint( 5,15) , bottom + QPoint( 5,25));
-        painter->drawLine(bottom + QPoint( 5,25) , bottom + QPoint(10,20));
-    } // if
-    else if (pipeType == PIPE2_RIGHT_LEFT)
-    {   // draw arrow from right to left
-        painter->drawLine(bottom + QPoint(20,20) , bottom + QPoint(-10,20));
-        painter->drawLine(bottom + QPoint(-10,20), bottom + QPoint(-5,15));
-        painter->drawLine(bottom + QPoint(- 5,15), bottom + QPoint(-5,25));
-        painter->drawLine(bottom + QPoint(- 5,25), bottom + QPoint(-10,20));
+    if ((pipeType == PIPE2_LEFT_RIGHT) || (pipeType == PIPE2_RIGHT_LEFT))
+    {   // draw arrow from left to right or from right to left
+        int x1 = (pipeType == PIPE2_LEFT_RIGHT) ? 20 : -20;
+        painter->drawLine(bottom + QPoint(-x1,20)  , bottom + QPoint(x1>>1,20));
+        painter->drawLine(bottom + QPoint(x1>>1,20), bottom + QPoint(x1>>2,15));
+        painter->drawLine(bottom + QPoint(x1>>2,15), bottom + QPoint(x1>>2,25));
+        painter->drawLine(bottom + QPoint(x1>>2,25), bottom + QPoint(x1>>1,20));
     } // if
     else if (pipeType == PIPE2_TOP_BOTTOM)
     {   // draw arrow from top to bottom
@@ -696,11 +691,12 @@ void Meter::setFlowValue(qreal value,qreal temp)
     meterValue  = value;
     if ((meterType == METER_HFLOW) || (meterType == METER_VFLOW))
     {
-        if (tempCorrection)
-            meterValue /= (1.0 + 0.00021 * (temp - 20.0));
         // Apply Calibration error correction
         meterValue *= 1.0 + 0.01 * flowErr;
-        if (meterValue < 0.0) meterValue = 0.0;
+        // Apply Temperature-correction
+        if (tempCorrection)
+            meterValue /= (1.0 + 0.00021 * (temp - 20.0));
+        if (meterValue < 0.01) meterValue = 0.0;
         // Calculate Flow-rate in L per minute: Ts [msec.]
         flowRateRaw = (60000.0 / Ts) * (meterValue - meterValueOld);
         meterValueOld = meterValue;

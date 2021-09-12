@@ -1936,8 +1936,9 @@ uint16_t MainEbrew::stateMachine(void)
                 } // if
                 else
                 {  // already added malt to the MLT, start directly with timer
-                    ms[ms_idx].timer = 0; // start the corresponding mash timer
-                    ebrew_std        = S04_MASH_TIMER_RUNNING;
+                    ms[ms_idx].timer      = 0; // start the corresponding mash timer
+                    ms[ms_idx].time_stamp = QTime::currentTime().toString(); // save time-stamp for Progress Dialog
+                    ebrew_std             = S04_MASH_TIMER_RUNNING;
                 } // else
             } // if
             break;
@@ -1950,6 +1951,8 @@ uint16_t MainEbrew::stateMachine(void)
         case S19_RDY_TO_ADD_MALT:
             string    = QString("19. Ready to add Malt to MLT (M)");
             substring = QString("If ready to add malt, click \'Start adding Malt\' on toolbar at top of screen");
+            tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
+            tset_mlt  = ms[ms_idx].temp; // get temp. from mash-scheme
             if (toolStartAddMalt->isChecked()) ebrew_std = S15_ADD_MALT_TO_MLT;
             break;
 
@@ -1961,11 +1964,14 @@ uint16_t MainEbrew::stateMachine(void)
         case S15_ADD_MALT_TO_MLT:
             string    = QString("15. Add Malt to MLT (M)");
             substring = QString("If malt is added, click \'Malt added to MLT\' at top toolbar");
+            tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
+            tset_mlt  = ms[ms_idx].temp; // get temp. from mash-scheme
             toolStartAddMalt->setEnabled(false); // disable checkbox, no longer needed
             toolMaltAdded->setEnabled(true);     // enable checkbox 'Malt added to MLT'
             if (toolMaltAdded->isChecked())
             {  // malt is added to MLT, start mash timer
-               ms[ms_idx].timer = 0; // start the corresponding mash timer
+               ms[ms_idx].timer      = 0; // start the corresponding mash timer
+               ms[ms_idx].time_stamp = QTime::currentTime().toString(); // save time-stamp for Progress Dialog
                if (RegEbrew->value("CB_Mash_Rest").toInt() == 1)
                {   // Start with mash rest for 5 min. after malt is added
                    mrest_tmr = 0; // init mash rest timer
