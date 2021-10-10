@@ -267,6 +267,11 @@ void DialogViewProgress::onUpdateProgress(void)
     font.setBold(false);
     ui->teTimers->setCurrentFont(font);
     ui->teTimers->setTextColor(Qt::black);
+
+    string = QString("  Burner energized at ");
+    if (pEbrew->burner_on.size() > 0) string += pEbrew->burner_on.at(0);
+    ui->teTimers->append(string);
+
     string = QString("  Boiling  started at ");
     if (pEbrew->Boil.size() > 0) string += pEbrew->Boil.at(0);
     if (pEbrew->Boil.size() > 1)

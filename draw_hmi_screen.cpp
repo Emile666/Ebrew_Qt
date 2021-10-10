@@ -218,6 +218,19 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     QGraphicsTextItem *text = scene->addText("To Fermenter",font);
     text->setPos(point);     // insert text
 
+    point = QPoint(-1100,400);
+    font.setPointSize(10);
+    font.setBold(false);
+    text = scene->addText("1..8\tValve enable/disable\n"
+                          "A\tAuto all Pumps and Valves\n"
+                          "P\tMain Pump enable/disable\n"
+                          "Q\tHLT Pump enable/disable\n"
+                          "R\tReset Flows\n"
+                          "S\tSensor Alarm Change\n\n"
+                          "Ctrl+A\tStatus and Alarms\nCtrl+E\tTerminal Editor\n"
+                          "Ctrl+F\tFix Parameters\nCtrl+M\tEdit Mash Scheme\n"
+                          "Ctrl+P\tMash and Sparge Progress\nCtrl+T\tTask List and Timings",font);
+    text->setPos(point);     // insert text
     //----------------------------------------------------------
     // Draw left from T-pipe (Tpipe4) and left from valve V6
     // Objects: pipeH6, Tpipe3
@@ -374,6 +387,5 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     p->T5 = temp5;        // Add temp5 reference to MainEbrew
 
     p->setKettleNames(); // Init. titles of kettles with volumes found in Registry
-
 } // draw_hmi_screen()
 

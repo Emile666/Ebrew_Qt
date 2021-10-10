@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.09"                        /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.10"                        /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -424,10 +424,11 @@ public:
     QHostAddress ebrewHwIp;         // Actual IP-address of Ebrew hardware
 
     /* Time-stamps for Sparge, Boil and Chilling*/
-    QStringList mlt2boil; // Strings for time-stamp moment of MLT -> BOIL
-    QStringList hlt2mlt;  // Strings for time-stamp moment of HLT -> MLT
-    QStringList Boil;     // Boil-start and Boil-End time-stamps
-    QStringList Chill;    // Chill-start and Chill-End time-stamps
+    QStringList burner_on; // Burner-on time-stamp
+    QStringList mlt2boil;  // Strings for time-stamp moment of MLT -> BOIL
+    QStringList hlt2mlt;   // Strings for time-stamp moment of HLT -> MLT
+    QStringList Boil;      // Boil-start and Boil-End time-stamps
+    QStringList Chill;     // Chill-start and Chill-End time-stamps
 
 public slots:
     void     task_alive_led(void);             // 500 msec. task for blinking alive LED
@@ -482,6 +483,7 @@ private:
     QCheckBox *toolCipInitDone;   // Toolbar top checkbox ready to start CIP program
     QCheckBox *toolCipDrainBK;    // Toolbar top checkbox drain Boil-kettle
     QCheckBox *toolCipHltFilled;  // Toolbar top checkbox HLT filled with water
+    QCheckBox *toolGFSpargeWater; // Toolbar top checkbox Grainfather Sparge Water heater
 }; // MainEbrew()
 
 #endif // MAIN_EBREW_H

@@ -300,6 +300,9 @@ void MainEbrew::createStatusBar(void)
     toolReadyChilling->setEnabled(false); // default not enabled
     toolReadyChilling->setToolTip("Enable this checkbox only if the brew system does not detect automatically that the Boil-kettle is empty.<br>It does this by monitoring flow sensor 3 at the CFC-output, in case of a failure, this checkbox can be used instead.");
     toolBar2->addWidget(toolReadyChilling);
+    toolGFSpargeWater = new QCheckBox("GF Sparge Water Heater");
+    toolGFSpargeWater->setToolTip("Enable this checkbox if you want to use the system only as Sparge Water Heater for the GrainFather.");
+    toolBar2->addWidget(toolGFSpargeWater);
     addToolBar(Qt::TopToolBarArea,toolBar2);
 
     // Create Toolbar3 at top of screen: CIP checkboxes
@@ -1826,6 +1829,7 @@ uint16_t MainEbrew::stateMachine(void)
             else if (hltPid->getButtonState())        // Is PowerButton pressed for HLT PID controller?
             {  // start with normal brewing states
                 ebrew_std = S01_WAIT_FOR_HLT_TEMP;
+                burner_on << QTime::currentTime().toString(); // New transition, copy time-stamp into array of strings
             } // if
             break;
 
@@ -1847,7 +1851,7 @@ uint16_t MainEbrew::stateMachine(void)
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
             tset_boil = TEMP_DEFAULT;            // Setpoint Temp. for Boil-kettle
             maltAdded = (RegEbrew->value("CB_Malt_First").toInt() == 0) || toolMaltAdded->isChecked();
-            if ((thlt >= tset_hlt) && maltAdded)
+            if ((thlt >= tset_hlt) && maltAdded && !toolGFSpargeWater->isChecked())
             {   // HLT TEMP is OK and malt is added when MaltFirst option is selected
                 toolStartCIP->setEnabled(false);     // Hide CIP option at toolbar
                 if (toolMaltAdded->isChecked()) toolMaltAdded->setEnabled(false); // disable checkbox, no longer needed
