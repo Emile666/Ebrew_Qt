@@ -696,9 +696,10 @@ void Meter::setFlowValue(qreal value,qreal temp)
         // Apply Temperature-correction
         if (tempCorrection)
             meterValue /= (1.0 + 0.00021 * (temp - 20.0));
-        if (meterValue < 0.01) meterValue = 0.0;
         // Calculate Flow-rate in L per minute: Ts [msec.]
-        flowRateRaw = (60000.0 / Ts) * (meterValue - meterValueOld);
+        if (meterValue > meterValueOld)
+             flowRateRaw = (60000.0 / Ts) * (meterValue - meterValueOld);
+        else flowRateRaw = 0.0;
         meterValueOld = meterValue;
         flowRate = pma->moving_average(flowRateRaw);
     } // if

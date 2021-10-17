@@ -1855,6 +1855,7 @@ uint16_t MainEbrew::stateMachine(void)
             {   // HLT TEMP is OK and malt is added when MaltFirst option is selected
                 toolStartCIP->setEnabled(false);     // Hide CIP option at toolbar
                 if (toolMaltAdded->isChecked()) toolMaltAdded->setEnabled(false); // disable checkbox, no longer needed
+                toolGFSpargeWater->setEnabled(false); // Hide this option from now on
                 Vhlt_old  = Vhlt; // remember old value
                 timer3    = 0;    // init. '1 minute' timer
                 ebrew_std = S14_PUMP_PREFILL;

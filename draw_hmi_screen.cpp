@@ -218,7 +218,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     QGraphicsTextItem *text = scene->addText("To Fermenter",font);
     text->setPos(point);     // insert text
 
-    point = QPoint(-1100,400);
+    point = QPoint(-1100,275);
     font.setPointSize(10);
     font.setBold(false);
     text = scene->addText("1..8\tValve enable/disable\n"
