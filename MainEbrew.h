@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.11"                        /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.12"                        /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -131,6 +131,7 @@
 #define S12_BOILING_FINISHED      (12) /* Boiling finished, prepare for wort chilling */
 #define S33_CHILL_BOIL_KETTLE     (33) /* Boil-kettle Chilling, CFC-output into top of BK */
 #define S34_CHILL_BK_READY        (34) /* Boil-kettle Chilling is finished */
+#define S35_SANITIZE_CHILLER      (35) /* Sanitize CFC by pumping hot wort through it for 5 min. */
 #define S16_CHILL_PUMP_FERMENTOR  (16) /* Chill and transfer wort from Boil-kettle to CFC */
 #define S17_FINISHED              (17) /* All wort is pumped into fermentation-bin, brewing session finished */
 #define S18_MASH_REST_5_MIN       (18) /* Wait 5 minutes before pump is switched on */
@@ -149,7 +150,7 @@
 #define S30_CIP_CLEAN_INPUT_V3    (30)
 #define S31_CIP_CLEAN_INPUT_V1    (31)
 #define S32_CIP_END               (32)
-#define STD_MAX                   (34) /* Max. number for ebrew_std */
+#define STD_MAX                   (35) /* Max. number for ebrew_std */
 
 //-------------------------------------------------------------
 // Hard-coded Timers.
@@ -159,6 +160,7 @@
 #define TMR_DELAY_xSEC         (10) /* Default delay in seconds */
 #define TMR_MASH_REST_5_MIN   (300) /* Mash-rest in seconds */
 #define TMR_BOIL_REST_5_MIN   (300) /* Post-boil rest in seconds */
+#define TMR_SANITIZE_CHILLER  (300) /* Sanitize chiller rest in seconds */
 
 //--------------------------------------------------------------------------
 // #defines for the valves. Each valve can be set manually or automatically

@@ -705,6 +705,31 @@ void MainEbrew::keyPressEvent(QKeyEvent *event)
                             P1->setStatus(AUTO_OFF);
                             P2->setStatus(AUTO_OFF);
                             break;
+        case     Qt::Key_M: switch (ebrew_std)
+                            {
+                                case S01_WAIT_FOR_HLT_TEMP:
+                                     toolMaltAdded->setChecked(true);
+                                     break;
+                                case S19_RDY_TO_ADD_MALT:
+                                     toolStartAddMalt->setChecked(true);
+                                     break;
+                                case S15_ADD_MALT_TO_MLT:
+                                     toolMaltAdded->setChecked(true);
+                                     break;
+                                case S10_WAIT_FOR_BOIL:
+                                     toolBoilStarted->setChecked(true);
+                                     break;
+                                case S12_BOILING_FINISHED:
+                                     toolStartChilling->setChecked(true);
+                                     break;
+                                case S34_CHILL_BK_READY:
+                                     toolStartChilling->setChecked(true);
+                                     break;
+                                case S16_CHILL_PUMP_FERMENTOR:
+                                     toolReadyChilling->setChecked(true);
+                                     break;
+                            } // switch
+                            break;
         case     Qt::Key_P: P1->setNextStatus(); // main pump
                             break;
         case     Qt::Key_Q: P2->setNextStatus(); // pump for HLT heat-exchanger
@@ -2297,10 +2322,11 @@ uint16_t MainEbrew::stateMachine(void)
                 Chill << QTime::currentTime().toString(); // New transition, copy time-stamp into array of strings
                 if (RegEbrew->value("CB_BK_recirc").toInt() == 1)
                 {
-                     ebrew_std = S33_CHILL_BOIL_KETTLE;   // Chill wort in Boil-kettle through recirculation
+                     brest_tmr = 0; // reset timer
+                     ebrew_std = S35_SANITIZE_CHILLER;   // Chill wort in Boil-kettle through recirculation
                 } // if
                 else
-                {
+                {   // start directly with cooling and pumping into fermentor
                     toolStartChilling->setEnabled(false); // Disable checkbox \'CFC Prepared, start Chilling\', no longer needed
                     toolReadyChilling->setEnabled(true);  // Enable checkbox 'Chilling finished'
                     FlowCfcOutResetValue = FlowCfcOut;    // reset Flow_cfc_out to count actual volume in Fermenter
@@ -2327,14 +2353,28 @@ uint16_t MainEbrew::stateMachine(void)
             break;
 
         //---------------------------------------------------------------------------
+        // S35_SANITIZE_CHILLER: The counterflow chiller is sanitized for 5 minutes
+        // by pumping hot wort through it, with no cooling flow.
+        //---------------------------------------------------------------------------
+        case S35_SANITIZE_CHILLER:
+             string    = QString("35. Sanitize CFC, CFC-output in Boil-kettle, Cooling OFF");
+             substring = QString("Chiller is sanitized for %1/5 minutes, leave cooling flow OFF").arg(brest_tmr/60);
+             tset_boil = TEMP_DEFAULT;       // Boil Temperature Setpoint
+             boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
+             if (++brest_tmr > TMR_SANITIZE_CHILLER)
+             {
+                 ebrew_std = S33_CHILL_BOIL_KETTLE; // Chill wort in Boil-kettle through recirculation
+                 commPortWrite("X5"); // 5 beeps to indicate that cooling flow should be enabled
+             } // if
+            break;
+
+        //---------------------------------------------------------------------------
         // S33_CHILL_BOIL_KETTLE: The boiled wort is sent through the counterflow
         // chiller and pumped back to the Boil-kettle.
         //---------------------------------------------------------------------------
         case S33_CHILL_BOIL_KETTLE:
-            string    = QString("33. Chill wort in Boil-kettle, CFC-output in Boil-kettle");
+            string    = QString("33. Chill wort, CFC-output in Boil-kettle, Cooling ON");
             substring = QString("Boil-kettle wort cooling as long as temperature is more than %1 °C").arg(RegEbrew->value("LIMIT_BK_recirc").toInt());
-            tset_boil = TEMP_DEFAULT;       // Boil Temperature Setpoint
-            boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
             if (tboil < RegEbrew->value("LIMIT_BK_recirc").toDouble())
             {   // Boil-kettle temperature decreased below minimum
                 toolStartChilling->setChecked(false); // Uncheck checkbox \'CFC Prepared, start Chilling\'
