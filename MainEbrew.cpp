@@ -1813,14 +1813,17 @@ uint16_t MainEbrew::stateMachine(void)
     // State 32: 0  0  0  0  0  0  0  0  0  0  CIP: End                  0x0000
     // State 33: 0  1  0  0  1  0  0  1  0  0  Chill wort in Boil-kettle 0x0124
     // State 34: 0  0  0  0  0  0  0  0  0  0  Boil-kettle chill ready   0x0000
+    // State 35: 0  1  0  0  1  0  0  1  0  0  Sanitize Chiller          0x0124
  //----------------------------------------------------------------------------
-    uint16_t  actuatorSettings[] = {0x0000, 0x0200, 0x030B, 0x0309, 0x0309,  /* 04 */
+    uint16_t  actuatorSettings[STD_MAX+1] =
+                           /* 00 */{0x0000, 0x0200, 0x030B, 0x0309, 0x0309,  /* 04 */
                            /* 05 */ 0x0309, 0x0141, 0x030B, 0x0000, 0x0141,  /* 09 */
                            /* 10 */ 0x0000, 0x0000, 0x0000, 0x0200, 0x0003,  /* 14 */
                            /* 15 */ 0x0000, 0x0124, 0x0000, 0x0000, 0x0309,  /* 19 */
                            /* 20 */ 0x0000, 0x016C, 0x016C, 0x0000, 0x012C,  /* 24 */
                            /* 25 */ 0x0124, 0x0000, 0x0142, 0x0122, 0x010A,  /* 29 */
-                           /* 30 */ 0x0006, 0x0003, 0x0000, 0x0124, 0x0000}; /* 34 */
+                           /* 30 */ 0x0006, 0x0003, 0x0000, 0x0124, 0x0000,  /* 34 */
+                           /* 35 */ 0x0124};
 
     bool      maltAdded; // help var. in state S01_WAIT_FOR_HLT_TEMP
     QString   string;    // For stdText->setText()
@@ -2358,7 +2361,7 @@ uint16_t MainEbrew::stateMachine(void)
         //---------------------------------------------------------------------------
         case S35_SANITIZE_CHILLER:
              string    = QString("35. Sanitize CFC, CFC-output in Boil-kettle, Cooling OFF");
-             substring = QString("Chiller is sanitized for %1/5 minutes, leave cooling flow OFF").arg(brest_tmr/60);
+             substring = QString("Chiller is sanitized for %1 seconds, leave cooling flow OFF").arg(brest_tmr);
              tset_boil = TEMP_DEFAULT;       // Boil Temperature Setpoint
              boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
              if (++brest_tmr > TMR_SANITIZE_CHILLER)
@@ -2366,7 +2369,7 @@ uint16_t MainEbrew::stateMachine(void)
                  ebrew_std = S33_CHILL_BOIL_KETTLE; // Chill wort in Boil-kettle through recirculation
                  commPortWrite("X5"); // 5 beeps to indicate that cooling flow should be enabled
              } // if
-            break;
+             break;
 
         //---------------------------------------------------------------------------
         // S33_CHILL_BOIL_KETTLE: The boiled wort is sent through the counterflow
@@ -2713,8 +2716,10 @@ uint16_t MainEbrew::stateMachine(void)
                 break;
     } // switch
 
-    stdText->setText(string);       // Update STD label
+    stdText->setVisible(false);
     stdText->setSubText(substring); // Update STD sub-text
+    stdText->setText(string);       // Update STD label
+    stdText->setVisible(true);
 
     //-------------------------------------------------
     // Now calculate the proper settings for the valves

@@ -1151,6 +1151,11 @@
       </item>
       <item>
        <property name="text">
+        <string>35. Sanitize Chiller </string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
         <string>16. Chill and Pump to Fermentor</string>
        </property>
       </item>
