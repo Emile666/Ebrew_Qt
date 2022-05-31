@@ -357,12 +357,17 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     p->pipeH9 = pipeH9;         // add reference to MainEbrew
     scene->addItem(pipeH9);
 
-    Display *stdText = new Display(QPointF(-800,450),700);
+    Display *stdText = new Display(QPointF(-800,450),700, QString("Current STD state"), Qt::red, Qt::yellow);
     stdText->setToolTip("<b>Current State</b>: shows the current state of the brew-session, together with a hint of what to do next. If <b>(M)</b> is shown, it indicates that a manual action is needed");
     stdText->setText("00. Initialisation");
     stdText->setSubText("Press the HLT PID Controller button to advance to the next state");
     scene->addItem(stdText);
     p->stdText = stdText;
+
+    Display *autoManualText = new Display(QPointF(-800,375),400, QString("Auto-All or Manual?"), Qt::green, Qt::yellow);
+    autoManualText->setToolTip("<b>Auto-all or Manual</b>: shows a warning if one or more valves are set to Manual operation. ");
+    scene->addItem(autoManualText);
+    p->autoManualText = autoManualText;
 
     PowerButton *hltPid = new PowerButton(-850,200,270,60,"HLT PID Controller");
     hltPid->setToolTip("<b>HLT Power Switch</b>: switches the HLT PID controller On or Off. Press it after power-up to start a new brew-session");

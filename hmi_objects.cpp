@@ -582,7 +582,7 @@ void Pipe::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
 //------------------------------------------------------------------------------------------
 // Text-display object for STD with sub-text
 //------------------------------------------------------------------------------------------
-Display::Display(QPointF point, int w)
+Display::Display(QPointF point, int w, QString title, QColor tc, QColor stc)
     : QGraphicsSimpleTextItem()
 {
     QFont font;
@@ -591,8 +591,9 @@ Display::Display(QPointF point, int w)
     height = 45;
     font.setPointSize(18);
     setFont(font);
-    setBrush(QBrush(Qt::red));
-    setPen(QPen(Qt::red));
+    setTitleText(title);
+    setTextColor(tc);
+    setSubTextColor(stc);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
     //setFlag(QGraphicsItem::ItemIsSelectable,true);
     setPos(point);
@@ -609,17 +610,33 @@ void Display::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
     font.setPointSize(10);
     font.setBold(true);
     painter->setFont(font);
-    painter->setPen(Qt::yellow);
+    painter->setPen(subTextColor);
     painter->drawText(5,41,subText); // Draw sub-text
     painter->setPen(Qt::black);
-    painter->drawText(0,-5,"Current STD state"); // Draw title
+    painter->drawText(0,-5,titleText); // Draw title
     QGraphicsSimpleTextItem::paint(painter,option,widget);
 } // Display::paint()
+
+void Display::setTitleText(QString string)
+{
+    titleText = string;
+} // Display::setTitleText()
 
 void Display::setSubText(QString string)
 {
     subText = string;
 } // Display::setSubText()
+
+void Display::setTextColor(QColor color)
+{
+    setBrush(QBrush(color));
+    setPen(QPen(color));
+} // setTextColor()
+
+void Display::setSubTextColor(QColor color)
+{
+    subTextColor = color;
+} // setSubTextColor()
 
 //------------------------------------------------------------------------------------------
 // Meter object for Flow-meter and Temp-meter
@@ -693,15 +710,15 @@ void Meter::setFlowValue(qreal value,qreal temp)
     {
         // Apply Calibration error correction
         meterValue *= 1.0 + 0.01 * flowErr;
-        // Apply Temperature-correction
-        if (tempCorrection)
-            meterValue /= (1.0 + 0.00021 * (temp - 20.0));
         // Calculate Flow-rate in L per minute: Ts [msec.]
         if (meterValue > meterValueOld)
              flowRateRaw = (60000.0 / Ts) * (meterValue - meterValueOld);
         else flowRateRaw = 0.0;
         meterValueOld = meterValue;
         flowRate = pma->moving_average(flowRateRaw);
+        // Apply Temperature-correction
+        if (tempCorrection)
+            meterValue /= (1.0 + 0.00021 * (temp - 20.0));
     } // if
     update();
 } // Meter::setValue()

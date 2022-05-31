@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.13"                        /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.14"                        /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -245,6 +245,7 @@ public:
     Meter       *T4;             // Temp. meter 4: Thlt-ow, 2nd hlt temp or aux. temp. 1
     Meter       *T5;             // Temp. meter 5: Tmlt-ow, 2nd mlt temp or aux. temp. 2
     Display     *stdText;        // STD state description with sub-text
+    Display     *autoManualText; // Label with Auto-All or Manual warning
     PowerButton *hltPid;         // HLT PID on/off powerButton
     PowerButton *boilPid;        // Boil-kettle PID on/off powerButton
 

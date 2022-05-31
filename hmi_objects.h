@@ -252,14 +252,19 @@ protected:
 class Display : public QGraphicsSimpleTextItem
 {
 public:
-    Display(QPointF point, int w);
+    Display(QPointF point, int w, QString title, QColor tc, QColor stc);
     void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     QRectF  boundary; // boundary of object
+    void    setTitleText(QString string);
     void    setSubText(QString string);
+    void    setTextColor(QColor color);
+    void    setSubTextColor(QColor color);
 
 protected:
     QRectF  boundingRect() const override { return boundary; }
     QString subText;
+    QString titleText;
+    QColor  subTextColor;
     int     width;
     int     height;
 }; // Class Display

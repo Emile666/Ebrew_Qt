@@ -149,6 +149,7 @@ MainEbrew::MainEbrew(void) : QMainWindow()
         stream << "-------------------------------------------------------------------------------------\n";
     } // if
     else fEbrewLog = nullptr;
+    commPortWrite("R0"); // reset all flows to 0.0 L in ebrew hardware
 } // MainEbrew::MainEbrew()
 
 /*------------------------------------------------------------------
@@ -778,6 +779,36 @@ void MainEbrew::task_alive_led(void)
     toggleLed = !toggleLed;
     QString string = QString("L%1").arg(toggleLed ? 1 : 0); // send Alive Led to ebrew hardware
     commPortWrite(string.toUtf8());
+
+    //------------------------------------------------------------------
+    // Update the Auto/Manual MessageBox
+    //------------------------------------------------------------------
+    if ((V1->getStatus() == MANUAL_OFF) || (V1->getStatus() == MANUAL_ON) ||
+        (V2->getStatus() == MANUAL_OFF) || (V2->getStatus() == MANUAL_ON) ||
+        (V3->getStatus() == MANUAL_OFF) || (V3->getStatus() == MANUAL_ON) ||
+        (V4->getStatus() == MANUAL_OFF) || (V4->getStatus() == MANUAL_ON) ||
+        (V6->getStatus() == MANUAL_OFF) || (V6->getStatus() == MANUAL_ON) ||
+        (V7->getStatus() == MANUAL_OFF) || (V7->getStatus() == MANUAL_ON) ||
+        (P1->getStatus() == MANUAL_OFF) || (P1->getStatus() == MANUAL_ON) ||
+        (P2->getStatus() == MANUAL_OFF) || (P2->getStatus() == MANUAL_ON))
+    {
+        autoManualText->setTextColor(Qt::red);
+        autoManualText->setText("Manual Override Active!");
+        autoManualText->setSubText("At least 1 Pump or Valve is set to Manual Mode");
+    } // if
+    else if (tset_hlt_sw || tset_boil_sw || gamma_hlt_sw || gamma_boil_sw || thlt_sw ||
+             tmlt_sw     || tboil_sw     || vhlt_sw      || vmlt_sw       || vboil_sw)
+    {
+        autoManualText->setTextColor(Qt::red);
+        autoManualText->setText("Switch/Fix Active");
+        autoManualText->setSubText("Press Cancel in the Fix Parameters Dialog to clear");
+    } // else if
+    else
+    {
+        autoManualText->setTextColor(Qt::green);
+        autoManualText->setText("Auto-All");
+        autoManualText->setSubText("All Pumps/Valves are in Auto mode, no switches set");
+    } // else
     schedulerEbrew->updateDuration("aliveLed",timer.nsecsElapsed()/1000);
 } // MainEbrew::task_alive_led()
 
