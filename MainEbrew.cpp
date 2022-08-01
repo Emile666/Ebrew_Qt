@@ -1910,7 +1910,14 @@ uint16_t MainEbrew::stateMachine(void)
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
             tset_boil = TEMP_DEFAULT;            // Setpoint Temp. for Boil-kettle
             maltAdded = (RegEbrew->value("CB_Malt_First").toInt() == 0) || toolMaltAdded->isChecked();
-            if ((thlt >= tset_hlt) && maltAdded && !toolGFSpargeWater->isChecked())
+            if (toolGFSpargeWater->isChecked())
+            {
+                tset_hlt_sw = true;        // Set HLT setpoint temp.
+                tset_hlt_fx = 78.0;        // to standard sparge temp.
+                P2->setStatus(MANUAL_OFF); // Second pump off
+                V2->setStatus(MANUAL_ON);  // HLT output valve = ON
+            } // if
+            else if ((thlt >= tset_hlt) && maltAdded)
             {   // HLT TEMP is OK and malt is added when MaltFirst option is selected
                 toolStartCIP->setEnabled(false);     // Hide CIP option at toolbar
                 if (toolMaltAdded->isChecked()) toolMaltAdded->setEnabled(false); // disable checkbox, no longer needed

@@ -133,7 +133,7 @@ void Tank::setOrientation(int width, int height, uint8_t options)
     rightPipe1.setY(leftPipe1.y());    // upper-right pipe
     rightPipe2.setX(rightPipe1.x());
     rightPipe2.setY(leftPipe2.y());    // lower-right pipe
-    leftTopPipe.setX(leftPipe1.x());
+    leftTopPipe.setX(leftPipe1.x()+15);
     leftTopPipe.setY(20-height);       // top-left pipe for return manifold
     // Determine proper boundary for tank object
     qreal x,w,h;
@@ -229,7 +229,7 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     } // if
     if (tankOptions & TANK_MANIFOLD_TOP)
     {   // A return-manifold at the top of the tank
-        painter->fillRect(leftTopPipe.x(),leftTopPipe.y(),65,2.0*RPIPE+1,colTopPipe);
+        painter->fillRect(leftTopPipe.x(),leftTopPipe.y(),50,2.0*RPIPE+1,colTopPipe);
         painter->setPen(QPen(colTopPipe,5,Qt::SolidLine));
         painter->drawEllipse(1.5*TANK_WALL-(tankWidth>>1),20-tankHeight,tankWidth-3*TANK_WALL,20);
     } // if
