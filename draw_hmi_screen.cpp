@@ -308,6 +308,13 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     scene->addItem(flow4);   // add flow4 after pipes have been added
     p->F4 = flow4;           // add flow4 reference to MainEbrew
 
+    point.setX(point.x()+60);
+    point.setY(point.y()-25);
+    Meter *temp5 = new Meter(point,METER_HTEMP,"Tmlt-ow");
+    temp5->setToolTip("<b>Temperature sensor 5</b>: Auxiliary One-Wire temperature sensor 2 (°C). Red=Error reading sensor, Green=No error. Calibrate sensor with Options->Measurements Settings->Temperatures Dialog screen");
+    scene->addItem(temp5);
+    p->T5 = temp5;        // Add temp5 reference to MainEbrew
+
     //----------------------------------------------------------
     // From T-pipe 3 going left to HLT heat-exchanger input
     // Objects: pipeH5, elbow10, elbow11
@@ -385,12 +392,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     scene->addItem(temp4);
     p->T4 = temp4;        // Add temp4 reference to MainEbrew
 
-    point = QPoint(-1000,200);
-    Meter *temp5 = new Meter(point,METER_HTEMP,"Tmlt-ow");
-    temp5->setToolTip("<b>Temperature sensor 5</b>: Auxiliary One-Wire temperature sensor 2 (°C). Red=Error reading sensor, Green=No error. Calibrate sensor with Options->Measurements Settings->Temperatures Dialog screen");
-    scene->addItem(temp5);
-    p->T5 = temp5;        // Add temp5 reference to MainEbrew
-
     p->setKettleNames(); // Init. titles of kettles with volumes found in Registry
+
 } // draw_hmi_screen()
 

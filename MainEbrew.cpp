@@ -1823,7 +1823,7 @@ uint16_t MainEbrew::stateMachine(void)
     // State 11: 0  0  0  0  0  0  0  0  0  0  Boiling                   0x0000
     // State 12: 0  0  0  0  0  0  0  0  0  0  Boiling Finished          0x0000
     // State 13: 1  0  0  0  0  0  0  0  0  0  Mash PreHeat HLT          0x0200
-    // State 14: 0  0  0  0  0  0  0  0  1  1  Pump Prefill              0x0003
+    // State 14: 0  0  0  0  0  0  1  0  1  1  Pump Prefill              0x000B
     // State 15: 0  0  0  0  0  0  0  0  0  0  Add Malt to MLT           0x0000
     // State 16: 0  1  0  0  1  0  0  1  0  0  Chill & Pump to Fermentor 0x0124
     // State 17: 0  0  0  0  0  0  0  0  0  0  Finished!                 0x0000
@@ -1849,7 +1849,7 @@ uint16_t MainEbrew::stateMachine(void)
     uint16_t  actuatorSettings[STD_MAX+1] =
                            /* 00 */{0x0000, 0x0200, 0x030B, 0x0309, 0x0309,  /* 04 */
                            /* 05 */ 0x0309, 0x0141, 0x030B, 0x0000, 0x0141,  /* 09 */
-                           /* 10 */ 0x0000, 0x0000, 0x0000, 0x0200, 0x0003,  /* 14 */
+                           /* 10 */ 0x0000, 0x0000, 0x0000, 0x0200, 0x000B,  /* 14 */
                            /* 15 */ 0x0000, 0x0124, 0x0000, 0x0000, 0x0309,  /* 19 */
                            /* 20 */ 0x0000, 0x016C, 0x016C, 0x0000, 0x012C,  /* 24 */
                            /* 25 */ 0x0124, 0x0000, 0x0142, 0x0122, 0x010A,  /* 29 */
@@ -2159,7 +2159,7 @@ uint16_t MainEbrew::stateMachine(void)
         //                                  else goto S09_EMPTY_MLT
         //---------------------------------------------------------------------------
         case S05_SPARGE_TIMER_RUNNING:
-            string    = QString("05. Sparge-Timer Running (%1/%2 min.)").arg(timer1/60).arg(RegEbrew->value("SP_TIME").toInt());
+            string    = QString("05. Sparge-timer Running (%1/%2 min., batch %3/%4)").arg(timer1/60).arg(RegEbrew->value("SP_TIME").toInt()).arg(sp_idx+1).arg(RegEbrew->value("SP_BATCHES").toInt());
             if (sp_idx < RegEbrew->value("SP_BATCHES").toInt())
                  substring = QString("After timeout, wort is pumped from the MLT to the Boil-kettle");
             else substring = QString("After timeout, sparging is finished and the MLT is emptied");
@@ -2196,7 +2196,7 @@ uint16_t MainEbrew::stateMachine(void)
         // - The goto S08_DELAY_xSEC
         //---------------------------------------------------------------------------
         case S06_PUMP_FROM_MLT_TO_BOIL:
-            string    = QString("06. Pump from MLT to Boil-kettle (%1 L)").arg(sp_idx ? sp_vol_batch : sp_vol_batch0,2,'f',1);
+            string    = QString("06. Pump from MLT to Boil-kettle (%1 L, batch %2/%3)").arg(sp_idx ? sp_vol_batch : sp_vol_batch0,2,'f',1).arg(sp_idx+1).arg(RegEbrew->value("SP_BATCHES").toInt());
             substring = QString("Wort is pumped to the Boil-kettle");
             tset_mlt  = ms[ms_idx].temp;
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset").toDouble(); // Single offset
@@ -2220,8 +2220,8 @@ uint16_t MainEbrew::stateMachine(void)
         // - The goto S05_SPARGE_TIMER_RUNNING
         //---------------------------------------------------------------------------
         case S07_PUMP_FROM_HLT_TO_MLT:
-            string    = QString("07. Pump fresh water from HLT to MLT (%1 L)").arg(sp_vol_batch,2,'f',1);
-            substring = QString("A batch of fresh sparge water is added from the HLT");
+            string    = QString("07. Pump fresh water from HLT to MLT (%1 L, batch %2/%3)").arg(sp_vol_batch,2,'f',1).arg(sp_idx).arg(RegEbrew->value("SP_BATCHES").toInt());
+            substring = QString("A batch of fresh sparge water is added from the HLT to the MLT");
             tset_mlt  = ms[ms_idx].temp;
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset").toDouble(); // Single offset
             if ((tboil > RegEbrew->value("BOIL_MIN_TEMP").toDouble()) || boilPid->getButtonState())
@@ -2576,7 +2576,7 @@ uint16_t MainEbrew::stateMachine(void)
            //---------------------------------------------------------------------------
            case S24_CIP_DRAIN_BOIL1:
                 string    = QString("24. CIP: Drain Boil-kettle 1");
-                substring = QString("NAOH solution is removed from the Boil-kettle");
+                substring = QString("NaOH solution is removed from the Boil-kettle");
                 tset_boil = TEMP_DEFAULT;       // Boil-kettle Temperature Setpoint
                 boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
                 if (toolCipDrainBK->isChecked())
@@ -2597,7 +2597,7 @@ uint16_t MainEbrew::stateMachine(void)
             //---------------------------------------------------------------------------
             case S25_CIP_DRAIN_BOIL2:
                  string    = QString("25. CIP: Drain Boil-kettle 2");
-                 substring = QString("NAOH solution is removed, now fill HLT with fresh water");
+                 substring = QString("NaOH solution is removed, now fill HLT with fresh water");
                  tset_boil = TEMP_DEFAULT;       // Boil-kettle Temperature Setpoint
                  boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
                  if (F3->isFlowRateLow()) // flowrate of CFC-output
