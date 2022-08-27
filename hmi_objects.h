@@ -101,9 +101,11 @@
 
 // Color-definitions for input and output pipes, with and without flow
 #define COLOR_BACKGROUND QColor(224,224,224) /* Background color for entire scene */
-#define COLOR_OUT0       QColor(  0,  0,255) /* Output pipe color when no flow */
+//#define COLOR_OUT0       QColor(  0,  0,255) /* Output pipe color when no flow */
+#define COLOR_OUT0       QColor(255,255,255) /* Output pipe color when no flow */
 #define COLOR_OUT1       QColor(  0,220,255) /* Output pipe color when flow */
-#define COLOR_IN0        QColor(102,153,255) /* Input pipe color when no flow */
+//#define COLOR_IN0        QColor(102,153,255) /* Input pipe color when no flow */
+#define COLOR_IN0        QColor(255,255,255) /* Input pipe color when no flow */
 #define COLOR_IN1        QColor(102,255,255) /* Input pipe color when flow */
 #define COLOR_LEFT_PIPES   (0)
 #define COLOR_BOTTOM_PIPE1 (1)
