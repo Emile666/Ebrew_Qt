@@ -82,7 +82,7 @@ void PowerButton::setButtonState(bool state)
 //------------------------------------------------------------------------------------------
 // Tank object for HLT, MLT and Boil-kettle
 //------------------------------------------------------------------------------------------
-Tank::Tank(int x, int y, int width, int height, uint8_t options, QString name)
+Tank::Tank(int x, int y, int width, int height, uint16_t options, QString name)
     : QGraphicsPolygonItem()
 {
     setPos(x,y);
@@ -99,7 +99,19 @@ void Tank::setName(QString name)
     tankName = name;
 } // Tank::setName()
 
-void Tank::setOrientation(int width, int height, uint8_t options)
+uint8_t Tank::getHeatingOptions(void)
+{   // Energy-Sources start at TANK_GAS_MODU (0x0100) in tankOptions
+    uint8_t retv = (uint8_t)((tankOptions >> 8) & 0x001F);
+    return retv;
+} // getHeatingOptions()
+
+void Tank::setHeatingOptions(uint8_t options)
+{   // Energy-Sources start at TANK_GAS_MODU (0x0100) in tankOptions
+    tankOptions &= ~TANK_HEAT_SOURCES; // clear all heat-source bits
+    tankOptions |= (((uint16_t)options & 0x001F) << 8);
+} // setHeatingOptions()
+
+void Tank::setOrientation(int width, int height, uint16_t options)
 {
     QPainterPath path;
 
@@ -147,7 +159,6 @@ void Tank::setOrientation(int width, int height, uint8_t options)
          h = height + 30;
     else h = height;
     boundary = QRectF(x,-height,w,h);
-
     colLeftPipes   = COLOR_IN0;        // connected to second pump
     colBottomPipe1 = COLOR_IN0;        // tank-output, connected to pump-input
     colBottomPipe2 = COLOR_OUT0;       // tank-input, connected to pump-output
@@ -326,7 +337,7 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
         font.setPointSize(18);
         font.setBold(true);
         painter->setFont(font);
-        painter->drawRect(-(tankWidth>>2),yb+4-tankHeight,120,28); // Draw Volume display rectangle
+        painter->drawRect(-(tankWidth>>2),yb+4-tankHeight,120,28); // Draw Power display rectangle
         painter->setPen(Qt::red);
         text = QString("%1 %").arg(tankPower,2,'f',0);
         painter->drawText(10-(tankWidth>>2),yb+26-tankHeight,text); // Draw Actual Power
@@ -337,6 +348,65 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
         painter->drawText(5-(tankWidth>>2),yb-tankHeight,"Actual Power"); // Draw title
     } // if
 } // Tank::paint()
+
+void Tank::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+{
+    if (tankOptions & TANK_CONTEXTMENU)
+    {
+        QMenu menu;
+        QAction *enaGas   = menu.addAction("Modulating Gas-burner");
+        QAction *enaGasNM = menu.addAction("Non-modulating Gas-burner");
+        QAction *enaEle1  = menu.addAction("Electric Heater 1");
+        QAction *enaEle2  = menu.addAction("Electric Heater 2");
+        QAction *enaEle3  = menu.addAction("Electric Heater 3");
+        enaGas->setCheckable(true);
+        enaGasNM->setCheckable(true);
+        enaEle1->setCheckable(true);
+        enaEle2->setCheckable(true);
+        enaEle3->setCheckable(true);
+        enaGas->setChecked(tankOptions & TANK_GAS_MODU);
+        enaGasNM->setChecked(tankOptions & TANK_GAS_NON_MODU);
+        enaEle1->setChecked(tankOptions & TANK_ELEC_HEATER1);
+        enaEle2->setChecked(tankOptions & TANK_ELEC_HEATER2);
+        enaEle3->setChecked(tankOptions & TANK_ELEC_HEATER3);
+        QAction *selectedAction = menu.exec(event->screenPos());
+        if (selectedAction == enaGas)
+        {
+            if (enaGas->isChecked())
+                 tankOptions |=  TANK_GAS_MODU;
+            else tankOptions &= ~TANK_GAS_MODU;
+            enaGas->setChecked(tankOptions & TANK_GAS_MODU);
+        } // if
+        if (selectedAction == enaGasNM)
+        {
+            if (enaGasNM->isChecked())
+                 tankOptions |=  TANK_GAS_NON_MODU;
+            else tankOptions &= ~TANK_GAS_NON_MODU;
+            enaGasNM->setChecked(tankOptions & TANK_GAS_NON_MODU);
+        } // if
+        if (selectedAction == enaEle1)
+        {
+            if (enaEle1->isChecked())
+                 tankOptions |=  TANK_ELEC_HEATER1;
+            else tankOptions &= ~TANK_ELEC_HEATER1;
+           enaEle1->setChecked(tankOptions & TANK_ELEC_HEATER1);
+         } // if
+        if (selectedAction == enaEle2)
+        {
+            if (enaEle2->isChecked())
+                 tankOptions |=  TANK_ELEC_HEATER2;
+            else tankOptions &= ~TANK_ELEC_HEATER2;
+           enaEle2->setChecked(tankOptions & TANK_ELEC_HEATER2);
+         } // if
+        if (selectedAction == enaEle3)
+        {
+            if (enaEle3->isChecked())
+                 tankOptions |=  TANK_ELEC_HEATER3;
+            else tankOptions &= ~TANK_ELEC_HEATER3;
+           enaEle3->setChecked(tankOptions & TANK_ELEC_HEATER3);
+         } // if
+    } // if
+} // Tank::contextMenuEvent()
 
 //------------------------------------------------------------------------------------------
 // Pipe object

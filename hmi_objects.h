@@ -72,11 +72,18 @@
 #define PIPE2_BOTTOM_TOP_NO_ARROW (13)
 
 // These are the possible tank options
-#define TANK_HEAT_EXCHANGER   (1) /* Tank contains heat-exchanger with pipes on the right */
-#define TANK_MANIFOLD_BOTTOM  (2) /* False bottom connecting to TANK_EXIT_BOTTOM */
-#define TANK_MANIFOLD_TOP     (4) /* Return manifold at top-left of tank */
-#define TANK_RETURN_BOTTOM    (8) /* Return pipe at bottom of tank */
-#define TANK_EXIT_BOTTOM     (16) /* One pipe output at tank bottom */
+#define TANK_HEAT_EXCHANGER   (0x0001) /* Tank contains heat-exchanger with pipes on the right */
+#define TANK_MANIFOLD_BOTTOM  (0x0002) /* False bottom connecting to TANK_EXIT_BOTTOM */
+#define TANK_MANIFOLD_TOP     (0x0004) /* Return manifold at top-left of tank */
+#define TANK_RETURN_BOTTOM    (0x0008) /* Return pipe at bottom of tank */
+#define TANK_EXIT_BOTTOM      (0x0010) /* One pipe output at tank bottom */
+#define TANK_GAS_MODU         (0x0100) /* Enable modulating gas-burner for tank */
+#define TANK_GAS_NON_MODU     (0x0200) /* Enable non-modulating gas-burner for tank */
+#define TANK_ELEC_HEATER1     (0x0400) /* Enable electric heating element 1 */
+#define TANK_ELEC_HEATER2     (0x0800) /* Enable electric heating element 2 */
+#define TANK_ELEC_HEATER3     (0x1000) /* Enable electric heating element 2 */
+#define TANK_CONTEXTMENU      (0x2000) /* Enable right-mouse click context-menu */
+#define TANK_HEAT_SOURCES     (0x1F00) /* All possible heat-sources */
 
 // Possible states for Actuators (pumps, valves)
 #define MANUAL_OFF (0) /* Actuator in manual mode, off */
@@ -190,19 +197,22 @@ protected:
 class Tank : public QGraphicsPolygonItem
 {
 public:
-    Tank(int x, int y, int width, int height, uint8_t options, QString name);
-    void    setOrientation(int width, int height, uint8_t options);
-    void    setName(QString name);
-    void    setValues(qreal temp, qreal sp, qreal vol, qreal power);
-    void    setColor(uint8_t pipe, QColor color);
-    void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-    QRectF  boundingRect() const override { return boundary; }
-    QPointF getCoordinates(int which);
+    Tank(int x, int y, int width, int height, uint16_t options, QString name);
+    void     setOrientation(int width, int height, uint16_t options);
+    void     setName(QString name);
+    void     setValues(qreal temp, qreal sp, qreal vol, qreal power);
+    void     setColor(uint8_t pipe, QColor color);
+    void     paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    QRectF   boundingRect() const override { return boundary; }
+    QPointF  getCoordinates(int which);
+    uint8_t  getHeatingOptions(void);
+    void     setHeatingOptions(uint8_t options);
 
 protected:
+    void      contextMenuEvent(QGraphicsSceneContextMenuEvent * event) override;
     int       tankWidth, tankHeight;
     QString   tankName;       /* Tank name */
-    uint8_t   tankOptions;    /* Tank options: TANK_HEAT_EXCHANGER ... TANK_EXIT_BOTTOM */
+    uint16_t  tankOptions;    /* Tank options: TANK_HEAT_EXCHANGER ... TANK_EXIT_BOTTOM */
     QPolygonF tankPolygon;    /* Contains polygon for drawing the tank */
     qreal     tankTemp;       /* Actual temperature inside tank */
     qreal     tankSetPoint;   /* Setpoint temperature for tank */

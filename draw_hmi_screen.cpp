@@ -35,11 +35,14 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
 
     //----------------------------------------------------------------------
     // Draw HLT tank with Pump 2
+    // HLT has a tank-exit pipe and a heat-exchanger.
+    // The HLT has one or more heat-sources, so enable the context-menu
     // Objects: hlt, pump2, elbowP20, elbowP21,  pipeH1, elbowP22, elbowP23
     //----------------------------------------------------------------------
-    Tank *hlt = new Tank(-700,0,250,300,TANK_EXIT_BOTTOM|TANK_HEAT_EXCHANGER,"HLT 200L");
+    Tank *hlt = new Tank(-700,0,250,300,TANK_EXIT_BOTTOM|TANK_HEAT_EXCHANGER|TANK_CONTEXTMENU,"HLT 200L");
     scene->addItem(hlt); // Hot-Liquid Tun (HLT)
     p->hlt = hlt;        // save hlt reference to MainEbrew
+    p->hlt->setHeatingOptions(p->RegEbrew->value("HEATERSH").toInt()); // init. hlt heat-sources from Registry
     point = hlt->getCoordinates(COORD_LEFT_PIPE1) + QPoint(-60,20); // get coordinates of top-left pipe of heat-exchanger
     hlt->setToolTip("<b>Hot Liquid Tun (HLT)</b>: contains fresh water for the brew system and has a built-in temperature sensor and a heat-exchanger.<br>The following information is shown:<br>1) The actual temperature and the setpoint temperature.<br>2) Actual volume showing the remaining water in the HLT.<br>3) Actual power applied to the HLT, this is the PID controller output as a percentage from 0 to 100 %.");
 
@@ -97,7 +100,8 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     scene->addItem(flow1);   // Flowmeter between HLT and Pump 1 input
 
     //----------------------------------------------------------
-    // Draw MLT tank with output pipe and valve V1
+    // Draw MLT tank with output pipe and valve V1.
+    // The MLT has no heat-sources.
     // Objects: mlt, valve1, Tpipe2, pipeH2
     //----------------------------------------------------------
     Tank *mlt = new Tank(-270,0,250,300,TANK_MANIFOLD_BOTTOM|TANK_MANIFOLD_TOP,"MLT 110L");
@@ -119,14 +123,16 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     p->pipeH2 = pipeH2;         // add reference to MainEbrew
     scene->addItem(pipeH2);   // horizontal connecting pipe between HLT and MLT
 
-    //----------------------------------------------------------
-    // Draw Boil-kettle with output pipe and valve V3
+    //---------------------------------------------------------------
+    // Draw Boil-kettle with output pipe, valve V3 and a context-menu.
+    // The boil-kettle has heat-sources, so enable context-menu.
     // Objects: boil, valve3, elbow3, pipeH3
-    //----------------------------------------------------------
-    Tank *boil = new Tank(60,0,275,300,TANK_MANIFOLD_BOTTOM|TANK_RETURN_BOTTOM,"BOIL 140L");
+    //---------------------------------------------------------------
+    Tank *boil = new Tank(60,0,275,300,TANK_MANIFOLD_BOTTOM|TANK_RETURN_BOTTOM|TANK_CONTEXTMENU,"BOIL 140L");
     scene->addItem(boil);
     boil->setToolTip("<b>Boil-kettle (BOIL)</b>: contains the boiling wort and has a built-in temperature sensor.<br>The following information is shown:<br>1) The actual temperature and the setpoint temperature.<br>2) Actual volume showing the wort volume in the Boil-kettle.<br>3) Actual power applied to the Boil-kettle, this is the PID controller output as a percentage from 0 to 100 %.");
     p->boil = boil;          // add boil reference to MainEbrew
+    p->boil->setHeatingOptions(p->RegEbrew->value("HEATERSB").toInt()); // init. boil-kettle heat-sources from Registry
     point = boil->getCoordinates(COORD_BOTTOM_PIPE1) + QPoint(0,30); // get coordinates of bottom-left pipe
     Valve *valve3 = new Valve(point,VERTICAL,"V3");
     valve3->setToolTip("<b>Solenoid ball valve V3</b>, Boil-kettle output, red=closed, green=open. Press \'<b>3</b>\' for manual control, \'<b>A</b>\' for automated control. Click <b>right mouse button</b> for popup menu");

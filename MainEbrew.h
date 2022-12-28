@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.17"                        /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.18"                        /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -180,12 +180,17 @@
 #define ALL_VALVES (V1b | V2b | V3b | V4b | V5b | V6b | V7b | V8b)
 #define ALL_PUMPS  (P0b | P1b)
 
-//-----------------------------------------------------
-// E-brew System Modes for heating HLT and Boil-kettle
-//-----------------------------------------------------
-#define GAS_MODULATING     (0) /* Modulating gas-burner */
-#define GAS_NON_MODULATING (1) /* Non-modulating (on/off) gas-burner */
-#define ELECTRICAL_HEATING (2) /* Electrical heating, SSR/Triac controlled */
+//------------------------------------------------------------------------------
+// Heating options for HLT and Boil-kettle
+// Note: These defines should correspond to the Arduino firmware
+// Note: These defines are related to the tankOptions defines in the Tank object
+//------------------------------------------------------------------------------
+#define GAS_MODULATING     (0x01) /* Modulating gas-burner */
+#define GAS_NON_MODULATING (0x02) /* Non-modulating (on/off) gas-burner */
+#define ELECTRIC_HEATING1  (0x04) /* Electrical heating, SSR/Triac controlled */
+#define ELECTRIC_HEATING2  (0x08) /* Electrical heating, SSR/Triac controlled */
+#define ELECTRIC_HEATING3  (0x10) /* Electrical heating, SSR/Triac controlled */
+#define HEATING_SOURCES    (0x1F) /* All energy-sources */
 
 //-----------------------------------------------------
 // Sensor options for HLT and MLT temperature sensors
@@ -351,7 +356,12 @@ public:
     bool  flow4Running;         // True = flowsensor 4 should see a flow
     int   sensorAlarmInfo;      // alarm bits for temp. and flow-sensors
     int   alarmSound = ALARM_TEMP_FLOW_SENSORS; // alarm on all sensor errors
-    bool  triacTooHot;          // true = SSR too hot
+
+    bool  triacTooHot;           // true = SSR too hot
+    bool  hltGasNonMod = false;  // true = enable non-modulating gas-valve
+    bool  hltGasMod = false;     // true = enable modulating gas-valve
+    bool  boilGasNonMod = false; // true = enable non-modulating gas-valve
+    bool  boilGasMod = false;    // true = enable modulating gas-valve
 
     /* Switches and Fixes for variables */
     bool  tset_hlt_sw  = false;  // Switch value for tset_hlt

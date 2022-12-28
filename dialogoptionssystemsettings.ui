@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>328</width>
-    <height>445</height>
+    <width>354</width>
+    <height>474</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>150</x>
-     <y>410</y>
+     <x>180</x>
+     <y>440</y>
      <width>171</width>
      <height>32</height>
     </rect>
@@ -32,71 +32,94 @@
   <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>20</y>
-     <width>301</width>
-     <height>391</height>
+     <width>341</width>
+     <height>421</height>
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
-     <string>Heater Mode</string>
+     <string>Heater Options</string>
     </attribute>
     <widget class="QGroupBox" name="gb1">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>0</x>
        <y>10</y>
-       <width>261</width>
-       <height>111</height>
+       <width>151</width>
+       <height>121</height>
       </rect>
      </property>
      <property name="toolTip">
-      <string>This option selects the specific heating mode of the HERMS brewing system</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the heating-options that are available for the HLT.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="title">
-      <string>Brew-system Heating Mode</string>
+      <string>HLT Heat-sources</string>
      </property>
      <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
-        <x>10</x>
+        <x>0</x>
         <y>20</y>
-        <width>244</width>
-        <height>81</height>
+        <width>151</width>
+        <height>101</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
        <item>
-        <widget class="QRadioButton" name="rb1">
+        <widget class="QCheckBox" name="cb11">
          <property name="toolTip">
-          <string>Select this option if you have a modulating gas-burner that is controlled with a 25 kHz PWM signal (0-28 Volt DC).</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A modulating gas-burner has a gas-valve that operates with a 25 kHz 28V PWM signal. It can be controlled in steps from 0% to 100%..&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>Modulating Gas-Burner (25 kHz PWM)</string>
+          <string>Modulating gasburner</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QRadioButton" name="rb2">
+        <widget class="QCheckBox" name="cb12">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select this option if you have a non-modulating gas-burner that can only be switched on and off.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A non-modulating gas-burner operates on a 24V AC signal that is applied with an On-Off signal, typically done with a relay. The PID-controller output signal is therefore converted into an on-off signal.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>Non-Modulating Gas-Burner (Relay, On-Off)</string>
+          <string>Non-modulating gasburner</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QRadioButton" name="rb3">
+        <widget class="QCheckBox" name="cb13">
          <property name="toolTip">
-          <string>Select this option if the HLT has an electrical heating element</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The brew-system is capable of driving up to 3 heating-elements. Each heating-element is controlled with a Solid State Relay (SSR). The PID-controller output is sent directly to this SSR.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>Electrical Heating (SSR, T = 5 sec. slow PWM)</string>
+          <string>Electric heating-element 1</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cb14">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The brew-system is capable of driving up to 3 heating-elements. Each heating-element is controlled with a Solid State Relay (SSR). The PID-controller output is sent directly to this SSR.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Electric heating-element 2</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cb15">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The brew-system is capable of driving up to 3 heating-elements. Each heating-element is controlled with a Solid State Relay (SSR). The PID-controller output is sent directly to this SSR.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Electric heating-element 3</string>
          </property>
         </widget>
        </item>
@@ -106,17 +129,17 @@
     <widget class="QGroupBox" name="gb2">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>120</y>
+       <x>0</x>
+       <y>140</y>
        <width>291</width>
        <height>81</height>
       </rect>
      </property>
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In case a modulating gas-burner is used, it also needs to be switched on and off. This is done with a 230 V signal supplied to the gas-burner. These values control when the gas-burner is energized. Typically set to a low value, e.g. 2% and 4 %.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In case a modulating gasburner is used, it also needs to be switched on and off. This is done with a 230 V signal supplied to the gasburner. These values control when the gasburner is energized. Typically set to a low value, e.g. 2% and 4 %.&lt;/p&gt;&lt;p&gt;If you have both the gasburner and the electrical heating-elements available, set this value in relation to the actual power of these heat-sources. Example: gasburner is 12 kW and electric heating is 4 kW, then this hysteresis is best set to 24%-26%. Now 100 % represents 16 kW of power and the gasburner is only activated above 26 %.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="title">
-      <string>Energize Modulating Gas-Burner</string>
+      <string>Energize Modulating Gasburner</string>
      </property>
      <widget class="QWidget" name="formLayoutWidget_3">
       <property name="geometry">
@@ -210,8 +233,8 @@
     <widget class="QGroupBox" name="gb3">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>200</y>
+       <x>0</x>
+       <y>230</y>
        <width>291</width>
        <height>81</height>
       </rect>
@@ -220,7 +243,7 @@
       <string>In case a gas-burner is used that can only switch on and off, the PID-controller output percentage is converted into an ON/OFF signal with these values.</string>
      </property>
      <property name="title">
-      <string>Switching-point for Non-Modulating Gas-Burner</string>
+      <string>Switching-point for Non-modulating Gasburner</string>
      </property>
      <widget class="QWidget" name="formLayoutWidget_4">
       <property name="geometry">
@@ -308,8 +331,8 @@
     <widget class="QGroupBox" name="groupBox_4">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>280</y>
+       <x>0</x>
+       <y>310</y>
        <width>291</width>
        <height>81</height>
       </rect>
@@ -318,7 +341,7 @@
       <string>If the Solid-State-Relay (SSR) temperature becomes too high, the electrical heating element is switched off</string>
      </property>
      <property name="title">
-      <string>Electrical Heating Overprotection Limit</string>
+      <string>Electric Heating Overprotection Limit</string>
      </property>
      <widget class="QWidget" name="formLayoutWidget_5">
       <property name="geometry">
@@ -403,6 +426,87 @@
          </property>
          <property name="value">
           <number>0</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="gb1_2">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>10</y>
+       <width>151</width>
+       <height>121</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the heating-options that are available for the HLT.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="title">
+      <string>Boil-kettle Heat-sources</string>
+     </property>
+     <widget class="QWidget" name="layoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>20</y>
+        <width>151</width>
+        <height>101</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QCheckBox" name="cb21">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A modulating gas-burner has a gas-valve that operates with a 25 kHz 28V PWM signal. It can be controlled in steps from 0% to 100%..&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Modulating gasburner</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cb22">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A non-modulating gas-burner operates on a 24V AC signal that is applied with an On-Off signal, typically done with a relay. The PID-controller output signal is therefore converted into an on-off signal.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Non-modulating gasburner</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cb23">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The brew-system is capable of driving up to 3 heating-elements. Each heating-element is controlled with a Solid State Relay (SSR). The PID-controller output is sent directly to this SSR.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Electric heating-element 1</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cb24">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The brew-system is capable of driving up to 3 heating-elements. Each heating-element is controlled with a Solid State Relay (SSR). The PID-controller output is sent directly to this SSR.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Electric heating-element 2</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cb25">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The brew-system is capable of driving up to 3 heating-elements. Each heating-element is controlled with a Solid State Relay (SSR). The PID-controller output is sent directly to this SSR.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Electric heating-element 3</string>
          </property>
         </widget>
        </item>
@@ -733,9 +837,6 @@
   </widget>
  </widget>
  <tabstops>
-  <tabstop>rb1</tabstop>
-  <tabstop>rb2</tabstop>
-  <tabstop>rb3</tabstop>
   <tabstop>sb11</tabstop>
   <tabstop>sb12</tabstop>
   <tabstop>sb21</tabstop>

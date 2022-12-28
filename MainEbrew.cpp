@@ -190,8 +190,8 @@ void MainEbrew::closeEvent(QCloseEvent *event)
     {
         schedulerEbrew->stop(); // stop all tasks
 
-        commPortWrite("B0"); // Disable Boil-kettle gas-burner
-        commPortWrite("H0"); // Disable HLT gas-burner
+        commPortWrite("B0 0"); // Disable Boil-kettle gas-burner
+        commPortWrite("H0 0"); // Disable HLT energy-sources
         commPortWrite("L0"); // Disable Alive-LED
         commPortWrite("P0"); // Disable Pump
         commPortWrite("V0"); // Disable All Valves
@@ -415,6 +415,8 @@ void MainEbrew::createRegistry(void)
     // Options -> System Settings Dialog
     //------------------------------------
     // Heating mode
+    RegEbrew->setValue("HEATERSH",0x05); // Modulating gas-burner + 1 heating-element for HLT
+    RegEbrew->setValue("HEATERSB",0x05); // Modulating gas-burner + 1 heating-element for Boil-kettle
     RegEbrew->setValue("GAS_NON_MOD_LLIMIT",30); // Parameter 1 for Ebrew HW
     RegEbrew->setValue("GAS_NON_MOD_HLIMIT",35); // Parameter 2 for Ebrew HW
     RegEbrew->setValue("GAS_MOD_PWM_LLIMIT",2);  // Parameter 3 for Ebrew HW
@@ -422,7 +424,6 @@ void MainEbrew::createRegistry(void)
     RegEbrew->setValue("TTRIAC_LLIM",65);        // Parameter 5 for Ebrew HW
     RegEbrew->setValue("TTRIAC_HLIM",75);        // Parameter 6 for Ebrew HW
     // Communications
-    RegEbrew->setValue("SYSTEM_MODE",GAS_MODULATING);         // Parameter 0 for Ebrew HW
     RegEbrew->setValue("COMM_CHANNEL",0);                     // Select Ethernet as Comm. Channel
     RegEbrew->setValue("COM_PORT_SETTINGS","38400,N,8,1");    // COM port settings
     RegEbrew->setValue("UDP_IP_PORT","192.168.192.105:8888"); // IP & Port number
@@ -1031,16 +1032,47 @@ void MainEbrew::task_pid_control(void)
 
     // Run switches/fixes and sending to Ebrew HW every second
     if (gamma_hlt_sw) gamma_hlt = gamma_hlt_fx;
-    string = QString("H%1").arg(gamma_hlt,1,'f',0); // PID-Output [0%..100%]
-    commPortWrite(string.toUtf8());
 
+    //---------------------
+    // HLT Energy-sources
+    //---------------------
+    uint8_t ena = hlt->getHeatingOptions(); // get all enabled HLT heating-sources
+    // Hysteresis for non-modulating gas-burner
+    if      (gamma_hlt > RegEbrew->value("GAS_NON_MOD_HLIMIT").toInt()) hltGasNonMod = true;
+    else if (gamma_hlt < RegEbrew->value("GAS_NON_MOD_LLIMIT").toInt()) hltGasNonMod = false;
+    // Hysteresis for modulating gas-burner
+    if      (gamma_hlt > RegEbrew->value("GAS_MOD_PWM_HLIMIT").toInt()) hltGasMod = true;
+    else if (gamma_hlt < RegEbrew->value("GAS_MOD_PWM_LLIMIT").toInt()) hltGasMod = false;
+    if ((ena & GAS_MODULATING)     && !hltGasMod)    ena &= ~GAS_MODULATING;
+    if ((ena & GAS_NON_MODULATING) && !hltGasNonMod) ena &= ~GAS_NON_MODULATING;
+    if ((ena & (ELECTRIC_HEATING1 | ELECTRIC_HEATING2 | ELECTRIC_HEATING3)) && triacTooHot)
+        ena &= ~(ELECTRIC_HEATING1 | ELECTRIC_HEATING2 | ELECTRIC_HEATING3);
+    string = QString("H%1 %2").arg(ena).arg(gamma_hlt,1,'f',0); // PID-Output [0%..100%]
+    qDebug() << "H" << ena << " " << gamma_hlt;
+    commPortWrite(string.toUtf8()); // Send it, even if all energy-sources are disabled
+
+    //----------------------------
+    // Boil-Kettle Energy-sources
+    //----------------------------
+    ena = boil->getHeatingOptions(); // get all enabled boil-kettle heating-sources
     if ((ebrew_std == S11_BOILING) && (gamma_boil > RegEbrew->value("LIMIT_BOIL").toDouble()))
     {   // Limit Boil-kettle output during boiling
         gamma_boil = RegEbrew->value("LIMIT_BOIL").toDouble();
     } // if
     if (gamma_boil_sw) gamma_boil = gamma_boil_fx;
-    string = QString("B%1").arg(gamma_boil,1,'f',0); // PID-Output [0%..100%]
-    commPortWrite(string.toUtf8());
+    // Hysteresis for non-modulating gas-burner
+    if      (gamma_boil > RegEbrew->value("GAS_NON_MOD_HLIMIT").toInt()) boilGasNonMod = true;
+    else if (gamma_boil < RegEbrew->value("GAS_NON_MOD_LLIMIT").toInt()) boilGasNonMod = false;
+    // Hysteresis for modulating gas-burner
+    if      (gamma_boil > RegEbrew->value("GAS_MOD_PWM_HLIMIT").toInt()) boilGasMod = true;
+    else if (gamma_boil < RegEbrew->value("GAS_MOD_PWM_LLIMIT").toInt()) boilGasMod = false;
+    if ((ena & GAS_MODULATING)     && !boilGasMod)    ena &= ~GAS_MODULATING;
+    if ((ena & GAS_NON_MODULATING) && !boilGasNonMod) ena &= ~GAS_NON_MODULATING;
+    if ((ena & (ELECTRIC_HEATING1 | ELECTRIC_HEATING2 | ELECTRIC_HEATING3)) && triacTooHot)
+        ena &= ~(ELECTRIC_HEATING1 | ELECTRIC_HEATING2 | ELECTRIC_HEATING3);
+    string = QString("B%1 %2").arg(ena).arg(gamma_boil,1,'f',0); // PID-Output [0%..100%]
+    qDebug() << "B" << ena << " " << gamma_boil;
+    commPortWrite(string.toUtf8()); // Send it, even if all energy-sources are disabled
     schedulerEbrew->updateDuration("pidControl",timer.nsecsElapsed()/1000);
 } // MainEbrew::task_pid_control()
 
@@ -1083,17 +1115,12 @@ void MainEbrew::task_read_temps(void)
     {  // Switch & Fix
        ttriac = ttriac_fx;
     } // if
-    //---------------------------------------------------
-    // Triac Temperature Protection: hysteresis function
-    //---------------------------------------------------
-    if (triacTooHot)
-    { // Reset if temp. < lower-limit
-      triacTooHot = (ttriac >= RegEbrew->value("TTRIAC_LLIM").toInt());
-    } // if
-    else
-    { // set if temp. >= upper-limit
-      triacTooHot = (ttriac >= RegEbrew->value("TTRIAC_HLIM").toInt());
-    } // else
+    //------------------------------------------------------
+    // SSR/Triac Temperature Protection: hysteresis function
+    //------------------------------------------------------
+    if      (ttriac >= RegEbrew->value("TTRIAC_HLIM").toInt()) triacTooHot = true;
+    else if (ttriac <  RegEbrew->value("TTRIAC_LLIM").toInt()) triacTooHot = false;
+
     //------------------ TEMP2 (THLT-I2C) --------------------------------------
     if (thlt_i2c > SENSOR_VAL_LIM_OK)
     {

@@ -48,6 +48,9 @@ DialogEditFixParameters::DialogEditFixParameters(QWidget *parent) :
     ui->sbBkVol->setValue(pEbrew->vboil_fx);
     ui->cbBkPid->setChecked(pEbrew->gamma_boil_sw);
     ui->sbBkPid->setValue(pEbrew->gamma_boil_fx);
+
+    ui->cbTTriac->setChecked(pEbrew->ttriac_sw);
+    ui->sbTTriac->setValue(pEbrew->ttriac_fx);
 } // DialogEditFixParameters::DialogEditFixParameters()
 
 DialogEditFixParameters::~DialogEditFixParameters()
@@ -318,6 +321,11 @@ void DialogEditFixParameters::on_buttonBox_rejected()
     pEbrew->vboil_fx      = 0.0;
     pEbrew->gamma_boil_sw = false;
     pEbrew->gamma_boil_fx = 0.0;
+    //----------------------
+    // Other
+    //----------------------
+    pEbrew->ttriac_sw = false;
+    pEbrew->ttriac_fx = 0.0;
 } // DialogEditFixParameters::on_buttonBox_rejected()
 
 void DialogEditFixParameters::set_switch_fix(void)
@@ -437,6 +445,19 @@ void DialogEditFixParameters::set_switch_fix(void)
     {
         pEbrew->gamma_boil_sw = false;
         pEbrew->gamma_boil_fx = 0.0;
+    } // else
+    //-------------------------
+    // Other
+    //-------------------------
+    if (ui->cbTTriac->checkState())
+    {
+        pEbrew->ttriac_sw = true;
+        pEbrew->ttriac_fx = ui->sbTTriac->value();
+    } // if
+    else
+    {
+        pEbrew->ttriac_sw = false;
+        pEbrew->ttriac_fx = 0.0;
     } // else
     //-------------------------
     // No sw/fx, set only once
