@@ -107,7 +107,7 @@ MainEbrew::MainEbrew(void) : QMainWindow()
         {
             found = (ReadData.indexOf(EBREW_HW_ID,0) != -1);
             ReadDataAvailable = false;
-            qDebug() << "Found(" << found << "): " << ReadData << "IP:" << ebrewHwIp;
+            //qDebug() << "Found(" << found << "): " << ReadData << "IP:" << ebrewHwIp;
         } // if
         ipAddress = tempIp; // restore IP-address from Registry
     } // while
@@ -1048,7 +1048,7 @@ void MainEbrew::task_pid_control(void)
     if ((ena & (ELECTRIC_HEATING1 | ELECTRIC_HEATING2 | ELECTRIC_HEATING3)) && triacTooHot)
         ena &= ~(ELECTRIC_HEATING1 | ELECTRIC_HEATING2 | ELECTRIC_HEATING3);
     string = QString("H%1 %2").arg(ena).arg(gamma_hlt,1,'f',0); // PID-Output [0%..100%]
-    qDebug() << "H" << ena << " " << gamma_hlt;
+    //qDebug() << "H" << ena << " " << gamma_hlt;
     commPortWrite(string.toUtf8()); // Send it, even if all energy-sources are disabled
 
     //----------------------------
@@ -1071,7 +1071,7 @@ void MainEbrew::task_pid_control(void)
     if ((ena & (ELECTRIC_HEATING1 | ELECTRIC_HEATING2 | ELECTRIC_HEATING3)) && triacTooHot)
         ena &= ~(ELECTRIC_HEATING1 | ELECTRIC_HEATING2 | ELECTRIC_HEATING3);
     string = QString("B%1 %2").arg(ena).arg(gamma_boil,1,'f',0); // PID-Output [0%..100%]
-    qDebug() << "B" << ena << " " << gamma_boil;
+    //qDebug() << "B" << ena << " " << gamma_boil;
     commPortWrite(string.toUtf8()); // Send it, even if all energy-sources are disabled
     schedulerEbrew->updateDuration("pidControl",timer.nsecsElapsed()/1000);
 } // MainEbrew::task_pid_control()
@@ -1872,6 +1872,7 @@ uint16_t MainEbrew::stateMachine(void)
     // State 33: 0  1  0  0  1  0  0  1  0  0  Chill wort in Boil-kettle 0x0124
     // State 34: 0  0  0  0  0  0  0  0  0  0  Boil-kettle chill ready   0x0000
     // State 35: 0  1  0  0  1  0  0  1  0  0  Sanitize Chiller          0x0124
+    // State 36: 0  0  0  0  0  0  0  0  1  0  Grainfather Heater only   0x0002
  //----------------------------------------------------------------------------
     uint16_t  actuatorSettings[STD_MAX+1] =
                            /* 00 */{0x0000, 0x0200, 0x030B, 0x0309, 0x0309,  /* 04 */
@@ -1881,7 +1882,7 @@ uint16_t MainEbrew::stateMachine(void)
                            /* 20 */ 0x0000, 0x016C, 0x016C, 0x0000, 0x012C,  /* 24 */
                            /* 25 */ 0x0124, 0x0000, 0x0142, 0x0122, 0x010A,  /* 29 */
                            /* 30 */ 0x0006, 0x0003, 0x0000, 0x0124, 0x0000,  /* 34 */
-                           /* 35 */ 0x0124};
+                           /* 35 */ 0x0124, 0x0002};
 
     bool      maltAdded; // help var. in state S01_WAIT_FOR_HLT_TEMP
     QString   string;    // For stdText->setText()
@@ -1911,6 +1912,11 @@ uint16_t MainEbrew::stateMachine(void)
                       "3) Place CFC output-hose into Boil-kettle\n\n"
                       "Press OK to continue",toolCipInitDone);
                 ebrew_std = S20_CIP_INIT;
+            } // if
+            else if (toolGFSpargeWater->isChecked())
+            {
+                hltPid->setButtonState(true);  // Enable PID-controller for HLT
+                ebrew_std = S36_GF_HEATER_ONLY;
             } // else if
             else if (hltPid->getButtonState())        // Is PowerButton pressed for HLT PID controller?
             {  // start with normal brewing states
@@ -1937,14 +1943,7 @@ uint16_t MainEbrew::stateMachine(void)
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
             tset_boil = TEMP_DEFAULT;            // Setpoint Temp. for Boil-kettle
             maltAdded = (RegEbrew->value("CB_Malt_First").toInt() == 0) || toolMaltAdded->isChecked();
-            if (toolGFSpargeWater->isChecked())
-            {
-                tset_hlt_sw = true;        // Set HLT setpoint temp.
-                tset_hlt_fx = 78.0;        // to standard sparge temp.
-                P2->setStatus(MANUAL_OFF); // Second pump off
-                V2->setStatus(MANUAL_ON);  // HLT output valve = ON
-            } // if
-            else if ((thlt >= tset_hlt) && maltAdded)
+            if ((thlt >= tset_hlt) && maltAdded && !toolGFSpargeWater->isChecked())
             {   // HLT TEMP is OK and malt is added when MaltFirst option is selected
                 toolStartCIP->setEnabled(false);     // Hide CIP option at toolbar
                 if (toolMaltAdded->isChecked()) toolMaltAdded->setEnabled(false); // disable checkbox, no longer needed
@@ -2769,6 +2768,22 @@ uint16_t MainEbrew::stateMachine(void)
                     ebrew_std = S00_INITIALISATION;
                  } // else
                  break;
+
+            //---------------------------------------------------------------------------
+            // S36_GF_HEATER_ONLY: Use the HLT as sparge water kettle for the Grainfather.
+            //---------------------------------------------------------------------------
+            case S36_GF_HEATER_ONLY:
+                string    = QString("36. Grainfather Sparge Water Heater");
+                substring = QString("Uncheck checkbox \'GF Sparge Water Heater\' to return to Init. state");
+                tset_hlt  = 78.0;                  // Set sparge-water for Grainfather to 78.0 °C
+                if (!toolGFSpargeWater->isChecked())
+                {
+                   setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
+                   commPortWrite("R0");            // reset all flows to 0.0 L in Ebrew hardware
+                   hltPid->setButtonState(false);  // Disable PID-controller for HLT
+                   ebrew_std = S00_INITIALISATION;
+                } // if
+                break;
 
             //---------------------------------------------------------------------------
             // Default: should never get here

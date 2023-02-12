@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.18"                        /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.19"                        /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -150,7 +150,9 @@
 #define S30_CIP_CLEAN_INPUT_V3    (30)
 #define S31_CIP_CLEAN_INPUT_V1    (31)
 #define S32_CIP_END               (32)
-#define STD_MAX                   (35) /* Max. number for ebrew_std */
+
+#define S36_GF_HEATER_ONLY        (36)
+#define STD_MAX                   (36) /* Max. number for ebrew_std */
 
 //-------------------------------------------------------------
 // Hard-coded Timers.

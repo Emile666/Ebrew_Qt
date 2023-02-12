@@ -106,7 +106,7 @@ void DialogViewTaskList::readTaskListData(void)
     if (pEbrew->ReadDataAvailable)
     {
         s2 = pEbrew->ReadData;
-        qDebug() << "s2 = " << s2;
+        //qDebug() << "s2 = " << s2;
         int j;
         while ((j = s2.indexOf(" I2C")) > -1)
         {
