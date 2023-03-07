@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.19"                        /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.20"                        /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -285,6 +285,7 @@ public:
     Pipe *pipeH7;   // Output: horizontal pipe at CFC-output
     Pipe *pipeH8;   // Output: horizontal pipe between flow2   and elbow4
     Pipe *pipeH9;   // Output: horizontal pipe between HLT heat-exchanger input-pipe and elbow11
+    Pipe *pipeH10;  // Output: horizontal pipe between Meter5 and MLT top-left return-manifold
 
     Pipe *pipeV1;   // Input : vertical pipe between TPipe1 and elbow7
     Pipe *pipeV2;   // Output: vertical pipe between valve4 and elbow11
@@ -310,7 +311,7 @@ public:
 
     uint16_t   stateMachine(void);          // Ebrew State Transition Diagram
     void       readMashSchemeFile(bool initTimers); // Read mash-scheme from file
-    void       setKettleNames(void);        // Set title of kettles with volumes from Registry
+    void       setKettleVolumes(void);      // Set title of kettles with volumes and min. volume from Registry
     void       splitIpAddressPort(void);    // Split Registry variable into IP-address and port-number
     void       createRegistry(void);        // Create default Registry entries for Ebrew
     void       createStatusBar(void);       // Creates a status bar at the bottom of the screen
@@ -325,9 +326,9 @@ public:
     void       setTopToolBar(int option);   // Set toolbar at top of screen for brewing or for CIP
 
     // Temperature, Volume and pid-output values
-    qreal thlt;             // HLT actual temperature
-    qreal tmlt;             // MLT actual temperature
-    qreal tboil;            // Boil-kettle actual temperature
+    qreal thlt  = 20.0;     // HLT actual temperature
+    qreal tmlt  = 20.0;     // MLT actual temperature
+    qreal tboil = 20.0;     // Boil-kettle actual temperature
     qreal tcfc;             // CFC-output actual temperature
     qreal thlt_i2c;         // HLT actual temperature, I2C-sensor
     qreal thlt_ow;          // HLT actual temperature, OW-sensor
@@ -339,9 +340,10 @@ public:
     qreal tset_hlt;         // HLT reference temperature
     qreal tset_mlt;         // MLT reference temperature
     qreal tset_boil;        // HLT reference temperature
-    qreal Vhlt;             // Volume of HLT in litres
-    qreal Vmlt;             // Volume of MLT in litres
-    qreal Vboil;            // Volume of Boil kettle in litres
+    qreal Vhlt = 0.0;       // Volume of HLT in litres
+    qreal Vhlt_init;        // Initial water volume in HLT
+    qreal Vmlt = 0.0;       // Volume of MLT in litres
+    qreal Vboil = 0.0;      // Volume of Boil kettle in litres
     qreal Vhlt_old;         // Prev. value of Vhlt, used in STD
     qreal Vmlt_old;         // Prev. value of Vmlt, used in STD
     qreal Vboil_old;        // Prev. value of Vboil, used in STD

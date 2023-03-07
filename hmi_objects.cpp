@@ -82,22 +82,20 @@ void PowerButton::setButtonState(bool state)
 //------------------------------------------------------------------------------------------
 // Tank object for HLT, MLT and Boil-kettle
 //------------------------------------------------------------------------------------------
-Tank::Tank(int x, int y, int width, int height, uint16_t options, QString name)
+Tank::Tank(int x, int y, int width, int height, uint16_t options)
     : QGraphicsPolygonItem()
 {
     setPos(x,y);
-    setValues(0.0,0.0,0.0,0.0); // init. temp., setpoint temp., volume and power
     setOrientation(width,height,options);
-    setName(name);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
     //setFlag(QGraphicsItem::ItemIsSelectable,true);
-    //setFlag(QGraphicsItem::ItemIsMovable,true);
 } // Tank()
 
-void Tank::setName(QString name)
+void Tank::setNameVolume(QString name, qreal minVol)
 {
-    tankName = name;
-} // Tank::setName()
+    tankName      = name;
+    tankMinVolume = minVol;
+} // Tank::setNameVolume()
 
 uint8_t Tank::getHeatingOptions(void)
 {   // Energy-Sources start at TANK_GAS_MODU (0x0100) in tankOptions
@@ -110,6 +108,11 @@ void Tank::setHeatingOptions(uint8_t options)
     tankOptions &= ~TANK_HEAT_SOURCES; // clear all heat-source bits
     tankOptions |= (((uint16_t)options & 0x001F) << 8);
 } // setHeatingOptions()
+
+void Tank::clrHeatingOptions(uint8_t options)
+{   // Energy-Sources start at TANK_GAS_MODU (0x0100) in tankOptions
+    tankOptions &= (~((uint16_t)options & 0x001F) << 8);
+} // clrHeatingOptions()
 
 void Tank::setOrientation(int width, int height, uint16_t options)
 {
@@ -133,9 +136,9 @@ void Tank::setOrientation(int width, int height, uint16_t options)
     tankPolygon = path.toFillPolygon();
     setPolygon(tankPolygon);
     // Set coordinates for all input- and output-pipes
-    leftPipe1.setX(-45.0-0.5*width);
+    leftPipe1.setX(-10.0-0.5*width);
     leftPipe1.setY(-50.0-0.25*height); // upper-left pipe
-    leftPipe2.setX(-45.0-0.5*width);
+    leftPipe2.setX(-10.0-0.5*width);
     leftPipe2.setY(-10.0-0.25*height); // lower-left pipe
     bottomPipe1.setX(-RPIPE);
     bottomPipe1.setY(-30);             // bottom pipe connected to manifold
@@ -145,20 +148,20 @@ void Tank::setOrientation(int width, int height, uint16_t options)
     rightPipe1.setY(leftPipe1.y());    // upper-right pipe
     rightPipe2.setX(rightPipe1.x());
     rightPipe2.setY(leftPipe2.y());    // lower-right pipe
-    leftTopPipe.setX(leftPipe1.x()+15);
+    leftTopPipe.setX(leftPipe1.x()+TANK_WALL);
     leftTopPipe.setY(20-height);       // top-left pipe for return manifold
     // Determine proper boundary for tank object
     qreal x,w,h;
     if (options & (TANK_MANIFOLD_TOP | TANK_HEAT_EXCHANGER))
          x = leftPipe1.x(); // there are pipes on the left
-    else x = -0.5*width;    // no pipes on the left
+    else x = -1.0-0.5*width;    // no pipes on the left
     if (options & TANK_HEAT_EXCHANGER)
          w = 0.25*width + 70 - x; // pipes on the right
     else w = 0.50*width - x;
     if (options & (TANK_EXIT_BOTTOM | TANK_MANIFOLD_BOTTOM | TANK_RETURN_BOTTOM))
          h = height + 30;
     else h = height;
-    boundary = QRectF(x,-height,w,h);
+    boundary = QRectF(x,-height-25,w,h+25);
     colLeftPipes   = COLOR_IN0;        // connected to second pump
     colBottomPipe1 = COLOR_IN0;        // tank-output, connected to pump-input
     colBottomPipe2 = COLOR_OUT0;       // tank-input, connected to pump-output
@@ -193,6 +196,8 @@ void Tank::setValues(qreal temp, qreal sp, qreal vol, qreal power)
     } // else
     tankSetPoint = sp;
     tankVolume   = vol;
+    // Disable electrical heating when water volume is too low and the heaters are exposed.
+    if (tankVolume < tankMinVolume) tankOptions &= ~(TANK_ELEC_HEATER1 | TANK_ELEC_HEATER2 | TANK_ELEC_HEATER3);
     tankPower    = power;
 } // Tank::setValues()
 
@@ -227,7 +232,6 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     painter->setFont(font);
     painter->setPen(QPen(Qt::blue));
     painter->drawText(-75,-tankHeight,tankName);
-
     // NOTE Use QLinearGradient color blue-white-color when pipe is ON
     if (tankOptions & (TANK_EXIT_BOTTOM | TANK_MANIFOLD_BOTTOM))
     {   // An exit pipe at the bottom of the tank with or without a manifold
@@ -455,6 +459,7 @@ void Pipe::setColor(QColor color)
 void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
 {
     QPainterPath path;
+    int          x;
 
     pipeType   = type;
     pipeLength = length;
@@ -462,40 +467,41 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
 
     switch (pipeType)
     {
-        case PIPE2_LEFT_TOP:
-             left = QPoint(-50,0);
-             top  = QPoint(0,-50);
-             path.moveTo(-50,1-RPIPE);
+        case PIPE2_LEFT_TOP: // From lower-left to top-right
+             left = QPoint(-length,0);
+             top  = QPoint(0,-length);
+             path.moveTo(-length,1-RPIPE);
              path.lineTo(-RPIPE,1-RPIPE);
-             path.lineTo(-RPIPE,-50);
-             path.lineTo(+RPIPE,-50);
+             path.lineTo(-RPIPE,-length);
+             path.lineTo(+RPIPE,-length);
              path.lineTo(+RPIPE,RPIPE);
-             path.lineTo(-50,+RPIPE);
-             path.lineTo(-50,1-RPIPE);
-             boundary = QRectF(-48,-47,50+RPIPE-4,50+RPIPE-1);
+             path.lineTo(-length,+RPIPE);
+             path.lineTo(-length,1-RPIPE);
+             boundary = QRectF(-length,-length,length+RPIPE,length+RPIPE);
              break;
-        case PIPE2_LEFT_RIGHT:
-        case PIPE2_RIGHT_LEFT:
-             left  = QPoint(-pipeLength>>1,0);
+        case PIPE2_LEFT_RIGHT: // From left to right
+        case PIPE2_RIGHT_LEFT: // From right to left
+             x = pipeLength >> 1;
+             left  = QPoint(-x,0);
              right = -left;
-             path.moveTo(-pipeLength>>1,1-RPIPE);
-             path.lineTo(+pipeLength>>1,1-RPIPE);
-             path.lineTo(+pipeLength>>1,+RPIPE);
-             path.lineTo(-pipeLength>>1,+RPIPE);
-             path.lineTo(-pipeLength>>1,1-RPIPE);
-             boundary = QRectF(3-pipeLength/2,1-RPIPE,pipeLength-5,2*RPIPE-1);
+             path.moveTo(-x,1-RPIPE);
+             path.lineTo(+x,1-RPIPE);
+             path.lineTo(+x,+RPIPE);
+             path.lineTo(-x,+RPIPE);
+             path.lineTo(-x,1-RPIPE);
+             boundary = QRectF(-x,-RPIPE,pipeLength,2*RPIPE+2);
              break;
         case PIPE2_LEFT_BOTTOM:
-             left   = QPoint(-50,0);
-             bottom = QPoint(0,+50);
-             path.moveTo(-50,1-RPIPE);
+             left   = QPoint(-length,0);
+             bottom = QPoint(0,+length);
+             path.moveTo(-length,1-RPIPE);
              path.lineTo(+RPIPE,1-RPIPE);
-             path.lineTo(+RPIPE,+50);
-             path.lineTo(-RPIPE,+50);
+             path.lineTo(+RPIPE,+length);
+             path.lineTo(-RPIPE,+length);
              path.lineTo(-RPIPE,+RPIPE);
-             path.lineTo(-50,+RPIPE);
-             path.lineTo(-50,1-RPIPE);
-             boundary = QRectF(-48,1-RPIPE,50+RPIPE-4,50+RPIPE-1);
+             path.lineTo(-length,+RPIPE);
+             path.lineTo(-length,1-RPIPE);
+             boundary = QRectF(1-length,1-RPIPE,length+RPIPE-1,length+RPIPE-1);
              break;
         case PIPE2_TOP_RIGHT:
              top   = QPoint(0,-length);
@@ -506,19 +512,20 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(length,+RPIPE);
              path.lineTo(-RPIPE,+RPIPE);
              path.lineTo(-RPIPE,-length);
-             boundary = QRectF(-RPIPE,-length,length+RPIPE-2,length+RPIPE-1);
+             boundary = QRectF(-RPIPE,-length,length+RPIPE,length+RPIPE);
              break;
         case PIPE2_TOP_BOTTOM:
         case PIPE2_BOTTOM_TOP:
         case PIPE2_BOTTOM_TOP_NO_ARROW:
-             top    = QPoint(0,-(pipeLength>>1));
+             x      = pipeLength >> 1;
+             top    = QPoint(0,-x);
              bottom = -top;
-             path.moveTo(+RPIPE,-(pipeLength>>1));
-             path.lineTo(+RPIPE,+pipeLength>>1);
-             path.lineTo(-RPIPE,+pipeLength>>1);
-             path.lineTo(-RPIPE,-(pipeLength>>1));
-             path.lineTo(+RPIPE,-(pipeLength>>1));
-             boundary = QRectF(-RPIPE,2-(pipeLength>>1),2*RPIPE,pipeLength-5);
+             path.moveTo(+RPIPE,-x);
+             path.lineTo(+RPIPE,+x);
+             path.lineTo(-RPIPE,+x);
+             path.lineTo(-RPIPE,-x);
+             path.lineTo(+RPIPE,-x);
+             boundary = QRectF(-RPIPE,-x,2*RPIPE+2,pipeLength-1);
              break;
         case PIPE2_BOTTOM_RIGHT:
              bottom = QPoint(0,length);
@@ -530,7 +537,7 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(+RPIPE,+RPIPE);
              path.lineTo(+RPIPE,length);
              path.lineTo(-RPIPE,length);
-             boundary = QRectF(-RPIPE,1-RPIPE,length+RPIPE-2,length+RPIPE-1);
+             boundary = QRectF(-RPIPE,1-RPIPE,length+RPIPE,length+RPIPE-1);
              break;
         case PIPE3_NO_TOP:
              right  = QPoint(50,0);
@@ -624,6 +631,7 @@ void Pipe::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     pen.setColor(Qt::black);
     pen.setWidth(3);
     painter->setPen(pen);
+
     if ((pipeType == PIPE2_LEFT_RIGHT) || (pipeType == PIPE2_RIGHT_LEFT))
     {   // draw arrow from left to right or from right to left
         int x1 = (pipeType == PIPE2_LEFT_RIGHT) ? 20 : -20;
@@ -1130,7 +1138,7 @@ void Valve::setOrientation(bool orientation)
         bottom = QPoint(0,VALVE_SIZE>>1);
         top    = -bottom;
         // set boundary with enough room for drawText() in paint()
-        boundary = QRectF(-60-(VALVE_SIZE>>1),3-(VALVE_SIZE>>1),60+VALVE_SIZE,0+VALVE_SIZE); // extra space left for title and status
+        boundary = QRectF(-60-(VALVE_SIZE>>1),-(VALVE_SIZE>>1),60+VALVE_SIZE,VALVE_SIZE); // extra space left for title and status
     } // else
     actuatorPolygon = path.toFillPolygon();
     setPolygon(actuatorPolygon);
@@ -1201,7 +1209,7 @@ void Pump::setPumpOrientation(bool orientation)
         path.lineTo(-60,-RPIPE);
         left  = QPoint(-60,0);
         right = -left;
-        boundary = QRectF(-60,-(RPUMP<<1),117,RPUMP<<2); // extra space on top and bottom for title and status
+        boundary = QRectF(-60,-(RPUMP<<1),120,RPUMP<<2); // extra space on top and bottom for title and status
     } // if
     else
     {   // TODO Pump output is on the left

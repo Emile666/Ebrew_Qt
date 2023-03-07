@@ -432,6 +432,8 @@ void MainEbrew::createRegistry(void)
     RegEbrew->setValue("VHLT_MAX",200);       // Max. HLT volume
     RegEbrew->setValue("VMLT_MAX",110);       // Max. MLT volume
     RegEbrew->setValue("VBOIL_MAX",140);      // Max. Boil kettle volume
+    RegEbrew->setValue("VHLT_MIN",40);        // Min. HLT volume needed for electric heating
+    RegEbrew->setValue("VBOIL_MIN",40);       // Min. Boil kettle volume needed for electric heating
 
     //------------------------------------
     // Options -> PID Settings Dialog
@@ -502,16 +504,19 @@ void MainEbrew::createRegistry(void)
 
 /*------------------------------------------------------------------
   Purpose  : This function sets the kettle names using the volumes
-             found in the Registry.
+             found in the Registry. It also sets the minimum
+             required volume for enabling electrical heating.
   Variables: -
   Returns  : -
   ------------------------------------------------------------------*/
-void MainEbrew::setKettleNames(void)
+void MainEbrew::setKettleVolumes(void)
 {
-    hlt->setName(QString("HLT %1 L").arg(RegEbrew->value("VHLT_MAX").toInt()));
-    mlt->setName(QString("MLT %1 L").arg(RegEbrew->value("VMLT_MAX").toInt()));
-    boil->setName(QString("BOIL %1 L").arg(RegEbrew->value("VBOIL_MAX").toInt()));
-} // MainEbrew::SetKettleNames()
+    Vhlt = RegEbrew->value("VHLT_MIN").toReal(); // init. Vhlt
+    hlt->setNameVolume(QString("HLT %1 L").arg(RegEbrew->value("VHLT_MAX").toInt()),Vhlt);
+    mlt->setNameVolume(QString("MLT %1 L").arg(RegEbrew->value("VMLT_MAX").toInt()),0.0);
+    Vboil = RegEbrew->value("VBOIL_MIN").toReal(); // init. Vboil
+    boil->setNameVolume(QString("BOIL %1 L").arg(RegEbrew->value("VBOIL_MAX").toInt()),Vboil);
+} // MainEbrew::SetKettleVolumes()
 
 /*------------------------------------------------------------------
   Purpose  : This function splits the Registry IP-address and por
@@ -561,6 +566,15 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
        {  // read 2 dummy lines
           line = in.readLine();
        } // while
+
+       line = in.readLine(); // Read initial HLT water volume
+       list1 = line.split(':');
+       if (list1.size() >= 2)
+            Vhlt_init = list1.at(1).toInt();
+       else Vhlt_init = 0.0; // error in maisch.sch
+       double vhltmax = RegEbrew->value("VHLT_MAX").toDouble();
+       if (Vhlt_init > vhltmax) Vhlt_init = vhltmax;
+
        line = in.readLine(); // Read mash water volume
        list1 = line.split(':');
        if (list1.size() >= 2)
@@ -569,6 +583,7 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
        sbar.clear();
        sbar = QString(" Mash: %1 L ").arg(mash_vol);
        statusMashVol->setText(sbar);
+
        line = in.readLine(); // Read sparge water volume
        list1 = line.split(':');
        if (list1.size() >= 2)
@@ -577,6 +592,7 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
        sbar.clear();
        sbar = QString(" Sparge: %1 L ").arg(sp_vol);
        statusSpargeVol->setText(sbar);
+
        line = in.readLine(); // Read boiling-time
        list1 = line.split(':');
        if (list1.size() >= 2)
@@ -585,12 +601,14 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
        sbar.clear();
        sbar = QString(" Boil: %1 min. ").arg(boil_time);
        statusBoilTime->setText(sbar);
+
        i = 0;
        while ((i++ < 3) && !in.atEnd())
        {  // read 3 dummy lines
           line = in.readLine();
        } // while
        ms_tot = 0;
+
        sbar.clear(); // clear QString for statusbar
        int done = false;
        while ((ms_tot < MAX_MS) && !in.atEnd() && !done)
@@ -613,6 +631,7 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
           else done = true; // empty line, end of temp. time pairs
        } // while
        statusMashScheme->setText(sbar);
+
        sbar.clear(); // clear QString for statusbar
        sbar.append("Hops: ");
        i    = 0;
@@ -892,6 +911,7 @@ void MainEbrew::task_update_std(void)
     pipeH9->setColor(color);
     elbow8->setColor(color);
     elbow9->setColor(color);
+    pipeH10->setColor(color);
     hlt->setColor(COLOR_RIGHT_PIPES,color);
     mlt->setColor(COLOR_TOP_PIPE,color);
 
@@ -1316,7 +1336,7 @@ void MainEbrew::task_read_flows(void)
         sensorAlarmInfo &= ~SENS_FLOW1;
         F1->setError(false);
     } // else
-    Vhlt = RegEbrew->value("VHLT_MAX").toDouble()- F1->getFlowValue();
+    Vhlt = Vhlt_init - F1->getFlowValue(); // adjust actual volume in HLT
     if (vhlt_sw)
     {  // Switch & Fix
        Vhlt = vhlt_fx;
@@ -1823,7 +1843,7 @@ void MainEbrew::removeLF(QByteArray &s)
   ------------------------------------------------------------------*/
 uint16_t MainEbrew::stateMachine(void)
 {
-    //-------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     //           |----------------------------> Pump 2 for HLT heat-exchanger
     //           |  |-------------------------> Main Brewing-Pump
     //           |  |  |----------------------> Future Use
@@ -1835,7 +1855,7 @@ uint16_t MainEbrew::stateMachine(void)
     //           |  |  |  |  |  |  |  |  |----> In from HLT
     //           |  |  |  |  |  |  |  |  |  |-> In from MLT
     //           P1 P0 V8 V7 V6 V5 V4 V3 V2 V1 Description                Hex.
-    //-------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     // State 00: 0  0  0  0  0  0  0  0  0  0  Initialisation            0x0000
     // State 01: 1  0  0  0  0  0  0  0  0  0  Wait for HLT Temp.        0x0200
     // State 02: 1  1  0  0  0  0  1  0  1  1  Fill MLT                  0x030B
@@ -1872,8 +1892,8 @@ uint16_t MainEbrew::stateMachine(void)
     // State 33: 0  1  0  0  1  0  0  1  0  0  Chill wort in Boil-kettle 0x0124
     // State 34: 0  0  0  0  0  0  0  0  0  0  Boil-kettle chill ready   0x0000
     // State 35: 0  1  0  0  1  0  0  1  0  0  Sanitize Chiller          0x0124
-    // State 36: 0  0  0  0  0  0  0  0  1  0  Grainfather Heater only   0x0002
- //----------------------------------------------------------------------------
+    // State 36: 1  0  0  0  0  0  0  0  1  0  Grainfather Heater only   0x0202
+    //----------------------------------------------------------------------------
     uint16_t  actuatorSettings[STD_MAX+1] =
                            /* 00 */{0x0000, 0x0200, 0x030B, 0x0309, 0x0309,  /* 04 */
                            /* 05 */ 0x0309, 0x0141, 0x030B, 0x0000, 0x0141,  /* 09 */
@@ -1882,7 +1902,7 @@ uint16_t MainEbrew::stateMachine(void)
                            /* 20 */ 0x0000, 0x016C, 0x016C, 0x0000, 0x012C,  /* 24 */
                            /* 25 */ 0x0124, 0x0000, 0x0142, 0x0122, 0x010A,  /* 29 */
                            /* 30 */ 0x0006, 0x0003, 0x0000, 0x0124, 0x0000,  /* 34 */
-                           /* 35 */ 0x0124, 0x0002};
+                           /* 35 */ 0x0124, 0x0202};
 
     bool      maltAdded; // help var. in state S01_WAIT_FOR_HLT_TEMP
     QString   string;    // For stdText->setText()
@@ -2771,6 +2791,8 @@ uint16_t MainEbrew::stateMachine(void)
 
             //---------------------------------------------------------------------------
             // S36_GF_HEATER_ONLY: Use the HLT as sparge water kettle for the Grainfather.
+            //                     Since valve V2 is on, the hot water can be obtained
+            //                     directly from the manual-valve.
             //---------------------------------------------------------------------------
             case S36_GF_HEATER_ONLY:
                 string    = QString("36. Grainfather Sparge Water Heater");

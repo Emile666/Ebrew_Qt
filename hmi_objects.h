@@ -197,9 +197,9 @@ protected:
 class Tank : public QGraphicsPolygonItem
 {
 public:
-    Tank(int x, int y, int width, int height, uint16_t options, QString name);
+    Tank(int x, int y, int width, int height, uint16_t options);
     void     setOrientation(int width, int height, uint16_t options);
-    void     setName(QString name);
+    void     setNameVolume(QString name, qreal minVol);
     void     setValues(qreal temp, qreal sp, qreal vol, qreal power);
     void     setColor(uint8_t pipe, QColor color);
     void     paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
@@ -207,19 +207,21 @@ public:
     QPointF  getCoordinates(int which);
     uint8_t  getHeatingOptions(void);
     void     setHeatingOptions(uint8_t options);
+    void     clrHeatingOptions(uint8_t options);
 
 protected:
     void      contextMenuEvent(QGraphicsSceneContextMenuEvent * event) override;
     int       tankWidth, tankHeight;
-    QString   tankName;       /* Tank name */
-    uint16_t  tankOptions;    /* Tank options: TANK_HEAT_EXCHANGER ... TANK_EXIT_BOTTOM */
-    QPolygonF tankPolygon;    /* Contains polygon for drawing the tank */
-    qreal     tankTemp;       /* Actual temperature inside tank */
-    qreal     tankSetPoint;   /* Setpoint temperature for tank */
-    qreal     tankVolume;     /* Actual volume in the tank */
-    qreal     tankPower;      /* Actual heating power applied to the tank */
-    bool      tankTempErr;    /* true = error in actual temperature */
-    QRectF    boundary;       /* boundary of tank object */
+    QString   tankName;              /* Tank name */
+    uint16_t  tankOptions;           /* Tank options: TANK_HEAT_EXCHANGER ... TANK_EXIT_BOTTOM */
+    QPolygonF tankPolygon;           /* Contains polygon for drawing the tank */
+    qreal     tankTemp      =  20.0; /* Actual temperature inside tank */
+    qreal     tankSetPoint  =  20.0; /* Setpoint temperature for tank */
+    qreal     tankVolume    = 500.0; /* Actual volume in the tank */
+    qreal     tankMinVolume =   0.0; /* Minimum volume required for electric heating */
+    qreal     tankPower     =   0.0; /* Actual heating power applied to the tank */
+    bool      tankTempErr;           /* true = error in actual temperature */
+    QRectF    boundary;              /* boundary of tank object */
 
     QPointF   leftPipe1;      /* Coordinate of top-left pipe for connecting a pump */
     QPointF   leftPipe2;      /* Coordinate of bottom-left pipe for connecting a pump */

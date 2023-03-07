@@ -95,6 +95,8 @@ DialogOptionsSystemSettings::DialogOptionsSystemSettings(QWidget *parent) :
     ui->sbHltVol->setValue(pEbrew->RegEbrew->value("VHLT_MAX").toInt());
     ui->sbMltVol->setValue(pEbrew->RegEbrew->value("VMLT_MAX").toInt());
     ui->sbBkVol->setValue(pEbrew->RegEbrew->value("VBOIL_MAX").toInt());
+    ui->sbHltMin->setValue(pEbrew->RegEbrew->value("VHLT_MIN").toInt());
+    ui->sbBkMin->setValue(pEbrew->RegEbrew->value("VBOIL_MIN").toInt());
 } // Constructor
 
 DialogOptionsSystemSettings::~DialogOptionsSystemSettings()
@@ -144,12 +146,14 @@ void DialogOptionsSystemSettings::on_buttonBox_accepted()
     pEbrew->schedulerEbrew->start(); // restart scheduler
 
     //-------------------------
-    // Brew-kettle Sizes
+    // Brew-kettle Volumes
     //-------------------------
     pEbrew->RegEbrew->setValue("VHLT_MAX",ui->sbHltVol->value());
     pEbrew->RegEbrew->setValue("VMLT_MAX",ui->sbMltVol->value());
     pEbrew->RegEbrew->setValue("VBOIL_MAX",ui->sbBkVol->value());
-    pEbrew->setKettleNames();  // Init. titles of kettles with volumes found in Registry
+    pEbrew->RegEbrew->setValue("VHLT_MIN",ui->sbHltMin->value());
+    pEbrew->RegEbrew->setValue("VBOIL_MIN",ui->sbBkMin->value());
+    pEbrew->setKettleVolumes();  // Init. titles of kettles with volumes found in Registry
 } // DialogOptionsSystemSettings::on_buttonBox_accepted()
 
 void DialogOptionsSystemSettings::on_cbCommCh_currentIndexChanged(int index)

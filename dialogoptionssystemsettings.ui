@@ -65,7 +65,7 @@
        <rect>
         <x>0</x>
         <y>20</y>
-        <width>151</width>
+        <width>152</width>
         <height>101</height>
        </rect>
       </property>
@@ -452,7 +452,7 @@
        <rect>
         <x>0</x>
         <y>20</y>
-        <width>151</width>
+        <width>152</width>
         <height>101</height>
        </rect>
       </property>
@@ -714,7 +714,7 @@
    </widget>
    <widget class="QWidget" name="tab_3">
     <attribute name="title">
-     <string>Brew-kettle Sizes</string>
+     <string>Brew-kettle Volumes</string>
     </attribute>
     <widget class="QWidget" name="formLayoutWidget">
      <property name="geometry">
@@ -828,6 +828,104 @@
         </property>
         <property name="value">
          <number>140</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>110</y>
+       <width>301</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>The next volumes are used to enable / disable electric heating. If the electric heaters are not submerged in water, they overheat and break down. Therefore, a minimum amount of water needs to be present before electric heating is enabled.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QWidget" name="formLayoutWidget_6">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>170</y>
+       <width>231</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <layout class="QFormLayout" name="formLayout_6">
+      <item row="0" column="0">
+       <widget class="QLabel" name="lblHltMin">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>The minimum water-level in the HLT required for electric heating</string>
+        </property>
+        <property name="text">
+         <string>HLT Minimum Water Level</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="sbHltMin">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The minimum water-level in the HLT required for electric heating&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="suffix">
+         <string> L</string>
+        </property>
+        <property name="maximum">
+         <number>999</number>
+        </property>
+        <property name="value">
+         <number>40</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="lblBkMin">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The minimum water-level in the Boil Kettle required for electric heating&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Boil-kettle Minimum Water Level</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="sbBkMin">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>The minimum water-level in the Boil Kettle required for electric heating</string>
+        </property>
+        <property name="suffix">
+         <string> L</string>
+        </property>
+        <property name="maximum">
+         <number>999</number>
+        </property>
+        <property name="value">
+         <number>0</number>
         </property>
        </widget>
       </item>

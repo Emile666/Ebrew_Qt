@@ -30,7 +30,7 @@
 void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
 {
     QPointF point;
-    int     len;
+    int     len,dx,dy;
     QFont   font;
 
     //----------------------------------------------------------------------
@@ -39,7 +39,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     // The HLT has one or more heat-sources, so enable the context-menu
     // Objects: hlt, pump2, elbowP20, elbowP21,  pipeH1, elbowP22, elbowP23
     //----------------------------------------------------------------------
-    Tank *hlt = new Tank(-700,0,250,300,TANK_EXIT_BOTTOM|TANK_HEAT_EXCHANGER|TANK_CONTEXTMENU,"HLT 200L");
+    Tank *hlt = new Tank(-700,0,250,300,TANK_EXIT_BOTTOM|TANK_HEAT_EXCHANGER|TANK_CONTEXTMENU);
     scene->addItem(hlt); // Hot-Liquid Tun (HLT)
     p->hlt = hlt;        // save hlt reference to MainEbrew
     p->hlt->setHeatingOptions(p->RegEbrew->value("HEATERSH").toInt()); // init. hlt heat-sources from Registry
@@ -60,13 +60,13 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     p->elbowP21 = elbowP21;   // add reference to MainEbrew
     scene->addItem(elbowP21); // elbow pipe bottom-left of pump 2
 
-    point = hlt->getCoordinates(COORD_LEFT_PIPE2) + QPoint(-6,0); // get coordinates of bottom-left pipe of heat-exchanger
-    Pipe *elbowP23 = new Pipe(point,PIPE2_BOTTOM_RIGHT,50,COLOR_IN0);
+    point = hlt->getCoordinates(COORD_LEFT_PIPE2) + QPoint(-10,0); // get coordinates of bottom-left pipe of heat-exchanger
+    Pipe *elbowP23 = new Pipe(point,PIPE2_BOTTOM_RIGHT,20,COLOR_IN0);
     p->elbowP23 = elbowP23;     // add reference to MainEbrew
     scene->addItem(elbowP23);
-    point = elbowP23->getCoordinates(COORD_BOTTOM) + QPoint(0,25);
+    point.setX(elbowP23->x());  // same x coordinate as elbow P23
     point.setY(elbowP21->y());  // same y coordinate as elbow P21
-    Pipe *elbowP22 = new Pipe(point,PIPE2_LEFT_TOP,50,COLOR_IN0);
+    Pipe *elbowP22 = new Pipe(point,PIPE2_LEFT_TOP,60,COLOR_IN0);
     p->elbowP22 = elbowP22;     // add reference to MainEbrew
     scene->addItem(elbowP22);   // elbow-pipe bottom-right of pump 2
     point = 0.5*(elbowP21->getCoordinates(COORD_RIGHT) + elbowP22->getCoordinates(COORD_LEFT)); // x-midpoint between pipeH1 and pipe 3
@@ -104,7 +104,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     // The MLT has no heat-sources.
     // Objects: mlt, valve1, Tpipe2, pipeH2
     //----------------------------------------------------------
-    Tank *mlt = new Tank(-270,0,250,300,TANK_MANIFOLD_BOTTOM|TANK_MANIFOLD_TOP,"MLT 110L");
+    Tank *mlt = new Tank(-270,0,250,300,TANK_MANIFOLD_BOTTOM|TANK_MANIFOLD_TOP);
     mlt->setToolTip("<b>Mash Lauter Tun (MLT)</b>: contains the grains and the wort and has a built-in temperature sensor. The MLT is heated indirectly, which is what it makes a HERMS system.<br>The following information is shown:<br>1) The actual temperature and the setpoint temperature.<br>2) Actual volume showing the wort volume in the MLT.<br>");
     scene->addItem(mlt);     // Mash-Lauter Tun (MLT)
     p->mlt = mlt;            // add MLT reference to MainEbrew
@@ -128,7 +128,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     // The boil-kettle has heat-sources, so enable context-menu.
     // Objects: boil, valve3, elbow3, pipeH3
     //---------------------------------------------------------------
-    Tank *boil = new Tank(60,0,275,300,TANK_MANIFOLD_BOTTOM|TANK_RETURN_BOTTOM|TANK_CONTEXTMENU,"BOIL 140L");
+    Tank *boil = new Tank(60,0,275,300,TANK_MANIFOLD_BOTTOM|TANK_RETURN_BOTTOM|TANK_CONTEXTMENU);
     scene->addItem(boil);
     boil->setToolTip("<b>Boil-kettle (BOIL)</b>: contains the boiling wort and has a built-in temperature sensor.<br>The following information is shown:<br>1) The actual temperature and the setpoint temperature.<br>2) Actual volume showing the wort volume in the Boil-kettle.<br>3) Actual power applied to the Boil-kettle, this is the PID controller output as a percentage from 0 to 100 %.");
     p->boil = boil;          // add boil reference to MainEbrew
@@ -157,16 +157,16 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     valve7->setToolTip("<b>Solenoid ball valve V7</b>, Boil-kettle input, red=closed, green=open. Press \'<b>7</b>\' for manual control, \'<b>A</b>\' for automated control. Click <b>right mouse button</b> for popup menu");
     scene->addItem(valve7);  // valve V7
     p->V7 = valve7;          // add valve7 reference to MainEbrew
-    point = valve7->getCoordinates(COORD_BOTTOM) + QPoint(0,60);
-    Pipe *pipeV5 = new Pipe(point,PIPE2_BOTTOM_TOP,120,COLOR_OUT0);
+    point = valve7->getCoordinates(COORD_BOTTOM) + QPoint(0,30);
+    Pipe *pipeV5 = new Pipe(point,PIPE2_BOTTOM_TOP,60,COLOR_OUT0);
     scene->addItem(pipeV5);  // vertical pipe below valve V7
     p->pipeV5 = pipeV5;      // add reference to MainEbrew
-    point = pipeV5->getCoordinates(COORD_BOTTOM);
-    Pipe *elbow4 = new Pipe(point,PIPE2_LEFT_TOP,50,COLOR_OUT0);
+    point = pipeV5->getCoordinates(COORD_BOTTOM) + QPoint(0,60);
+    Pipe *elbow4 = new Pipe(point,PIPE2_LEFT_TOP,60,COLOR_OUT0);
     p->elbow4 = elbow4;      // add reference to MainEbrew
     scene->addItem(elbow4);  // elbow below valve V7
-    point = elbow4->getCoordinates(COORD_LEFT) + QPoint(-25,0);
-    Pipe *pipeH8 = new Pipe(point,PIPE2_LEFT_RIGHT,50,COLOR_OUT0);
+    point = elbow4->getCoordinates(COORD_LEFT) + QPoint(-30,0);
+    Pipe *pipeH8 = new Pipe(point,PIPE2_LEFT_RIGHT,60,COLOR_OUT0);
     p->pipeH8 = pipeH8;      // add reference to MainEbrew
     scene->addItem(pipeH8);  // horizontal pipe between V6 and V7
     point = pipeH8->getCoordinates(COORD_LEFT) + QPoint(-34,-25);
@@ -218,13 +218,13 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     p->pipeH7 = pipeH7;      // add reference to MainEbrew
     scene->addItem(pipeH7);  // horizontal pipe between CFC and output
 
-    point += QPoint(-140,40);
+    point += QPoint(-20,-40);
     font.setPointSize(12);
     font.setBold(true);
     QGraphicsTextItem *text = scene->addText("To Fermenter",font);
     text->setPos(point);     // insert text
 
-    point = QPoint(-1100,275);
+    point = QPoint(-1100,265);
     font.setPointSize(10);
     font.setBold(false);
     text = scene->addText("1..8\tValve enable/disable\n"
@@ -249,13 +249,13 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     Pipe *Tpipe3 = new Pipe(point,PIPE3_NO_TOP,50,COLOR_OUT0);
     p->Tpipe3 = Tpipe3;      // add reference to MainEbrew
     scene->addItem(Tpipe3);  // First T-pipe at output of pump 1
-    point = Tpipe3->getCoordinates(COORD_BOTTOM) + QPoint(0,50);
 
     //----------------------------------------------------------
     // Draw from T-pipe (Tpipe3) down to Pump 1
     // Objects: elbow6, pump1
     //----------------------------------------------------------
-    Pipe *elbow6 = new Pipe(point,PIPE2_LEFT_TOP,50,COLOR_OUT0);
+    point = Tpipe3->getCoordinates(COORD_BOTTOM) + QPoint(0,40);
+    Pipe *elbow6 = new Pipe(point,PIPE2_LEFT_TOP,40,COLOR_OUT0);
     p->elbow6 = elbow6;      // add reference to MainEbrew
     scene->addItem(elbow6);  // elbow pipe right of pump 1
     point = elbow6->getCoordinates(COORD_LEFT) + QPoint(-60,20);
@@ -302,35 +302,39 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     Meter *flow4 = new Meter(point,METER_VFLOW,"flow4");
     flow4->setFlowParameters(TS_FLOWS_MSEC,p->RegEbrew->value("FLOW_TEMP_CORR").toInt()==1,p->RegEbrew->value("FLOW4_ERR").toDouble());
     flow4->setToolTip("<b>Flowsensor 4</b>: measures water volume (L) flowing into top of MLT: Red=Error, Orange=No flow, Green=Flow detected.<br>Calibrate sensor with Options->Measurements Settings->Flows Dialog screen");
+
     // Calculate size for top-left elbow, so that a separate vertical pipe is not needed
     point.setX(elbow8->x()); // set x-coordinate to lower elbow pipe
     point.setY(mlt->getCoordinates(COORD_LEFT_TOP_PIPE).y()); // get y-coordinate of top-left pipe for return-manifold in top
-    int lenx = (mlt->getCoordinates(COORD_LEFT_TOP_PIPE) - flow4->getCoordinates(COORD_TOP)).x(); // x-diff between flowmeter and top elbow pipe
-    int leny = (flow4->getCoordinates(COORD_TOP) - mlt->getCoordinates(COORD_LEFT_TOP_PIPE)).y(); // y-diff between flowmeter and top elbow pipe
-    len = qMax(lenx,leny);   // use the larger of the two
+    len = (flow4->getCoordinates(COORD_TOP) - mlt->getCoordinates(COORD_LEFT_TOP_PIPE)).y(); // y-diff between flowmeter and top elbow pipe
     Pipe *elbow9 = new Pipe(point,PIPE2_BOTTOM_RIGHT,len,COLOR_OUT0);
     p->elbow9 = elbow9;      // add reference to MainEbrew
     scene->addItem(elbow9);  // top elbow pipe, left of MLT return-manifold input
     scene->addItem(flow4);   // add flow4 after pipes have been added
     p->F4 = flow4;           // add flow4 reference to MainEbrew
 
-    point.setX(point.x()+60);
+    point.setX(point.x()+40);
     point.setY(point.y()-25);
     Meter *temp5 = new Meter(point,METER_HTEMP,"Tmlt-ow");
     temp5->setToolTip("<b>Temperature sensor 5</b>: Auxiliary One-Wire temperature sensor 2 (°C). Red=Error reading sensor, Green=No error. Calibrate sensor with Options->Measurements Settings->Temperatures Dialog screen");
     scene->addItem(temp5);
     p->T5 = temp5;        // Add temp5 reference to MainEbrew
+    point.setX((mlt->getCoordinates(COORD_LEFT_TOP_PIPE) + temp5->getCoordinates(COORD_RIGHT)).x() / 2.0);
+    point.setY(point.y()+25);
+    Pipe *pipeH10 = new Pipe(point,PIPE2_LEFT_RIGHT,46,COLOR_OUT0);
+    scene->addItem(pipeH10);
+    p->pipeH10 = pipeH10;
 
     //----------------------------------------------------------
     // From T-pipe 3 going left to HLT heat-exchanger input
     // Objects: pipeH5, elbow10, elbow11
     //----------------------------------------------------------
-    point = Tpipe3->getCoordinates(COORD_LEFT) + QPoint(-75,0);
-    Pipe *pipeH5 = new Pipe(point,PIPE2_RIGHT_LEFT,150,COLOR_OUT0);
+    point = Tpipe3->getCoordinates(COORD_LEFT) + QPoint(-65,0);
+    Pipe *pipeH5 = new Pipe(point,PIPE2_RIGHT_LEFT,130,COLOR_OUT0);
     p->pipeH5 = pipeH5;        // add reference to MainEbrew
     scene->addItem(pipeH5);    // horizontal pipe left of Tpipe3 at Pump 1 output
-    point = pipeH5->getCoordinates(COORD_LEFT) + QPoint(-25,0);
-    Pipe *elbow10 = new Pipe(point,PIPE2_TOP_RIGHT,50,COLOR_OUT0);
+    point = pipeH5->getCoordinates(COORD_LEFT) + QPoint(-40,0);
+    Pipe *elbow10 = new Pipe(point,PIPE2_TOP_RIGHT,40,COLOR_OUT0);
     p->elbow10 = elbow10;      // add reference to MainEbrew
     scene->addItem(elbow10);   // elbow pipe at pump 1 output, left of Tpipe3
     point.setY(elbowP23->y()); // set Y-coordinate to same value as elbow pipe 2
@@ -370,14 +374,14 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     p->pipeH9 = pipeH9;         // add reference to MainEbrew
     scene->addItem(pipeH9);
 
-    Display *stdText = new Display(QPointF(-800,450),700, QString("Current STD state"), Qt::red, Qt::yellow);
+    Display *stdText = new Display(QPointF(-850,440),700, QString("Current STD state"), Qt::red, Qt::yellow);
     stdText->setToolTip("<b>Current State</b>: shows the current state of the brew-session, together with a hint of what to do next. If <b>(M)</b> is shown, it indicates that a manual action is needed");
     stdText->setText("00. Initialisation");
     stdText->setSubText("Press the HLT PID Controller button to advance to the next state");
     scene->addItem(stdText);
     p->stdText = stdText;
 
-    Display *autoManualText = new Display(QPointF(-800,375),400, QString("Auto-All or Manual?"), Qt::green, Qt::yellow);
+    Display *autoManualText = new Display(QPointF(-850,370),400, QString("Auto-All or Manual?"), Qt::green, Qt::yellow);
     autoManualText->setToolTip("<b>Auto-all or Manual</b>: shows a warning if one or more valves are set to Manual operation. ");
     scene->addItem(autoManualText);
     p->autoManualText = autoManualText;
@@ -398,7 +402,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     scene->addItem(temp4);
     p->T4 = temp4;        // Add temp4 reference to MainEbrew
 
-    p->setKettleNames(); // Init. titles of kettles with volumes found in Registry
+    p->setKettleVolumes(); // Init. titles of kettles with volumes found in Registry
 
 } // draw_hmi_screen()
 
