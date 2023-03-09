@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.20"                        /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.21"                        /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */

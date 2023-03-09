@@ -319,9 +319,9 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     temp5->setToolTip("<b>Temperature sensor 5</b>: Auxiliary One-Wire temperature sensor 2 (°C). Red=Error reading sensor, Green=No error. Calibrate sensor with Options->Measurements Settings->Temperatures Dialog screen");
     scene->addItem(temp5);
     p->T5 = temp5;        // Add temp5 reference to MainEbrew
-    point.setX((mlt->getCoordinates(COORD_LEFT_TOP_PIPE) + temp5->getCoordinates(COORD_RIGHT)).x() / 2.0);
+    point.setX((mlt->getCoordinates(COORD_LEFT_TOP_PIPE) + elbow9->getCoordinates(COORD_RIGHT)).x() / 2.0);
     point.setY(point.y()+25);
-    Pipe *pipeH10 = new Pipe(point,PIPE2_LEFT_RIGHT,46,COLOR_OUT0);
+    Pipe *pipeH10 = new Pipe(point,PIPE2_LEFT_RIGHT,64,COLOR_OUT0);
     scene->addItem(pipeH10);
     p->pipeH10 = pipeH10;
 
