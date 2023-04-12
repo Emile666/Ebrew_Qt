@@ -115,6 +115,7 @@ void DialogOptionsSystemSettings::on_buttonBox_accepted()
                    (ui->cb24->isChecked() << 3) + (ui->cb25->isChecked() << 4);
     pEbrew->RegEbrew->setValue("HEATERSH",htrh);
     pEbrew->hlt->setHeatingOptions(htrh);
+    pEbrew->toolHLTPilotLight->setEnabled(ui->cb11->isChecked()); // Enable pilot-light gasburner checkbox in menu-bar
     pEbrew->RegEbrew->setValue("HEATERSB",htrb);
     pEbrew->boil->setHeatingOptions(htrb);
     pEbrew->RegEbrew->setValue("GAS_NON_MOD_LLIMIT",ui->sb21->value()); // Parameter 1

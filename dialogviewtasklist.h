@@ -22,6 +22,9 @@
 #include <QDialog>
 #include "MainEbrew.h"
 
+#define MAX_SX_READ_RETRIES   (5) /* Number of retries before giving up */
+#define TIMEOUT_SX_READS    (200) /* Sleep in milliseconds */
+
 namespace Ui {
 class DialogViewTaskList;
 }

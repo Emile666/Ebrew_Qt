@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.21"                        /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.22"                        /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -501,6 +501,8 @@ private:
     QCheckBox *toolCipDrainBK;    // Toolbar top checkbox drain Boil-kettle
     QCheckBox *toolCipHltFilled;  // Toolbar top checkbox HLT filled with water
     QCheckBox *toolGFSpargeWater; // Toolbar top checkbox Grainfather Sparge Water heater
+public:
+    QCheckBox *toolHLTPilotLight; // Toolbar top checkbox Enable pilot light of HLT gasburner
 }; // MainEbrew()
 
 #endif // MAIN_EBREW_H

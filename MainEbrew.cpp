@@ -72,7 +72,7 @@ MainEbrew::MainEbrew(void) : QMainWindow()
     splitIpAddressPort();            // Split Registry IP-address and port-number
     readMashSchemeFile(INIT_TIMERS); // Read mash scheme from file and init. all mash timers
     initBrewDaySettings();           // Init. mash, sparge and boil setting with values from Registry
-
+    toolHLTPilotLight->setEnabled(RegEbrew->value("HEATERSH").toInt() & GAS_MODULATING); // Enable pilot-light checkbox
     pSlopeLim = new SlopeLimiter();
     pSlopeLim->setLim(RegEbrew->value("TSET_SLOPE_LIM").toDouble());
     slopeLimHLT = pSlopeLim; // copy pointer to MainEbrew
@@ -304,6 +304,9 @@ void MainEbrew::createStatusBar(void)
     toolGFSpargeWater = new QCheckBox("GF Sparge Water Heater");
     toolGFSpargeWater->setToolTip("Enable this checkbox if you want to use the system only as Sparge Water Heater for the GrainFather.");
     toolBar2->addWidget(toolGFSpargeWater);
+    toolHLTPilotLight = new QCheckBox("Pilot-light HLT gasburner");
+    toolHLTPilotLight->setToolTip("Enable this checkbox if the pilot-light of the HLT gasburner should be ignited.");
+    toolBar2->addWidget(toolHLTPilotLight);
     addToolBar(Qt::TopToolBarArea,toolBar2);
 
     // Create Toolbar3 at top of screen: CIP checkboxes
@@ -1061,8 +1064,15 @@ void MainEbrew::task_pid_control(void)
     if      (gamma_hlt > RegEbrew->value("GAS_NON_MOD_HLIMIT").toInt()) hltGasNonMod = true;
     else if (gamma_hlt < RegEbrew->value("GAS_NON_MOD_LLIMIT").toInt()) hltGasNonMod = false;
     // Hysteresis for modulating gas-burner
-    if      (gamma_hlt > RegEbrew->value("GAS_MOD_PWM_HLIMIT").toInt()) hltGasMod = true;
-    else if (gamma_hlt < RegEbrew->value("GAS_MOD_PWM_LLIMIT").toInt()) hltGasMod = false;
+    if (toolHLTPilotLight->isChecked())
+    {   // Pilot-light checkbox in menu-bar
+        hltGasMod = true;
+    } // if
+    else
+    {   // Checkbox has priority over hysteresis
+        if      (gamma_hlt > RegEbrew->value("GAS_MOD_PWM_HLIMIT").toInt()) hltGasMod = true;
+        else if (gamma_hlt < RegEbrew->value("GAS_MOD_PWM_LLIMIT").toInt()) hltGasMod = false;
+    } // else
     if ((ena & GAS_MODULATING)     && !hltGasMod)    ena &= ~GAS_MODULATING;
     if ((ena & GAS_NON_MODULATING) && !hltGasNonMod) ena &= ~GAS_NON_MODULATING;
     if ((ena & (ELECTRIC_HEATING1 | ELECTRIC_HEATING2 | ELECTRIC_HEATING3)) && triacTooHot)
@@ -1805,7 +1815,7 @@ void MainEbrew::commPortRead(void)
         ReadData.resize(udpSocket->pendingDatagramSize());
         udpSocket->readDatagram(ReadData.data(), ReadData.size(),&ebrewHwIp);
         removeLF(ReadData); // remove \n
-        ReadDataAvailable = true;
+        if (ReadData.size() > 0) ReadDataAvailable = true;
     } // else
 
     if (fDbgCom != nullptr)
@@ -2205,7 +2215,7 @@ uint16_t MainEbrew::stateMachine(void)
         //                                  else goto S09_EMPTY_MLT
         //---------------------------------------------------------------------------
         case S05_SPARGE_TIMER_RUNNING:
-            string    = QString("05. Sparge-timer Running (%1/%2 min., batch %3/%4)").arg(timer1/60).arg(RegEbrew->value("SP_TIME").toInt()).arg(sp_idx+1).arg(RegEbrew->value("SP_BATCHES").toInt());
+            string    = QString("05. Sparge-timer Running (%1/%2 min., batch %3/%4)").arg(timer1/60).arg(RegEbrew->value("SP_TIME").toInt()).arg(sp_idx).arg(RegEbrew->value("SP_BATCHES").toInt());
             if (sp_idx < RegEbrew->value("SP_BATCHES").toInt())
                  substring = QString("After timeout, wort is pumped from the MLT to the Boil-kettle");
             else substring = QString("After timeout, sparging is finished and the MLT is emptied");
@@ -2242,7 +2252,7 @@ uint16_t MainEbrew::stateMachine(void)
         // - The goto S08_DELAY_xSEC
         //---------------------------------------------------------------------------
         case S06_PUMP_FROM_MLT_TO_BOIL:
-            string    = QString("06. Pump from MLT to Boil-kettle (%1 L, batch %2/%3)").arg(sp_idx ? sp_vol_batch : sp_vol_batch0,2,'f',1).arg(sp_idx+1).arg(RegEbrew->value("SP_BATCHES").toInt());
+            string    = QString("06. Pump from MLT to Boil-kettle (%1 L, batch %2/%3)").arg(sp_idx ? sp_vol_batch : sp_vol_batch0,2,'f',1).arg(sp_idx).arg(RegEbrew->value("SP_BATCHES").toInt());
             substring = QString("Wort is pumped to the Boil-kettle");
             tset_mlt  = ms[ms_idx].temp;
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset").toDouble(); // Single offset
