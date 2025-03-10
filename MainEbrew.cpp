@@ -224,7 +224,7 @@ void MainEbrew::createStatusBar(void)
     //-----------------------------------
     // Statusbar at bottom of screen
     //-----------------------------------
-    statusAlarm      = new QLabel(" Sensor Alarm: TEMP + FLOW ");
+    statusAlarm      = new QLabel(" Sensor Alarm:TEMP+FLOW ");
     statusAlarm->setAlignment(Qt::AlignHCenter);
     statusAlarm->setToolTip("Shows which sensor error results in an audible alarm (one or more beeps). Use \'<b>S</b>\' to cycle through the following options:<br><b>OFF</b>: No audible alarm.<br><b>TEMP</b>: Only alarm if one or more temperature sensors fail.<br><b>FLOW</b>: Only alarm if one or more flow sensors fail.<br><b>TEMP+FLOW</b>: alarm on every sensor failure.");
     statusBar->addPermanentWidget(statusAlarm,1);
@@ -236,11 +236,15 @@ void MainEbrew::createStatusBar(void)
     statusHops->setAlignment(Qt::AlignHCenter);
     statusHops->setToolTip("Shows the Hops Scheme read from the default Mash Scheme File maisch.sch.<br>See also Edit->Mash Scheme...");
     statusBar->addPermanentWidget(statusHops);
-    statusMashVol    = new QLabel(" Mash Volume: 0 L ");
+    statusHopStand = new QLabel("");
+    statusHopStand->setAlignment(Qt::AlignHCenter);
+    statusHopStand->setToolTip("Shows the Hop-Stand Scheme read from the default Mash Scheme File maisch.sch.");
+    statusBar->addPermanentWidget(statusHopStand);
+    statusMashVol    = new QLabel(" Mash: 0 L ");
     statusMashVol->setAlignment(Qt::AlignHCenter);
     statusMashVol->setToolTip("Shows the mash volume, which is the total amount of water for the MLT used for mashing.<br>Value is read from the default Mash Scheme File maisch.sch.<br>See also Edit->Mash Scheme...");
     statusBar->addPermanentWidget(statusMashVol,1);
-    statusSpargeVol  = new QLabel(" Sparge Volume: 0 L ");
+    statusSpargeVol  = new QLabel(" Sparge: 0 L ");
     statusSpargeVol->setAlignment(Qt::AlignHCenter);
     statusSpargeVol->setToolTip("Shows the sparge volume, which is the total amount of water used for batch-sparging.<br>Value is read from the default Mash Scheme File maisch.sch.<br>See also Edit->Mash Scheme...");
     statusBar->addPermanentWidget(statusSpargeVol,1);
@@ -248,11 +252,11 @@ void MainEbrew::createStatusBar(void)
     statusBoilTime->setAlignment(Qt::AlignHCenter);
     statusBoilTime->setToolTip("This is the total boil-time in minutes for the boil-kettle.<br>Value is read from the default Mash Scheme File maisch.sch.<br>See also Edit->Mash Scheme...");
     statusBar->addPermanentWidget(statusBoilTime,1);
-    statusMsIdx      = new QLabel(" Mash index: 0 ");
+    statusMsIdx      = new QLabel(" Mash idx:0 ");
     statusMsIdx->setAlignment(Qt::AlignHCenter);
     statusMsIdx->setToolTip("The actual mash scheme index: it points to the current temperature in the mash-scheme, 0 = the first temperature.<br>Value is read from the default Mash Scheme File maisch.sch.<br>See also Edit->Mash Scheme...");
     statusBar->addPermanentWidget(statusMsIdx,1);
-    statusSpIdx      = new QLabel(" Sparge index: 0 ");
+    statusSpIdx      = new QLabel(" Sparge idx:0 ");
     statusSpIdx->setAlignment(Qt::AlignHCenter);
     statusSpIdx->setToolTip("The actual sparging index: it points to the current batch-sparge, 0 = the first batch sparge.<br>The total number of batch-sparge can be adjusted with Options->Brew Day Settings->Sparging");
     statusBar->addPermanentWidget(statusSpIdx,1);
@@ -333,14 +337,14 @@ void MainEbrew::createStatusBar(void)
 void MainEbrew::updateMsIdxStatusBar(void)
 {
     QString sbar;
-    sbar = QString(" Mash index: %1 ").arg(ms_idx);
+    sbar = QString(" Mash idx: %1 ").arg(ms_idx);
     statusMsIdx->setText(sbar);
 } // MainEbrew::updateMsIdxStatusBar()
 
 void MainEbrew::updateSpIdxStatusBar(void)
 {
     QString sbar;
-    sbar = QString(" Sparge index: %1 ").arg(sp_idx);
+    sbar = QString(" Sparge idx: %1 ").arg(sp_idx);
     statusSpIdx->setText(sbar);
 } // MainEbrew::updateSpIdxStatusBar()
 
@@ -378,19 +382,19 @@ void MainEbrew::createMenuBar(void)
     auto Fmenu       = new QMenu("&File");
     Fmenu->addAction(QIcon(":/img/fileopen.png")    ,"Read Log-File..."); // TODO slot voor Read logFile
     Fmenu->addSeparator();
-    Fmenu->addAction(QIcon(":/img/exit.png")        ,"E&xit"                      , this,SLOT(close())               ,QKeySequence("Ctrl+Q"));
+    Fmenu->addAction(QIcon(":/img/exit.png")        ,"E&xit"                      , QKeySequence("Ctrl+Q"), this, SLOT(close())               );
     menuBar->addMenu(Fmenu);
     // Edit menu
     auto Emenu       = new QMenu("&Edit");
-    Emenu->addAction(QIcon(":/img/fileedit.png")    ,"&Mash Scheme..."            ,this,SLOT(MenuEditMashScheme())   ,QKeySequence("Ctrl+M"));
-    Emenu->addAction(QIcon(":/img/fixparams.png")   ,"&Fix Parameters..."         ,this,SLOT(MenuEditFixParameters()),QKeySequence("Ctrl+F"));
-    Emenu->addAction(QIcon(":/img/terminal.png")    ,"Terminal &Editor"           ,this,SLOT(MenuEditTerminal())     ,QKeySequence("Ctrl+E"));
+    Emenu->addAction(QIcon(":/img/fileedit.png")    ,"&Mash Scheme..."            ,QKeySequence("Ctrl+M"), this, SLOT(MenuEditMashScheme())   );
+    Emenu->addAction(QIcon(":/img/fixparams.png")   ,"&Fix Parameters..."         ,QKeySequence("Ctrl+F"), this, SLOT(MenuEditFixParameters()));
+    Emenu->addAction(QIcon(":/img/terminal.png")    ,"Terminal &Editor"           ,QKeySequence("Ctrl+E"), this, SLOT(MenuEditTerminal()));
     menuBar->addMenu(Emenu);
     // View menu
     auto Vmenu       = new QMenu("&View");
-    Vmenu->addAction(QIcon(":/img/progress.png")    ,"Mash && Sparge &Progress"   ,this,SLOT(MenuViewProgress())     ,QKeySequence("Ctrl+P"));
-    Vmenu->addAction(QIcon(":/img/alarm.png")       ,"Status and &Alarms"         ,this,SLOT(MenuViewStatusAlarms()) ,QKeySequence("Ctrl+A"));
-    Vmenu->addAction(QIcon(":/img/task.png")        ,"&Task-list and Timings"     ,this,SLOT(MenuViewTaskList())     ,QKeySequence("Ctrl+T"));
+    Vmenu->addAction(QIcon(":/img/progress.png")    ,"Mash && Sparge &Progress"   ,QKeySequence("Ctrl+P"), this, SLOT(MenuViewProgress()));
+    Vmenu->addAction(QIcon(":/img/alarm.png")       ,"Status and &Alarms"         ,QKeySequence("Ctrl+A"), this, SLOT(MenuViewStatusAlarms()));
+    Vmenu->addAction(QIcon(":/img/task.png")        ,"&Task-list and Timings"     ,QKeySequence("Ctrl+T"), this, SLOT(MenuViewTaskList()));
     menuBar->addMenu(Vmenu);
     // Options menu
     auto Omenu       = new QMenu("&Options");
@@ -584,7 +588,7 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
             mash_vol = list1.at(1).toInt();
        else mash_vol = 0; // error in maisch.sch
        sbar.clear();
-       sbar = QString(" Mash: %1 L ").arg(mash_vol);
+       sbar = QString(" Mash:%1 L ").arg(mash_vol);
        statusMashVol->setText(sbar);
 
        line = in.readLine(); // Read sparge water volume
@@ -593,7 +597,7 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
             sp_vol = list1.at(1).toInt();
        else sp_vol = 0; // error in maisch.sch
        sbar.clear();
-       sbar = QString(" Sparge: %1 L ").arg(sp_vol);
+       sbar = QString(" Sparge:%1 L ").arg(sp_vol);
        statusSpargeVol->setText(sbar);
 
        line = in.readLine(); // Read boiling-time
@@ -605,13 +609,21 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
        sbar = QString(" Boil: %1 min. ").arg(boil_time);
        statusBoilTime->setText(sbar);
 
+       line         = in.readLine(); // Try to read hopstand temperature
+       hopStandTemp = 0;             // Init to 0, no hopstand
+       if (!line.trimmed().isEmpty())
+       {   // Line is not empty
+           list1 = line.split(':');
+           if (list1.size() >= 2) hopStandTemp = list1.at(1).toInt();
+           if (!in.atEnd()) in.readLine(); // read dummy line
+       } // else
        i = 0;
-       while ((i++ < 3) && !in.atEnd())
-       {  // read 3 dummy lines
-          line = in.readLine();
+       while ((i++ < 2) && !in.atEnd())
+       {  // read 2 more dummy lines
+           line = in.readLine();
        } // while
-       ms_tot = 0;
 
+       ms_tot = 0;
        sbar.clear(); // clear QString for statusbar
        int done = false;
        while ((ms_tot < MAX_MS) && !in.atEnd() && !done)
@@ -628,7 +640,7 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
                  ms[ms_tot].time_stamp.clear();          /* init. time-stamp to empty string */
               } // if
               if (!sbar.isEmpty()) sbar.append(", ");
-              sbar.append(QString("%1 °C(%2 min.)").arg(ms[ms_tot].temp,2,'f',0).arg(ms[ms_tot].time/60.0,2,'f',0));
+              sbar.append(QString("%1°C(%2)").arg(ms[ms_tot].temp,2,'f',0).arg(ms[ms_tot].time/60.0,1,'f',0));
               ms_tot++; // number of total temperature-time pairs
           } // if
           else done = true; // empty line, end of temp. time pairs
@@ -636,7 +648,7 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
        statusMashScheme->setText(sbar);
 
        sbar.clear(); // clear QString for statusbar
-       sbar.append("Hops: ");
+       sbar.append("Hops:");
        i    = 0;
        while ((i++ < 2) && !in.atEnd())
        {  // read 2 dummy lines for hop-gift explanations
@@ -651,17 +663,49 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
            list1 = line.split(',');
            if (list1.size() >= 2)
            {
+               if (!hopTexts.isEmpty()) sbar.append("-");
                QString s = list1.at(0);
                hopTimes.append(s.toInt()); // hop-time in minutes
                hopTexts << list1.at(1);    // hop description
-               sbar.append(s);
-               sbar.append(" min. ");
+               sbar.append(s.trimmed());
            } // if
            else done = true; // empty line, end of hop-gift times
        } // while
+       sbar.append(" min. ");
        for (i = 0; i < MAX_HOPS; i++) hopCb[i] = false; // init checkboxes
        if (sbar.size() < 8) sbar.append("-");
        statusHops->setText(sbar);
+
+       sbar.clear(); // clear QString for statusbar
+       sbar.append("Hopstand");
+       if (hopStandTemp > 0) sbar.append(QString(" %1°C:").arg(hopStandTemp));
+       i    = 0;
+       while ((i++ < 2) && !in.atEnd())
+       {  // read 2 dummy lines for hop-stand explanations
+           line = in.readLine();
+       } // while
+       done = false;
+       hopStandTime.clear(); // clear hop-stand Time list
+       hopStandText.clear(); // clear hop-stand Description list
+       while (!in.atEnd() && !done && (hopStandTemp > 0))
+       {
+           line  = in.readLine();
+           list1 = line.split(',');
+           if (list1.size() >= 2)
+           {
+               if (!hopStandText.isEmpty()) sbar.append("-");
+               hopStandTime.append(list1.at(0).toDouble()); // hop-stand Time in minutes
+               hopStandText << list1.at(1);                 // hop-stand Description
+               sbar.append(QString("%1").arg(list1.at(0).toDouble(),1,'f',0));
+           } // if
+           else done = true; // empty line, end of hop-stands
+       } // while
+       if (hopStandText.isEmpty())
+            sbar.append(":none ");
+       else sbar.append(" min. ");
+       for (i = 0; i < MAX_HOPS; i++) hopStandCb[i] = false; // init checkboxes
+       statusHopStand->setText(sbar);
+
        inputFile.close();
     }  // if
     else QMessageBox::warning(this,"File-read error","Could not open " MASHFILE);
@@ -749,9 +793,6 @@ void MainEbrew::keyPressEvent(QKeyEvent *event)
                                 case S34_CHILL_BK_READY:
                                      toolStartChilling->setChecked(true);
                                      break;
-                                case S16_CHILL_PUMP_FERMENTOR:
-                                     toolReadyChilling->setChecked(true);
-                                     break;
                             } // switch
                             break;
         case     Qt::Key_P: P1->setNextStatus(); // main pump
@@ -764,10 +805,10 @@ void MainEbrew::keyPressEvent(QKeyEvent *event)
                             if (++alarmSound > ALARM_TEMP_FLOW_SENSORS) alarmSound = ALARM_OFF;
                             switch (alarmSound)
                             {
-                                 case ALARM_OFF:               statusAlarm->setText(" Sensor Alarm: OFF ")      ; break;
-                                 case ALARM_TEMP_SENSORS:      statusAlarm->setText(" Sensor Alarm: TEMP ")     ; break;
-                                 case ALARM_FLOW_SENSORS:      statusAlarm->setText(" Sensor Alarm: FLOW ")     ; break;
-                                 case ALARM_TEMP_FLOW_SENSORS: statusAlarm->setText(" Sensor Alarm: TEMP+FLOW "); break;
+                                 case ALARM_OFF:               statusAlarm->setText(" Sensor Alarm:OFF ")      ; break;
+                                 case ALARM_TEMP_SENSORS:      statusAlarm->setText(" Sensor Alarm:TEMP ")     ; break;
+                                 case ALARM_FLOW_SENSORS:      statusAlarm->setText(" Sensor Alarm:FLOW ")     ; break;
+                                 case ALARM_TEMP_FLOW_SENSORS: statusAlarm->setText(" Sensor Alarm:TEMP+FLOW "); break;
                             } // switch
                             break;
         default:            break;
@@ -1615,7 +1656,7 @@ void MainEbrew::msgBox(QString title, QString text, QCheckBox *cb)
     if (!state)
     {
         state = true;
-        int retv = QMessageBox::warning(this, title, text, QMessageBox::Ok);
+        int retv = QMessageBox::warning(this, title + "          ", text, QMessageBox::Ok);
         if (retv == QMessageBox::Ok)
         {
             state = false;
@@ -1902,7 +1943,9 @@ uint16_t MainEbrew::stateMachine(void)
     // State 33: 0  1  0  0  1  0  0  1  0  0  Chill wort in Boil-kettle 0x0124
     // State 34: 0  0  0  0  0  0  0  0  0  0  Boil-kettle chill ready   0x0000
     // State 35: 0  1  0  0  1  0  0  1  0  0  Sanitize Chiller          0x0124
-    // State 36: 1  0  0  0  0  0  0  0  1  0  Grainfather Heater only   0x0202
+    // State 36: 0  1  0  0  1  0  0  1  0  0  Hopstand Cool-Down        0x0124
+    // State 37: 0  1  0  0  1  0  0  1  0  0  Hopstand Main             0x0124
+    // State 38: 1  0  0  0  0  0  0  0  0  0  Grainfather Heater only   0x0200
     //----------------------------------------------------------------------------
     uint16_t  actuatorSettings[STD_MAX+1] =
                            /* 00 */{0x0000, 0x0200, 0x030B, 0x0309, 0x0309,  /* 04 */
@@ -1912,7 +1955,7 @@ uint16_t MainEbrew::stateMachine(void)
                            /* 20 */ 0x0000, 0x016C, 0x016C, 0x0000, 0x012C,  /* 24 */
                            /* 25 */ 0x0124, 0x0000, 0x0142, 0x0122, 0x010A,  /* 29 */
                            /* 30 */ 0x0006, 0x0003, 0x0000, 0x0124, 0x0000,  /* 34 */
-                           /* 35 */ 0x0124, 0x0202};
+                           /* 35 */ 0x0124, 0x0124, 0x0124, 0x0200 };
 
     bool      maltAdded; // help var. in state S01_WAIT_FOR_HLT_TEMP
     QString   string;    // For stdText->setText()
@@ -1946,7 +1989,7 @@ uint16_t MainEbrew::stateMachine(void)
             else if (toolGFSpargeWater->isChecked())
             {
                 hltPid->setButtonState(true);  // Enable PID-controller for HLT
-                ebrew_std = S36_GF_HEATER_ONLY;
+                ebrew_std = S38_GF_HEATER_ONLY;
             } // else if
             else if (hltPid->getButtonState())        // Is PowerButton pressed for HLT PID controller?
             {  // start with normal brewing states
@@ -2379,18 +2422,12 @@ uint16_t MainEbrew::stateMachine(void)
             substring = QString("Now boiling");
             tset_boil = RegEbrew->value("SP_BOIL").toDouble(); // Boil Temperature Setpoint
             boilPid->setButtonState(true); // Enable PID-Controller for Boil-kettle
-            if (++timer5 >= boil_time_ticks)
-            {
-                toolStartChilling->setEnabled(true);     // Enable checkbox at top-toolbar
-                Boil << QTime::currentTime().toString(); // New transition, copy time-stamp into array of strings
-                brest_tmr = 0; // init boil-rest timer
-                ebrew_std = S12_BOILING_FINISHED;
-            } // if
-            else if ((hopIdx < hopTimes.size()) && !hopCb[hopIdx] &&
-                     (hopTimes.at(hopIdx) >= (boil_time_ticks - timer5)/60))
+            ++timer5;
+            if ((hopIdx < hopTimes.size()) && !hopCb[hopIdx] &&
+                (timer5 >= boil_time_ticks - 60 * hopTimes.at(hopIdx)))
             {
                 cbHops.setChecked(false);
-                msgBox(QString("Add hop-gift %1 to Boil-kettle at %2 minutes remaining").arg(hopIdx+1).arg(hopTimes.at(hopIdx)),hopTexts.at(hopIdx),&cbHops);
+                msgBox(QString("Add hop-gift %1: %2 minutes remaining").arg(hopIdx+1).arg(hopTimes.at(hopIdx)),hopTexts.at(hopIdx),&cbHops);
                 if (cbHops.isChecked())
                 {
                     hopCb[hopIdx] = true;
@@ -2402,6 +2439,13 @@ uint16_t MainEbrew::stateMachine(void)
                     commPortWrite("X4"); // 4 beeps indicating hop-addition is needed
                 } // if
             } // else if
+            else if (timer5 > boil_time_ticks)
+            {
+                toolStartChilling->setEnabled(true);     // Enable checkbox at top-toolbar
+                Boil << QTime::currentTime().toString(); // New transition, copy time-stamp into array of strings
+                brest_tmr = 0; // init boil-rest timer
+                ebrew_std = S12_BOILING_FINISHED;
+            } // if
             break;
 
         //---------------------------------------------------------------------------
@@ -2460,9 +2504,54 @@ uint16_t MainEbrew::stateMachine(void)
              boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
              if (++brest_tmr > TMR_SANITIZE_CHILLER)
              {
-                 ebrew_std = S33_CHILL_BOIL_KETTLE; // Chill wort in Boil-kettle through recirculation
-                 commPortWrite("X5"); // 5 beeps to indicate that cooling flow should be enabled
+                if ((hopStandTemp > 0) && !hopStandTime.isEmpty())
+                     ebrew_std = S36_HOPSTAND_COOL_DOWN; // Add hopstand
+                else ebrew_std = S33_CHILL_BOIL_KETTLE;  // Chill wort in Boil-kettle through recirculation
+                commPortWrite("X5"); // 5 beeps to indicate that cooling flow should be enabled
              } // if
+             break;
+
+             //---------------------------------------------------------------------------
+             // S36_HOPSTAND_COOL_DOWN: A hopstand is present, cool-down wort first
+             //---------------------------------------------------------------------------
+        case S36_HOPSTAND_COOL_DOWN:
+             string    = QString("36. Hop-Stand Cool-Down");
+             substring = QString("Now Cooling down to %1°C Hopstand Temperature").arg(hopStandTemp);
+             if (tboil <= hopStandTemp)
+             {   // Boil-kettle temperature decreased below hopstand temperature
+                 hopStandIdx = 0; // reset hopstand counter
+                 timer5      = 60 * hopStandTime.at(0); // re-use timer5 and set to largest hopstand time in sec.
+                 ebrew_std   = S37_HOPSTAND_MAIN;
+             } // if
+             break;
+
+             //---------------------------------------------------------------------------
+             // S37_HOPSTAND_MAIN: hopstand timer state
+             //---------------------------------------------------------------------------
+        case S37_HOPSTAND_MAIN:
+             string    = QString("37. Hop-Stand Timer Running");
+             substring = QString("Hop-stand %1 hops to Boil-Kettle, timer: %2/%3 min.").arg(hopStandIdx).arg((60*hopStandTime.at(0)-timer5)/60).arg(hopStandTime.at(0));
+             --timer5; // decrease timer;
+             if ((hopStandIdx < hopStandTime.size()) && !hopStandCb[hopStandIdx] &&
+                 (timer5 <= 60 * hopStandTime.at(hopStandIdx)))
+             {
+                 cbHops.setChecked(false);
+                 msgBox(QString("Add hop-stand hops %1: %2 minutes remaining").arg(hopStandIdx+1).arg(hopStandTime.at(hopStandIdx)),hopStandText.at(hopStandIdx),&cbHops);
+                 if (cbHops.isChecked())
+                 {
+                     hopStandCb[hopStandIdx] = true;
+                     hopStandIdx++; // increment hop-index
+                     cbHops.setChecked(false);
+                 } // if
+                 else if (RegEbrew->value("CB_Hop_Alarm").toInt())
+                 {
+                     commPortWrite("X4"); // 4 beeps indicating hop-addition is needed
+                 } // if
+             } // if
+             else if (timer5 < 0)
+             {
+                 ebrew_std = S33_CHILL_BOIL_KETTLE;  // Chill wort in Boil-kettle through recirculation
+             } // else if
              break;
 
         //---------------------------------------------------------------------------
@@ -2503,7 +2592,7 @@ uint16_t MainEbrew::stateMachine(void)
         // chiller and directly into the fermentation bin.
         //---------------------------------------------------------------------------
         case S16_CHILL_PUMP_FERMENTOR:
-            string    = QString("16. Chill & Pump to Fermentation Bin (M)");
+            string    = QString("16. Chill & Pump to Fermentation Bin");
             substring = QString("If end of chilling is not detected automatically, click \'Chilling is finished\' at top toolbar");
             tset_boil = TEMP_DEFAULT;       // Boil Temperature Setpoint
             boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
@@ -2800,11 +2889,11 @@ uint16_t MainEbrew::stateMachine(void)
                  break;
 
             //---------------------------------------------------------------------------
-            // S36_GF_HEATER_ONLY: Use the HLT as sparge water kettle for the Grainfather.
+            // S38_GF_HEATER_ONLY: Use the HLT as sparge water kettle for the Grainfather.
             //                     Since valve V2 is on, the hot water can be obtained
             //                     directly from the manual-valve.
             //---------------------------------------------------------------------------
-            case S36_GF_HEATER_ONLY:
+            case S38_GF_HEATER_ONLY:
                 string    = QString("36. Grainfather Sparge Water Heater");
                 substring = QString("Uncheck checkbox \'GF Sparge Water Heater\' to return to Init. state");
                 tset_hlt  = 78.0;                  // Set sparge-water for Grainfather to 78.0 °C

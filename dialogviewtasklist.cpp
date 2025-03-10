@@ -135,7 +135,7 @@ void DialogViewTaskList::readTaskListData(void)
             s3.remove(j,1);    // remove '.'
             if (j == s3.size())
                  s3.insert(j,'\n');
-            else s3.insert(j,QString("\nOW%1: ").arg(owcnt++)); // insert newline
+            else s3.insert(j,QString("\nOW%1: ").arg(owcnt++).toUtf8()); // insert newline
         } // while
         ui->teTaskList3->setText(s1 + s3);
     } // if

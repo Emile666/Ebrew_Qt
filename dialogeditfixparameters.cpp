@@ -464,7 +464,7 @@ void DialogEditFixParameters::set_switch_fix(void)
     //-------------------------
     if (ui->cbStd->checkState())
     {   // ebrew_std
-        pEbrew->ebrew_std = ui->comboStd->currentText().leftRef(2).toInt();
+        pEbrew->ebrew_std = ui->comboStd->currentText().left(2).toInt();
     } // if
     if (ui->cbSpIdx->checkState())
     {   // sp_idx

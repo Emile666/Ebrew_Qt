@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.22"                        /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.23"                        /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -137,6 +137,9 @@
 #define S18_MASH_REST_5_MIN       (18) /* Wait 5 minutes before pump is switched on */
 #define S19_RDY_TO_ADD_MALT       (19) /* Ready to add malt to water inside the MLT */
 
+#define S36_HOPSTAND_COOL_DOWN    (36) /* After Boiling, cool-down to hopstand temperature */
+#define S37_HOPSTAND_MAIN         (37) /* Hopstand main state */
+
 #define S20_CIP_INIT              (20)
 #define S21_CIP_HEAT_UP           (21)
 #define S22_CIP_CIRC_5_MIN        (22)
@@ -151,8 +154,8 @@
 #define S31_CIP_CLEAN_INPUT_V1    (31)
 #define S32_CIP_END               (32)
 
-#define S36_GF_HEATER_ONLY        (36)
-#define STD_MAX                   (36) /* Max. number for ebrew_std */
+#define S38_GF_HEATER_ONLY        (38)
+#define STD_MAX                   (38) /* Max. number for ebrew_std */
 
 //-------------------------------------------------------------
 // Hard-coded Timers.
@@ -212,16 +215,6 @@ typedef struct _mash_schedule
    int     preht;      /* preheat timer */
    QString time_stamp; /* time when timer was started */
 } mash_schedule;
-
-//-----------------------------------------------------
-// Struct for hop-gift pairs during boiling
-//-----------------------------------------------------
-typedef struct _hop_gift
-{
-    QList<int> time;   // time (min.) for a hop-gift
-    QString    hops;   // description for the hop-gift
-    QCheckBox  cb;     // checkbox
-} hop_gift;
 
 //------------------------------------------------------------------------------------------
 // CLASS MainEbrew
@@ -425,11 +418,15 @@ public:
     int   boil_time;              // Total boiling time in minutes (read from maisch.sch)
 
     mash_schedule      ms[MAX_MS];      // struct containing mash-schedule
-    hop_gift           hops[MAX_HOPS];  // struct containing hop-gift times and descriptions
     QList<int>         hopTimes;        // List with hop-times in minutes
     QStringList        hopTexts;        // List with hop descriptions
     bool               hopCb[MAX_HOPS]; // List with checkboxes
+    QList<int>         hopStandTime;    // List with hop-stand time in minutes
+    int                hopStandTemp;    // hop-stand temperature in Celsius
+    QStringList        hopStandText;    // List with hop-stand descriptions
+    bool               hopStandCb[MAX_HOPS]; // List with checkboxes
     int                hopIdx = 0;      // Index in hop-times
+    int                hopStandIdx = 0; // Index in hop-stand times
     QCheckBox          cbHops;          // Checkbox for msgBox()
 
     /* Communications channel variables */
@@ -482,6 +479,7 @@ private:
     QLabel    *statusAlarm;       // Statusbar Sensor Alarm label
     QLabel    *statusMashScheme;  // Statusbar Mash-scheme label
     QLabel    *statusHops;        // Statusbar Hop-gift times
+    QLabel    *statusHopStand;    // Statusbar Hop-stand times
     QLabel    *statusMashVol;     // Statusbar Mash-volume value
     QLabel    *statusSpargeVol;   // Statusbar Sparge-volume value
     QLabel    *statusBoilTime;    // Statusbar total boil-time value

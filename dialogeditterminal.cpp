@@ -69,7 +69,7 @@ bool DialogEditTerminal::eventFilter(QObject* obj, QEvent* event)
         }
         else
         {   // a normal character
-            cmdString.append(key->text()); // add char. to command string
+            cmdString.append(key->text().toUtf8()); // add char. to command string
             return QObject::eventFilter(obj, event);
         } // else
         return true;
