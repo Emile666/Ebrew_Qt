@@ -1929,7 +1929,7 @@ uint16_t MainEbrew::stateMachine(void)
     // State 19: 1  1  0  0  0  0  1  0  0  1  Ready to add malt to MLT  0x0309
     // State 20: 0  0  0  0  0  0  0  0  0  0  CIP: Initalisation        0x0000
     // State 21: 0  1  0  1  1  0  1  1  0  0  CIP: Heat Up              0x016C
-    // State 22: 0  1  0  1  1  0  1  1  0  0  CIP: Circulate 5 Minutes  0x016C
+    // State 22: 0  1  0  0  0  0  1  1  0  0  CIP: Circulate V4 5 Min.  0x010C
     // State 23: 0  0  0  0  0  0  0  0  0  0  CIP: Rest 5 Minutes       0x0000
     // State 24: 0  1  0  0  1  0  1  1  0  0  CIP: Drain Boil-kettle 1  0x012C
     // State 25: 0  1  0  0  1  0  0  1  0  0  CIP: Drain Boil-kettle 2  0x0124
@@ -1946,16 +1946,19 @@ uint16_t MainEbrew::stateMachine(void)
     // State 36: 0  1  0  0  1  0  0  1  0  0  Hopstand Cool-Down        0x0124
     // State 37: 0  1  0  0  1  0  0  1  0  0  Hopstand Main             0x0124
     // State 38: 1  0  0  0  0  0  0  0  0  0  Grainfather Heater only   0x0200
+    // State 39: 0  1  0  0  1  0  0  1  0  0  CIP: Circulate V6 5 Min.  0x0124
+    // State 40: 0  1  0  1  0  0  0  1  0  0  CIP: Circulate V7 5 Min.  0x0144
     //----------------------------------------------------------------------------
     uint16_t  actuatorSettings[STD_MAX+1] =
                            /* 00 */{0x0000, 0x0200, 0x030B, 0x0309, 0x0309,  /* 04 */
                            /* 05 */ 0x0309, 0x0141, 0x030B, 0x0000, 0x0141,  /* 09 */
                            /* 10 */ 0x0000, 0x0000, 0x0000, 0x0200, 0x000B,  /* 14 */
                            /* 15 */ 0x0000, 0x0124, 0x0000, 0x0000, 0x0309,  /* 19 */
-                           /* 20 */ 0x0000, 0x016C, 0x016C, 0x0000, 0x012C,  /* 24 */
+                           /* 20 */ 0x0000, 0x016C, 0x010C, 0x0000, 0x012C,  /* 24 */
                            /* 25 */ 0x0124, 0x0000, 0x0142, 0x0122, 0x010A,  /* 29 */
                            /* 30 */ 0x0006, 0x0003, 0x0000, 0x0124, 0x0000,  /* 34 */
-                           /* 35 */ 0x0124, 0x0124, 0x0124, 0x0200 };
+                           /* 35 */ 0x0124, 0x0124, 0x0124, 0x0200, 0x0124,  /* 39 */
+                           /* 40 */ 0x0144 };
 
     bool      maltAdded; // help var. in state S01_WAIT_FOR_HLT_TEMP
     QString   string;    // For stdText->setText()
@@ -2668,11 +2671,47 @@ uint16_t MainEbrew::stateMachine(void)
          // S22_CIP_CIRC_5_MIN: Circulate NaOH solution through brewing system pipes
          //---------------------------------------------------------------------------
          case S22_CIP_CIRC_5_MIN:
-              string    = QString("22. CIP: Circulating (%1/%2 sec.)").arg(cip_tmr1).arg(RegEbrew->value("CIP_CIRC_TIME").toInt());
-              substring = QString("NaOH solution is circulated through all pipes");
+              string    = QString("22. CIP: Circulating V4 (%1/%2 sec.)").arg(cip_tmr1).arg(RegEbrew->value("CIP_CIRC_TIME").toInt());
+              substring = QString("NaOH solution is circulated through HLT, V4 and MLT-return");
               tset_boil = RegEbrew->value("CIP_SP").toDouble(); // Boil-kettle Temperature Setpoint
               PidCtrlBk->pidEnable(PID_ON);     // Enable normal control for Boil-kettle
               boilPid->setButtonState(true);    // Enable PID-Controller Power-button
+              if (++cip_tmr1 >= RegEbrew->value("CIP_CIRC_TIME").toInt())
+              {
+                 cip_tmr1  = 0;        // Reset CIP timer
+                 ebrew_std = S39_CIP_V6_CIRC_5_MIN;
+              } // if
+              else if (!toolStartCIP->isChecked())
+              {
+                 setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
+                 ebrew_std = S00_INITIALISATION;
+              } // else
+              break;
+
+         //---------------------------------------------------------------------------
+         // S39_CIP_V6_CIRC_5_MIN: Circulate NaOH solution through brewing system pipes
+         //---------------------------------------------------------------------------
+         case S39_CIP_V6_CIRC_5_MIN:
+              string    = QString("22. CIP: Circulating V6 (%1/%2 sec.)").arg(cip_tmr1).arg(RegEbrew->value("CIP_CIRC_TIME").toInt());
+              substring = QString("NaOH solution is circulated through CFC and V6");
+              if (++cip_tmr1 >= RegEbrew->value("CIP_CIRC_TIME").toInt())
+              {
+                 cip_tmr1  = 0;        // Reset CIP timer
+                 ebrew_std = S40_CIP_V7_CIRC_5_MIN;
+              } // if
+              else if (!toolStartCIP->isChecked())
+              {
+                 setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
+                 ebrew_std = S00_INITIALISATION;
+              } // else
+              break;
+
+         //---------------------------------------------------------------------------
+         // S40_CIP_V7_CIRC_5_MIN: Circulate NaOH solution through brewing system pipes
+         //---------------------------------------------------------------------------
+         case S40_CIP_V7_CIRC_5_MIN:
+              string    = QString("22. CIP: Circulating V7 (%1/%2 sec.)").arg(cip_tmr1).arg(RegEbrew->value("CIP_CIRC_TIME").toInt());
+              substring = QString("NaOH solution is circulated through V7 and Boil-kettle return");
               if (++cip_tmr1 >= RegEbrew->value("CIP_CIRC_TIME").toInt())
               {
                  cip_tmr1  = 0;        // Reset CIP timer
