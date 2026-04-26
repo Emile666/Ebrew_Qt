@@ -51,7 +51,6 @@
    <property name="font">
     <font>
      <pointsize>10</pointsize>
-     <weight>75</weight>
      <bold>true</bold>
     </font>
    </property>
@@ -71,7 +70,6 @@
    <property name="font">
     <font>
      <pointsize>10</pointsize>
-     <weight>75</weight>
      <bold>true</bold>
     </font>
    </property>
@@ -85,7 +83,7 @@
      <x>20</x>
      <y>240</y>
      <width>211</width>
-     <height>131</height>
+     <height>141</height>
     </rect>
    </property>
   </widget>
@@ -95,7 +93,7 @@
      <x>239</x>
      <y>240</y>
      <width>231</width>
-     <height>131</height>
+     <height>141</height>
     </rect>
    </property>
   </widget>
@@ -111,7 +109,6 @@
    <property name="font">
     <font>
      <pointsize>10</pointsize>
-     <weight>75</weight>
      <bold>true</bold>
     </font>
    </property>

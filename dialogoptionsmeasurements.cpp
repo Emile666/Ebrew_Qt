@@ -34,17 +34,25 @@ DialogOptionsMeasurements::DialogOptionsMeasurements(QWidget *parent) :
     ui->sbThltOwCal->setValue(pEbrew->RegEbrew->value("THLT_OW_OFFSET").toDouble());
     ui->sbTmltOwCal->setValue(pEbrew->RegEbrew->value("TMLT_OW_OFFSET").toDouble());
     int x = pEbrew->RegEbrew->value("THLT_SENSORS").toInt();
-    if (x == TSENSOR_AVERAGING)
+    if (x == THLT_AVG_ALL)
          ui->rbh1->setChecked(true); // others are set automatically to false
-    else if (x == TSENSOR_USE_I2C)
+    else if (x == THLT_USE_I2C)
          ui->rbh2->setChecked(true);
-    else ui->rbh3->setChecked(true);
+    else if (x == THLT_USE_OW1)
+         ui->rbh3->setChecked(true);
+    else if (x == THLT_USE_OW2)
+         ui->rbh4->setChecked(true);
+    else ui->rbh5->setChecked(true); // x = THLT_AVG_OW
     x = pEbrew->RegEbrew->value("TMLT_SENSORS").toInt();
-    if (x == TSENSOR_AVERAGING)
+    if (x == TMLT_I2C_OW1)
          ui->rbm1->setChecked(true); // others are set automatically to false
-    else if (x == TSENSOR_USE_I2C)
+    else if (x == TMLT_OW1_OW2)
          ui->rbm2->setChecked(true);
-    else ui->rbm3->setChecked(true);
+    else if (x == TMLT_OW2_OW1)
+         ui->rbm3->setChecked(true);
+    else if (x == TMLT_AVG_I2C_OW1)
+         ui->rbm4->setChecked(true);
+    else ui->rbm5->setChecked(true); // x = TMLT_AVG_I2C_OW2
     // Flow Measurements
     ui->sbFlow1->setValue(pEbrew->RegEbrew->value("FLOW1_ERR").toDouble());
     ui->sbFlow2->setValue(pEbrew->RegEbrew->value("FLOW2_ERR").toDouble());
@@ -73,16 +81,24 @@ void DialogOptionsMeasurements::on_buttonBox_accepted()
     pEbrew->RegEbrew->setValue("THLT_OW_OFFSET",ui->sbThltOwCal->value());
     pEbrew->RegEbrew->setValue("TMLT_OW_OFFSET",ui->sbTmltOwCal->value());
     if (ui->rbh1->isChecked())
-         x = TSENSOR_AVERAGING;
+         x = THLT_AVG_ALL;
     else if (ui->rbh2->isChecked())
-         x = TSENSOR_USE_I2C;
-    else x = TSENSOR_USE_OW;
+         x = THLT_USE_I2C;
+    else if (ui->rbh3->isChecked())
+         x = THLT_USE_OW1;
+    else if (ui->rbh4->isChecked())
+         x = THLT_USE_OW2;
+    else x = THLT_AVG_OW;
     pEbrew->RegEbrew->setValue("THLT_SENSORS",x);
     if (ui->rbm1->isChecked())
-         x = TSENSOR_AVERAGING;
+         x = TMLT_I2C_OW1;
     else if (ui->rbm2->isChecked())
-         x = TSENSOR_USE_I2C;
-    else x = TSENSOR_USE_OW;
+         x = TMLT_OW1_OW2;
+    else if (ui->rbm3->isChecked())
+         x = TMLT_OW2_OW1;
+    else if (ui->rbm4->isChecked())
+         x = TMLT_AVG_I2C_OW1;
+    else x = TMLT_AVG_I2C_OW2;
     pEbrew->RegEbrew->setValue("TMLT_SENSORS",x);
     // Flow Measurements
     pEbrew->RegEbrew->setValue("FLOW1_ERR",ui->sbFlow1->value());

@@ -145,7 +145,7 @@ MainEbrew::MainEbrew(void) : QMainWindow()
         stream << "\n";
         stream << line1MashScheme << "\n";
         stream << " Time    TsetM TsetH  Thlt  Tmlt Telc  Vmlt s m st  GmaH  Vhlt VBoil TBoil  Tcfc GmaB\n";
-        stream << "[h:m:s]   [\xB0""C]  [\xB0""C]  [\xB0""C]  [\xB0""C] [\xB0""C]   [L] p s  d   [%]   [L]   [L]  [\xB0""C]  [\xB0""C]  [%]\n";
+        stream << "[h:m:s]   [\xC2\xB0""C]  [\xC2\xB0""C]  [\xC2\xB0""C]  [\xC2\xB0""C] [\xC2\xB0""C]   [L] p s  d   [%]   [L]   [L]  [\xC2\xB0""C]  [\xC2\xB0""C]  [%]\n";
         stream << "-------------------------------------------------------------------------------------\n";
     } // if
     else fEbrewLog = nullptr;
@@ -437,6 +437,8 @@ void MainEbrew::createRegistry(void)
     RegEbrew->setValue("CB_DEBUG_COM_PORT",1);                // 1 = log COM port read/writes
     // Brew-kettle Sizes
     RegEbrew->setValue("VHLT_MAX",200);       // Max. HLT volume
+    RegEbrew->setValue("HLT_HEIGHT",700);     // HLT height in mm
+    RegEbrew->setValue("CB_USE_VHLT_SENS",1); // 1 = use ultrasonic sensor to calculate HLT volume
     RegEbrew->setValue("VMLT_MAX",110);       // Max. MLT volume
     RegEbrew->setValue("VBOIL_MAX",140);      // Max. Boil kettle volume
     RegEbrew->setValue("VHLT_MIN",40);        // Min. HLT volume needed for electric heating
@@ -496,8 +498,8 @@ void MainEbrew::createRegistry(void)
     RegEbrew->setValue("TCFC_OFFSET"   ,0.0); // Offset for Tcfc-OW sensor
     RegEbrew->setValue("THLT_OW_OFFSET",0.0); // Offset for Thlt-OW sensor
     RegEbrew->setValue("TMLT_OW_OFFSET",0.0); // Offset for Tmlt-OW sensor
-    RegEbrew->setValue("THLT_SENSORS"  ,TSENSOR_USE_I2C); // In case both I2C and OW sensors are present
-    RegEbrew->setValue("TMLT_SENSORS"  ,TSENSOR_USE_I2C); // In case both I2C and OW sensors are present
+    RegEbrew->setValue("THLT_SENSORS"  ,THLT_AVG_ALL); // In case all I2C and OW sensors are present
+    RegEbrew->setValue("TMLT_SENSORS"  ,TMLT_I2C_OW1); // In case both I2C and OW sensors are present
     // Flows
     RegEbrew->setValue("FLOW1_ERR",0);        // Error Correction for FLOW1
     RegEbrew->setValue("FLOW2_ERR",0);        // Error Correction for FLOW2
@@ -1175,8 +1177,13 @@ void MainEbrew::task_read_temps(void)
             tmlt_i2c = list.at(2).toDouble();
             tboil    = list.at(3).toDouble();
             tcfc     = list.at(4).toDouble();
-            thlt_ow  = list.at(5).toDouble();
-            tmlt_ow  = list.at(6).toDouble();
+            thlt_ow1 = list.at(5).toDouble();
+            tmlt_ow1 = list.at(6).toDouble();
+            if (list.size() >= 9)
+            {   // Brew HW >= v4.20 (with stm8s207), Firmware >= v2.06
+                 thlt_ow2 = list.at(7).toDouble();
+                 tmlt_ow2 = list.at(8).toDouble();
+            } // if
         } // if
     } // if
     else qDebug() << "task_read_temps() error: " << ReadData; // error
@@ -1199,6 +1206,7 @@ void MainEbrew::task_read_temps(void)
          sensorAlarmInfo &= ~SENS_THLT_I2C; // reset bit in sensor_alarm
     } // if
     else sensorAlarmInfo |= SENS_THLT_I2C;  // set alarm
+
     //------------------ TEMP3 (TMLT-I2C) --------------------------------------
     if (tmlt_i2c > SENSOR_VAL_LIM_OK)
     {
@@ -1206,6 +1214,7 @@ void MainEbrew::task_read_temps(void)
          sensorAlarmInfo &= ~SENS_TMLT_I2C; // reset bit in sensor_alarm
     } // if
     else sensorAlarmInfo |= SENS_TMLT_I2C;  // set alarm
+
     //------------------ TEMP4 (TBOIL) ----------------------------------------
     if (tboil > SENSOR_VAL_LIM_OK)
     {
@@ -1217,6 +1226,7 @@ void MainEbrew::task_read_temps(void)
     {  // Switch & Fix
        tboil = tboil_fx;
     } // if
+
     //------------------ TEMP5 (TCFC) -----------------------------------------
     if (tcfc > SENSOR_VAL_LIM_OK)
     {
@@ -1225,98 +1235,203 @@ void MainEbrew::task_read_temps(void)
     } // if
     else sensorAlarmInfo |= SENS_TCFC;  // set alarm
     // No switch/fix needed for TCFC
+
     //------------------ TEMP6 (THLT-OW) ---------------------------------------
-    if (thlt_ow > SENSOR_VAL_LIM_OK)
+    if (thlt_ow1 > SENSOR_VAL_LIM_OK)
     {
-         thlt_ow += RegEbrew->value("THLT_OW_OFFSET").toDouble(); // update THLT-OW with calibration value
-         sensorAlarmInfo &= ~SENS_THLT_OW; // reset bit in sensor_alarm
+         thlt_ow1 += RegEbrew->value("THLT_OW_OFFSET").toDouble(); // update THLT-OW with calibration value
+         sensorAlarmInfo &= ~SENS_THLT_OW1; // reset bit in sensor_alarm
     } // if
-    else sensorAlarmInfo |= SENS_THLT_OW;  // set alarm
+    else sensorAlarmInfo |= SENS_THLT_OW1;  // set alarm
 
     //------------------ TEMP7 (TMLT-OW) ---------------------------------------
-    if (tmlt_ow > SENSOR_VAL_LIM_OK)
+    if (tmlt_ow1 > SENSOR_VAL_LIM_OK)
     {
-         tmlt_ow += RegEbrew->value("TMLT_OW_OFFSET").toDouble(); // update TMLT-OW with calibration value
-         sensorAlarmInfo &= ~SENS_TMLT_OW; // reset bit in sensor_alarm
+         tmlt_ow1 += RegEbrew->value("TMLT_OW_OFFSET").toDouble(); // update TMLT-OW with calibration value
+         sensorAlarmInfo &= ~SENS_TMLT_OW1; // reset bit in sensor_alarm
     } // if
-    else sensorAlarmInfo |= SENS_TMLT_OW;  // set alarm
+    else sensorAlarmInfo |= SENS_TMLT_OW1;  // set alarm
 
-    // ----------------- Now process thlt_i2c and thlt_ow to form thlt ---------
-    int x = RegEbrew->value("THLT_SENSORS").toInt();
-    switch (sensorAlarmInfo & SENS_THLTS)
+    //------------------ TEMP8 (THLT-OW2) ---------------------------------------
+    if (thlt_ow2 > SENSOR_VAL_LIM_OK)
     {
-        case SENS_THLT_I2C:   // I2C sensor is not present, OW sensor is present
-             thlt = thlt_ow;  // use OW sensor for thlt
-             T4->hide();      // Hide temp4 object
-             break;
-        case SENS_THLT_OW:    // OW sensor is not present, I2C sensor is present
-             thlt = thlt_i2c; // use I2C sensor for thlt
-             T4->hide();      // Hide temp4 object
-             break;
-        case 0x0000:          // both OW and I2C sensors are present
-             if (x == TSENSOR_AVERAGING)
-             {
-                  thlt = 0.5*(thlt_i2c + thlt_ow);
-                  T4->hide(); // Hide temp4 object
+         //thlt_ow2 += RegEbrew->value("THLT_OW_OFFSET").toDouble(); // update THLT-OW with calibration value
+         sensorAlarmInfo &= ~SENS_THLT_OW2; // reset bit in sensor_alarm
+    } // if
+    else sensorAlarmInfo |= SENS_THLT_OW2;  // set alarm
+
+    //------------------ TEMP9 (TMLT-OW2) ---------------------------------------
+    if (tmlt_ow2 > SENSOR_VAL_LIM_OK)
+    {
+         //tmlt_ow2 += RegEbrew->value("TMLT_OW_OFFSET").toDouble(); // update TMLT-OW with calibration value
+         sensorAlarmInfo &= ~SENS_TMLT_OW2; // reset bit in sensor_alarm
+    } // if
+    else sensorAlarmInfo |= SENS_TMLT_OW2;  // set alarm
+
+    // ----------------- Now process thlt_i2c, thlt_ow1 and thlt_ow2 to form thlt ---------
+    int x = RegEbrew->value("THLT_SENSORS").toInt();
+    int hlt_cnt = 0;
+    switch (x)
+    {
+        case THLT_AVG_ALL:  // Average all available sensors
+             thlt = 0.0;
+             if ((sensorAlarmInfo & SENS_THLT_I2C) != SENS_THLT_I2C)
+             {  // No error, add I2C sensor value
+                thlt += thlt_i2c;
+                hlt_cnt++;
              } // if
-             else if (x == TSENSOR_USE_I2C)
+             if ((sensorAlarmInfo & SENS_THLT_OW1) != SENS_THLT_OW1)
+             {  // No error, add OW1 sensor value
+                thlt += thlt_ow1;
+                hlt_cnt++;
+             } // if
+             if ((sensorAlarmInfo & SENS_THLT_OW2) != SENS_THLT_OW2)
+             {  // No error, add OW2 sensor value
+                thlt += thlt_ow2;
+                hlt_cnt++;
+             } // if
+             if (hlt_cnt > 0)
              {
-                  thlt = thlt_i2c;           // thlt_ow can be used for another temperature measurement
-                  T4->show();                // Show temp4 object
-                  T4->setTempValue(thlt_ow); // show this temperature measurement
-                  T4->update();
-             } // else if
+                thlt /= hlt_cnt; // get average value of available sensors
+             } // if
              else
-             {   // x == TSENSOR_USE_OW
-                 thlt = thlt_ow;  // TSENSOR_USE_OW, thlt_i2c is not used
-                 T4->hide();      // Hide temp4 object
+             {    // no sensors are available, let tank object display sensor error
+                thlt = SENSOR_ERROR;
              } // else
+             T4->hide(); // Hide temp4 object (thlt_ow1)
+             T6->hide(); // Hide temp6 object (thlt_ow2)
              break;
-        default:                       // both OW and I2C sensors are NOT present
-             thlt = SENSOR_VAL_LIM_OK; // indicate error
-             T4->hide();               // Hide temp4 object
-             break;                    // handle in generic alarm part, see below
+
+        case THLT_USE_I2C: // Use I2C for thlt, display OW1 and OW2 if available
+             thlt = thlt_i2c;            // Use thlt_i2c for thlt
+             T4->show();                 // Show temp4 object
+             T4->setTempValue(thlt_ow1); // show this temperature measurement
+             T4->update();
+             T6->show();                 // Show temp6 object
+             T6->setTempValue(thlt_ow2); // show this temperature measurement
+             T6->update();
+             break;
+
+        case THLT_USE_OW1: // Use OW1 for thlt, display OW2 if available
+             thlt = thlt_ow1;            // Use thlt_ow1 for thlt
+             T4->hide();                 // Hide temp4 object (thlt_ow1)
+             T6->show();                 // Show temp6 object (thlt_ow2)
+             T6->setTempValue(thlt_ow2); // show this temperature measurement
+             T6->update();
+             sensorAlarmInfo &= ~SENS_THLT_I2C; // Silence THLT I2C sensor error message
+             break;
+
+        case THLT_USE_OW2: // Use OW2 for thlt, display OW1 if available
+             thlt = thlt_ow2;            // Use thlt_ow2
+             T4->show();                 // Show temp4 object
+             T4->setTempValue(thlt_ow1); // show this temperature measurement
+             T4->update();
+             T6->hide();                 // Hide temp6 object (thlt_ow2)
+             sensorAlarmInfo &= ~SENS_THLT_I2C; // Silence THLT I2C sensor error message
+             break;
+
+        default: // THLT_AVG_OW is only option left
+             thlt = 0.0;
+             if ((sensorAlarmInfo & SENS_THLT_OW1) != SENS_THLT_OW1)
+             {  // No error, add OW1 sensor value
+                thlt += thlt_ow1;
+                hlt_cnt++;
+             } // if
+             if ((sensorAlarmInfo & SENS_THLT_OW2) != SENS_THLT_OW2)
+             {  // No error, add OW2 sensor value
+                thlt += thlt_ow2;
+                hlt_cnt++;
+             } // if
+             if (hlt_cnt > 0)
+             {
+                thlt /= hlt_cnt; // get average value of available sensors
+             } // if
+             else
+             {  // no sensors are available, let tank object display sensor error
+                thlt = SENSOR_ERROR;
+             } // else
+             T4->hide(); // Hide temp4 object (thlt_ow1)
+             T6->hide(); // Hide temp6 object (thlt_ow2)
+             sensorAlarmInfo &= ~SENS_THLT_I2C; // Silence THLT I2C sensor error message
+             break;
     } // switch
+
     if (thlt_sw)
     {  // Switch & Fix
        thlt = thlt_fx;
     } // if
-    // ----------------- Now process tmlt_i2c and tmlt_ow to form tmlt ---------
+
+    // ----------------- Now process tmlt_i2c, tmlt_ow1 and tmlt_ow2 to form tmlt ---------
     x = RegEbrew->value("TMLT_SENSORS").toInt();
-    switch (sensorAlarmInfo & SENS_TMLTS)
+    int mlt_cnt = 0;
+    switch (x)
     {
-        case SENS_TMLT_I2C:   // I2C sensor is not present, OW sensor is present
-             tmlt = tmlt_ow;  // use OW sensor for tmlt
-             T5->hide();      // Hide temp5 object
-             break;
-        case SENS_TMLT_OW:    // OW sensor is not present, I2C sensor is present
-             tmlt = tmlt_i2c; // use I2C sensor for tmlt
-             T5->hide();      // Hide temp5 object
-             break;
-        case 0x0000:          // both OW and I2C sensors are present
-             if (x == TSENSOR_AVERAGING)
-             {
-                  tmlt = 0.5*(tmlt_i2c + tmlt_ow);
-                  T5->hide(); // Hide temp5 object
-             } // if
-             else if (x == TSENSOR_USE_I2C)
-             {
-                  tmlt = tmlt_i2c;           // tmlt_ow is now another temperature
-                  T5->show();                // Show temp5 object
-                  T5->setTempValue(tmlt_ow); // show this temperature measurement
-                  T5->update();
-             } // else if
-             else
-             {   // x = TSENSOR_USE_OW
-                 tmlt = tmlt_ow;  // TSENSOR_USE_OW, tmlt_i2c is not used
-                 T5->hide();      // Hide temp5 object
-             } // else
-             break;
-        default:                       // both OW and I2C sensors are NOT present
-             tmlt = SENSOR_VAL_LIM_OK; // indicate error
-             T5->hide();               // Hide temp5 object
-             break;                    // handle in generic alarm part, see below
+        case TMLT_I2C_OW1:                    // Use I2C sensor for Tmlt and OW1 sensor for Tmlt-return
+           tmlt = tmlt_i2c;                   // use I2C sensor for tmlt
+           T5->setTempValue(tmlt_ow1);        // T5 = tmlt-return = tmlt_ow1
+           sensorAlarmInfo &= ~SENS_TMLT_OW2; // OW2 is not used, disable sensor error message
+           break;
+
+        case TMLT_OW1_OW2:                    // Use OW1 sensor for Tmlt and OW2 sensor for Tmlt-return
+           tmlt = tmlt_ow1;                   // use OW1 sensor for tmlt
+           T5->setTempValue(tmlt_ow2);        // T5 = tmlt-return = tmlt_ow2
+           sensorAlarmInfo &= ~SENS_TMLT_I2C; // I2C is not used, disable sensor error message
+           break;
+
+        case TMLT_OW2_OW1:                    // Use OW2 sensor for Tmlt and OW1 sensor for Tmlt-return
+           tmlt = tmlt_ow2;                   // use OW1 sensor for tmlt
+           T5->setTempValue(tmlt_ow1);        // T5 = tmlt-return = tmlt_ow1
+           sensorAlarmInfo &= ~SENS_TMLT_I2C; // I2C is not used, disable sensor error message
+           break;
+
+        case TMLT_AVG_I2C_OW1:  // Average I2C and OW1 sensor for Tmlt and use OW2 sensor for Tmlt-return
+           tmlt = 0.0;
+           if ((sensorAlarmInfo & SENS_TMLT_I2C) != SENS_TMLT_I2C)
+           {    // No error, add I2C sensor value
+                tmlt += tmlt_i2c;
+                mlt_cnt++;
+           } // if
+           if ((sensorAlarmInfo & SENS_TMLT_OW1) != SENS_TMLT_OW1)
+           {    // No error, add OW1 sensor value
+                tmlt += tmlt_ow1;
+                mlt_cnt++;
+           } // if
+           if (mlt_cnt > 0)
+           {    // at least 1 sensor is available
+                tmlt /= mlt_cnt; // get average value of available sensors
+           } // if
+           else
+           {    // no sensors are available, let tank object display sensor error
+                tmlt = SENSOR_ERROR;
+           } // else
+           T5->setTempValue(tmlt_ow2); // T5 = tmlt-return = tmlt_ow2
+           break;
+
+        case TMLT_AVG_I2C_OW2:  // Average I2C and OW2 sensor for Tmlt and use OW1 sensor for Tmlt-return
+           tmlt = 0.0;
+           if ((sensorAlarmInfo & SENS_TMLT_I2C) != SENS_TMLT_I2C)
+           {    // No error, add I2C sensor value
+                tmlt += tmlt_i2c;
+                mlt_cnt++;
+           } // if
+           if ((sensorAlarmInfo & SENS_TMLT_OW2) != SENS_TMLT_OW2)
+           {    // No error, add OW2 sensor value
+                tmlt += tmlt_ow2;
+                mlt_cnt++;
+           } // if
+           if (mlt_cnt > 0)
+           {
+                tmlt /= mlt_cnt; // get average value of available sensors
+           } // if
+           else
+           {    // no sensors are available, let tank object display sensor error
+                tmlt = SENSOR_ERROR;
+           } // else
+           T5->setTempValue(tmlt_ow1); // T5 = tmlt-return = tmlt_ow1
+           break;
     } // switch
+    T5->update(); // always update T5 object
+
     if (tmlt_sw)
     {  // Switch & Fix
        tmlt = tmlt_fx;
@@ -1359,6 +1474,15 @@ void MainEbrew::task_read_flows(void)
             FlowMltBoil = list.at(1).toDouble();
             FlowCfcOut  = list.at(2).toDouble();
             Flow4       = list.at(3).toDouble();
+            if (list.size() >= 5)
+            {
+                 Vhlt_mm = list.at(4).toDouble() * 0.1; //
+                 if ((Vhlt_mm < 30) || (Vhlt_mm > RegEbrew->value("HLT_HEIGHT").toInt()))
+                 {
+                    Vhlt_mm = SENSOR_VAL_LIM_OK; // error value
+                 } // if
+            } // if
+            else Vhlt_mm = SENSOR_VAL_LIM_OK; // error value
         } // if
     } // if
     else
@@ -1387,7 +1511,15 @@ void MainEbrew::task_read_flows(void)
         sensorAlarmInfo &= ~SENS_FLOW1;
         F1->setError(false);
     } // else
-    Vhlt = Vhlt_init - F1->getFlowValue(); // adjust actual volume in HLT
+
+    if ((RegEbrew->value("CB_USE_VHLT_SENS").toInt()) && (Vhlt_mm > SENSOR_VAL_LIM_OK))
+    {   // Use ultrasonic sensor data from HLT
+        Vhlt = RegEbrew->value("VHLT_MAX").toDouble() * (1.0 - (Vhlt_mm / RegEbrew->value("HLT_HEIGHT").toDouble()));
+    } // if
+    else
+    {   // Calculate an estimate for HLT volume
+        Vhlt = Vhlt_init - F1->getFlowValue(); // adjust actual volume in HLT
+    } // else
     if (vhlt_sw)
     {  // Switch & Fix
        Vhlt = vhlt_fx;
@@ -1826,7 +1958,7 @@ void MainEbrew::commPortWrite(QByteArray s)
     {   // comm. debug-logging is enabled
         QTime d = QTime::currentTime();
         QTextStream stream(fDbgCom);
-        stream << "\nW" << d.toString("ss") << "." << d.toString("zzz") << "[" << s << "]";
+        stream << "\nW" << d.toString("hh:mm:ss.zzz") << "[" << s << "]";
     } // if
 } // MainEbrew::commPortWrite()
 
@@ -1863,7 +1995,7 @@ void MainEbrew::commPortRead(void)
     {   // comm. debug-logging is enabled
         QTime d = QTime::currentTime();
         QTextStream stream(fDbgCom);
-        stream << " R" << d.toString("ss") << "." << d.toString("zzz") << "[" << ReadData << "]";
+        stream << " R" << d.toString("ss.zzz") << "[" << ReadData << "]";
         if (serialPort->error() == QSerialPort::ReadError) stream << " Read-error: " << serialPort->errorString();
     } // if
 } // MainEbrew::commPortRead()

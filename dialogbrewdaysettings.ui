@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>411</width>
-    <height>323</height>
+    <width>428</width>
+    <height>361</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>290</y>
+     <x>240</x>
+     <y>320</y>
      <width>181</width>
      <height>32</height>
     </rect>
@@ -34,8 +34,8 @@
     <rect>
      <x>20</x>
      <y>20</y>
-     <width>381</width>
-     <height>271</height>
+     <width>411</width>
+     <height>301</height>
     </rect>
    </property>
    <property name="currentIndex">
@@ -51,7 +51,7 @@
        <x>10</x>
        <y>10</y>
        <width>388</width>
-       <height>240</height>
+       <height>251</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout">
@@ -68,25 +68,6 @@
         </property>
         <property name="text">
          <string>Temp. offset to compensate for malt dough-in losses</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QDoubleSpinBox" name="sbMash1">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This offset is added to the HLT setpoint temperature in order to compensate for the temperature loss that occurs when malt is added to the MLT.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="suffix">
-         <string> °C</string>
-        </property>
-        <property name="decimals">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <double>10.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>0.100000000000000</double>
         </property>
        </widget>
       </item>
@@ -273,6 +254,25 @@
         </property>
        </widget>
       </item>
+      <item row="0" column="1">
+       <widget class="QDoubleSpinBox" name="sbMash1">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This offset is added to the HLT setpoint temperature in order to compensate for the temperature loss that occurs when malt is added to the MLT.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="suffix">
+         <string> °C</string>
+        </property>
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <double>10.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </widget>
@@ -286,7 +286,7 @@
        <x>10</x>
        <y>10</y>
        <width>349</width>
-       <height>80</height>
+       <height>91</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout_2">
@@ -411,10 +411,10 @@
     <widget class="QWidget" name="formLayoutWidget_3">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>6</x>
        <y>10</y>
-       <width>367</width>
-       <height>242</height>
+       <width>381</width>
+       <height>251</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout_3">
@@ -662,186 +662,234 @@
     <attribute name="title">
      <string>Clean-in-Place (CIP)</string>
     </attribute>
-    <widget class="QWidget" name="formLayoutWidget_4">
+    <widget class="QSpinBox" name="sbCip2">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>351</width>
-       <height>221</height>
+       <x>241</x>
+       <y>36</y>
+       <width>71</width>
+       <height>22</height>
       </rect>
      </property>
-     <layout class="QFormLayout" name="formLayout_4">
-      <item row="0" column="0">
-       <widget class="QLabel" name="lblCip1">
-        <property name="minimumSize">
-         <size>
-          <width>150</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>150</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>Setpoint temperature value during CIP. This is the temperature for the cleaning solution</string>
-        </property>
-        <property name="text">
-         <string>CIP Setpoint Temperature</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QSpinBox" name="sbCip1">
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Setpoint temperature value during CIP. This is the temperature for the cleaning solution&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="suffix">
-         <string> °C</string>
-        </property>
-        <property name="prefix">
-         <string/>
-        </property>
-        <property name="minimum">
-         <number>20</number>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="lblCip2">
-        <property name="toolTip">
-         <string>The time to circulate the cleaning solution through the pipes</string>
-        </property>
-        <property name="text">
-         <string>CIP Circulating-time</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="sbCip2">
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time to circulate the cleaning solution through the pipes&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="suffix">
-         <string> sec.</string>
-        </property>
-        <property name="maximum">
-         <number>999</number>
-        </property>
-        <property name="value">
-         <number>100</number>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="lblCip3">
-        <property name="toolTip">
-         <string>The time in minutes to shut-off the pump during CIP</string>
-        </property>
-        <property name="text">
-         <string>CIP rest-time between circulations </string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QSpinBox" name="sbCip3">
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time in minutes to shut-off the pump during CIP&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="suffix">
-         <string> sec.</string>
-        </property>
-        <property name="maximum">
-         <number>999</number>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="lblCip4">
-        <property name="minimumSize">
-         <size>
-          <width>200</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time needed to clean every output. Fresh water is pumped through the output to clean this output pipe&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>CIP Time for cleaning every output-pipe</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QSpinBox" name="sbCip4">
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>The time needed to clean every output. Fresh water is pumped through the output to clean this output pipe</string>
-        </property>
-        <property name="suffix">
-         <string> sec.</string>
-        </property>
-        <property name="maximum">
-         <number>999</number>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="lblCip5">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time needed to clean every input. Fresh water flows through the input to clean this input pipe&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>CIP time for cleaning every input-pipe</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QSpinBox" name="sbCip5">
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>The time needed to clean every input. Fresh water flows through the input to clean this input pipe</string>
-        </property>
-        <property name="suffix">
-         <string> sec.</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     <property name="maximumSize">
+      <size>
+       <width>80</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time to circulate the cleaning solution through the pipes&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="suffix">
+      <string> sec.</string>
+     </property>
+     <property name="maximum">
+      <number>999</number>
+     </property>
+     <property name="value">
+      <number>100</number>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="sbCip1">
+     <property name="geometry">
+      <rect>
+       <x>244</x>
+       <y>8</y>
+       <width>61</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>80</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Setpoint temperature value during CIP. This is the temperature for the cleaning solution&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="suffix">
+      <string> °C</string>
+     </property>
+     <property name="prefix">
+      <string/>
+     </property>
+     <property name="minimum">
+      <number>20</number>
+     </property>
+     <property name="maximum">
+      <number>100</number>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblCip3">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>67</y>
+       <width>191</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>The time in minutes to shut-off the pump during CIP</string>
+     </property>
+     <property name="text">
+      <string>CIP rest-time between circulations </string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblCip2">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>39</y>
+       <width>131</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>The time to circulate the cleaning solution through the pipes</string>
+     </property>
+     <property name="text">
+      <string>CIP Circulating-time</string>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="sbCip3">
+     <property name="geometry">
+      <rect>
+       <x>241</x>
+       <y>64</y>
+       <width>71</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>80</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time in minutes to shut-off the pump during CIP&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="suffix">
+      <string> sec.</string>
+     </property>
+     <property name="maximum">
+      <number>999</number>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblCip4">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>95</y>
+       <width>221</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>200</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time needed to clean every output. Fresh water is pumped through the output to clean this output pipe&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>CIP Time for cleaning every output-pipe</string>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="sbCip4">
+     <property name="geometry">
+      <rect>
+       <x>241</x>
+       <y>92</y>
+       <width>71</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>80</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>The time needed to clean every output. Fresh water is pumped through the output to clean this output pipe</string>
+     </property>
+     <property name="suffix">
+      <string> sec.</string>
+     </property>
+     <property name="maximum">
+      <number>999</number>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="sbCip5">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>120</y>
+       <width>71</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>80</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>The time needed to clean every input. Fresh water flows through the input to clean this input pipe</string>
+     </property>
+     <property name="suffix">
+      <string> sec.</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblCip5">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>123</y>
+       <width>211</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time needed to clean every input. Fresh water flows through the input to clean this input pipe&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>CIP time for cleaning every input-pipe</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblCip1">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>11</y>
+       <width>150</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>150</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>150</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>Setpoint temperature value during CIP. This is the temperature for the cleaning solution</string>
+     </property>
+     <property name="text">
+      <string>CIP Setpoint Temperature</string>
+     </property>
     </widget>
    </widget>
   </widget>

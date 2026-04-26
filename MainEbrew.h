@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.24"                        /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.25"                        /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -62,10 +62,12 @@
 #define SENS_FLOW2    (0x0020)   /* Boil-kettle input flowmeter */
 #define SENS_FLOW3    (0x0040)   /* CFC-output flowmeter */
 #define SENS_FLOW4    (0x0080)   /* HLT heat-exchanger -> MLT top return manifold */
-#define SENS_THLT_OW  (0x0100)   /* HLT-OW temperature */
-#define SENS_TMLT_OW  (0x0200)   /* MLT-OW temperature */
-#define SENS_THLTS    (SENS_THLT_I2C | SENS_THLT_OW)
-#define SENS_TMLTS    (SENS_TMLT_I2C | SENS_TMLT_OW)
+#define SENS_THLT_OW1 (0x0100)   /* HLT-OW1 temperature */
+#define SENS_TMLT_OW1 (0x0200)   /* MLT-OW1 temperature */
+#define SENS_THLT_OW2 (0x0400)   /* HLT-OW2 temperature */
+#define SENS_TMLT_OW2 (0x0800)   /* MLT-OW2 temperature */
+#define SENS_THLTS    (SENS_THLT_I2C | SENS_THLT_OW1 | SENS_THLT_OW2)
+#define SENS_TMLTS    (SENS_TMLT_I2C | SENS_TMLT_OW1 | SENS_TMLT_OW2)
 
 //-----------------------------------------------------------
 // Defines for COM Port Communication.
@@ -202,9 +204,17 @@
 //-----------------------------------------------------
 // Sensor options for HLT and MLT temperature sensors
 //-----------------------------------------------------
-#define TSENSOR_AVERAGING (0) /* Use both I2C and OW sensors for kettle temp. */
-#define TSENSOR_USE_I2C   (1) /* Only use I2C for kettle temp., OW sensor is used for other temp. */
-#define TSENSOR_USE_OW    (2) /* Only use OW for kettle temp., I2C sensor is not used */
+#define THLT_AVG_ALL     (0) /* Use all available I2C and OW sensors for HLT temp. */
+#define THLT_USE_I2C     (1) /* Only use I2C for HLT temp., OW sensor(s) are displayed separately */
+#define THLT_USE_OW1     (2) /* Only use OW1 for HLT temp., I2C sensor is not used, display OW2 if available */
+#define THLT_USE_OW2     (3) /* Only use OW2 for HLT temp., I2C sensor is not used, display OW1 if available */
+#define THLT_AVG_OW      (4) /* Average both OW sensors for HLT temp., I2C sensor is not used */
+
+#define TMLT_I2C_OW1     (0) /* Use I2C sensor for Tmlt and OW1 sensor for Tmlt-return */
+#define TMLT_OW1_OW2     (1) /* Use OW1 sensor for Tmlt and OW2 sensor for Tmlt-return */
+#define TMLT_OW2_OW1     (2) /* Use OW2 sensor for Tmlt and OW1 sensor for Tmlt-return */
+#define TMLT_AVG_I2C_OW1 (3) /* Average I2C and OW1 sensor for Tmlt and use OW2 sensor for Tmlt-return */
+#define TMLT_AVG_I2C_OW2 (4) /* Average I2C and OW2 sensor for Tmlt and use OW1 sensor for Tmlt-return */
 
 //-----------------------------------------------------
 // Struct for temperature-time pairs during mashing
@@ -244,8 +254,10 @@ public:
     Meter       *F3;             // Flowmeter 3: CFC-output
     Meter       *F4;             // Flowmeter 4: at MLT top return-manifold
     Meter       *T3;             // Temp. meter 3: Tcfc, other temp. meters are inside Tank objects
-    Meter       *T4;             // Temp. meter 4: Thlt-ow, 2nd hlt temp or aux. temp. 1
-    Meter       *T5;             // Temp. meter 5: Tmlt-ow, 2nd mlt temp or aux. temp. 2
+    Meter       *T4;             // Temp. meter 4: Thlt-ow1 if not used by thlt
+    Meter       *T5;             // Temp. meter 5: Tmlt-return value
+    Meter       *T6;             // Temp. meter 6: Thlt-ow2, 3rd hlt temp or aux. temp. 2
+    Meter       *T7;             // Temp. meter 7: Tmlt-ow2, 3rd mlt temp or aux. temp. 2
     Display     *stdText;        // STD state description with sub-text
     Display     *autoManualText; // Label with Auto-All or Manual warning
     PowerButton *hltPid;         // HLT PID on/off powerButton
@@ -326,9 +338,11 @@ public:
     qreal tboil = 20.0;     // Boil-kettle actual temperature
     qreal tcfc;             // CFC-output actual temperature
     qreal thlt_i2c;         // HLT actual temperature, I2C-sensor
-    qreal thlt_ow;          // HLT actual temperature, OW-sensor
+    qreal thlt_ow1;         // HLT actual temperature, OW-sensor 1
+    qreal thlt_ow2;         // HLT actual temperature, OW-sensor 2
     qreal tmlt_i2c;         // MLT actual temperature, I2C-sensor
-    qreal tmlt_ow;          // MLT actual temperature, OW-sensor
+    qreal tmlt_ow1;         // MLT actual temperature, OW-sensor 1
+    qreal tmlt_ow2;         // MLT actual temperature, OW-sensor 2
     qreal ttriac;           // Temperature of Power Electronics
     qreal gamma_hlt;        // PID controller output for HLT
     qreal gamma_boil;       // PID controller output for Boil-kettle
@@ -342,6 +356,7 @@ public:
     qreal Vhlt_old;         // Prev. value of Vhlt, used in STD
     qreal Vmlt_old;         // Prev. value of Vmlt, used in STD
     qreal Vboil_old;        // Prev. value of Vboil, used in STD
+    qreal Vhlt_mm = SENSOR_VAL_LIM_OK; // HLT height in mm as read from ultrasonic sensor
 
     // Flow-rate values
     qreal FlowHltMlt;           // Flow-meter 1 value

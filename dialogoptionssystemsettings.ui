@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>354</width>
+    <width>390</width>
     <height>474</height>
    </rect>
   </property>
@@ -34,12 +34,12 @@
     <rect>
      <x>10</x>
      <y>20</y>
-     <width>341</width>
+     <width>371</width>
      <height>421</height>
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -50,8 +50,8 @@
       <rect>
        <x>0</x>
        <y>10</y>
-       <width>151</width>
-       <height>121</height>
+       <width>181</width>
+       <height>131</height>
       </rect>
      </property>
      <property name="toolTip">
@@ -65,8 +65,8 @@
        <rect>
         <x>0</x>
         <y>20</y>
-        <width>152</width>
-        <height>101</height>
+        <width>171</width>
+        <height>102</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -147,7 +147,7 @@
         <x>10</x>
         <y>20</y>
         <width>271</width>
-        <height>51</height>
+        <height>52</height>
        </rect>
       </property>
       <layout class="QFormLayout" name="formLayout_3">
@@ -251,7 +251,7 @@
         <x>10</x>
         <y>20</y>
         <width>271</width>
-        <height>51</height>
+        <height>52</height>
        </rect>
       </property>
       <layout class="QFormLayout" name="formLayout_4">
@@ -349,7 +349,7 @@
         <x>10</x>
         <y>20</y>
         <width>271</width>
-        <height>51</height>
+        <height>52</height>
        </rect>
       </property>
       <layout class="QFormLayout" name="formLayout_5">
@@ -435,10 +435,10 @@
     <widget class="QGroupBox" name="gb1_2">
      <property name="geometry">
       <rect>
-       <x>170</x>
+       <x>180</x>
        <y>10</y>
-       <width>151</width>
-       <height>121</height>
+       <width>181</width>
+       <height>131</height>
       </rect>
      </property>
      <property name="toolTip">
@@ -452,8 +452,8 @@
        <rect>
         <x>0</x>
         <y>20</y>
-        <width>152</width>
-        <height>101</height>
+        <width>171</width>
+        <height>102</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -518,152 +518,12 @@
     <attribute name="title">
      <string> Communications</string>
     </attribute>
-    <widget class="QWidget" name="formLayoutWidget_2">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>20</y>
-       <width>291</width>
-       <height>81</height>
-      </rect>
-     </property>
-     <layout class="QFormLayout" name="formLayout_2">
-      <item row="0" column="0">
-       <widget class="QLabel" name="lblCommCh">
-        <property name="minimumSize">
-         <size>
-          <width>120</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>130</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>Select the communication channel with the Ebrew hardware. This is done using Ethernet (preferred) or USB</string>
-        </property>
-        <property name="text">
-         <string>Communication Channel</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QComboBox" name="cbCommCh">
-        <property name="maximumSize">
-         <size>
-          <width>160</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <item>
-         <property name="text">
-          <string>ETH: Ethernet (UDP)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>COM1:</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>COM2:</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>COM3:</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>COM4:</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>COM5:</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>COM6:</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>COM7:</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>COM8:</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>COM9:</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="lblComPort">
-        <property name="toolTip">
-         <string>Set the communication settings for the virtual COM port, e.g. 38400,N,8,1</string>
-        </property>
-        <property name="text">
-         <string>USB COM Port Settings</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="leComPort">
-        <property name="maximumSize">
-         <size>
-          <width>160</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>Set the communication settings for the virtual COM port, e.g. 38400,N,8,1</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="lblIPaddr">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the IP-address and Port number (8888) for the E-brew hardware, e.g. 192.168.192.105:8888. If you don't know the IP-address, connect to the E-brew hardware with an USB cable and a terminal program. It then lists the IP-address when ethernet mode is enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>E-brew IP-address &amp; Port</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QLineEdit" name="leIPaddr">
-        <property name="maximumSize">
-         <size>
-          <width>160</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>Set the IP-address and Port number (8888) for the E-brew hardware, e.g. 192.168.192.105:8888. If you don't know the IP-address, connect to the E-brew hardware with an USB cable and a terminal program. It then lists the IP-address when ethernet mode is enabled.</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
     <widget class="QCheckBox" name="cbDbgLog">
      <property name="geometry">
       <rect>
        <x>0</x>
        <y>110</y>
-       <width>251</width>
+       <width>331</width>
        <height>17</height>
       </rect>
      </property>
@@ -678,7 +538,7 @@
      <property name="geometry">
       <rect>
        <x>90</x>
-       <y>130</y>
+       <y>140</y>
        <width>201</width>
        <height>101</height>
       </rect>
@@ -697,7 +557,6 @@
      </property>
      <property name="font">
       <font>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -711,139 +570,180 @@
       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
      </property>
     </widget>
+    <widget class="QComboBox" name="cbCommCh">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>20</y>
+       <width>141</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>160</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <item>
+      <property name="text">
+       <string>ETH: Ethernet (UDP)</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>COM1:</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>COM2:</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>COM3:</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>COM4:</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>COM5:</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>COM6:</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>COM7:</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>COM8:</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>COM9:</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLineEdit" name="leComPort">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>50</y>
+       <width>116</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>160</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>Set the communication settings for the virtual COM port, e.g. 38400,N,8,1</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblCommCh">
+     <property name="geometry">
+      <rect>
+       <x>1</x>
+       <y>21</y>
+       <width>141</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>130</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>Select the communication channel with the Ebrew hardware. This is done using Ethernet (preferred) or USB</string>
+     </property>
+     <property name="text">
+      <string>Communication Channel</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblIPaddr">
+     <property name="geometry">
+      <rect>
+       <x>1</x>
+       <y>77</y>
+       <width>161</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the IP-address and Port number (8888) for the E-brew hardware, e.g. 192.168.192.105:8888. If you don't know the IP-address, connect to the E-brew hardware with an USB cable and a terminal program. It then lists the IP-address when ethernet mode is enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Brew HW IP-address &amp; Port</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblComPort">
+     <property name="geometry">
+      <rect>
+       <x>1</x>
+       <y>49</y>
+       <width>141</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Set the communication settings for the virtual COM port, e.g. 38400,N,8,1</string>
+     </property>
+     <property name="text">
+      <string>USB COM Port Settings</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="leIPaddr">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>80</y>
+       <width>116</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>160</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>Set the IP-address and Port number (8888) for the E-brew hardware, e.g. 192.168.192.105:8888. If you don't know the IP-address, connect to the E-brew hardware with an USB cable and a terminal program. It then lists the IP-address when ethernet mode is enabled.</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="tab_3">
     <attribute name="title">
      <string>Brew-kettle Volumes</string>
     </attribute>
-    <widget class="QWidget" name="formLayoutWidget">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>231</width>
-       <height>91</height>
-      </rect>
-     </property>
-     <layout class="QFormLayout" name="formLayout">
-      <item row="0" column="0">
-       <widget class="QLabel" name="lblHltVol">
-        <property name="minimumSize">
-         <size>
-          <width>150</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>The total volume of the Hot-Liquid Tun (HLT)</string>
-        </property>
-        <property name="text">
-         <string>HLT Total Volume</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QSpinBox" name="sbHltVol">
-        <property name="maximumSize">
-         <size>
-          <width>60</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>The total volume of the Hot-Liquid Tun (HLT)</string>
-        </property>
-        <property name="suffix">
-         <string> L</string>
-        </property>
-        <property name="maximum">
-         <number>999</number>
-        </property>
-        <property name="value">
-         <number>200</number>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="lblMltVol">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The total volume of the Mash-Lauter Tun (MLT)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>MLT Total Volume</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="sbMltVol">
-        <property name="maximumSize">
-         <size>
-          <width>60</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>The total volume of the Mash-Lauter Tun (MLT)</string>
-        </property>
-        <property name="suffix">
-         <string> L</string>
-        </property>
-        <property name="maximum">
-         <number>999</number>
-        </property>
-        <property name="value">
-         <number>110</number>
-        </property>
-        <property name="displayIntegerBase">
-         <number>10</number>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="lblBkVol">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The total volume of the Boil-kettle&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>Boil-kettle Total Volume</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QSpinBox" name="sbBkVol">
-        <property name="maximumSize">
-         <size>
-          <width>60</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The total volume of the Boil-kettle&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="suffix">
-         <string> L</string>
-        </property>
-        <property name="maximum">
-         <number>999</number>
-        </property>
-        <property name="value">
-         <number>140</number>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
     <widget class="QLabel" name="label">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>110</y>
-       <width>301</width>
-       <height>61</height>
+       <y>250</y>
+       <width>321</width>
+       <height>81</height>
       </rect>
      </property>
      <property name="text">
-      <string>The next volumes are used to enable / disable electric heating. If the electric heaters are not submerged in water, they overheat and break down. Therefore, a minimum amount of water needs to be present before electric heating is enabled.</string>
+      <string>These volumes are used to enable / disable electric heating. If the electric heaters are not submerged in water, they overheat and break down. Therefore, a minimum amount of water needs to be present before electric heating is enabled.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -853,9 +753,9 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>170</y>
-       <width>231</width>
-       <height>51</height>
+       <y>200</y>
+       <width>251</width>
+       <height>52</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout_6">
@@ -926,6 +826,235 @@
         </property>
         <property name="value">
          <number>0</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QCheckBox" name="cbHLT_height">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>170</y>
+       <width>331</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this checkbox is enabled, the ultrasonic sensor in the HLT (if available) is used to calculate actual HLT Volume. If not, then an estimate for the HLT Volume is calculated.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Use Ultrasonic sensor to calculate actual HLT Volume</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblDhlt">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>351</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>This number is updated when HLT Total Volume or HLT Total Height is changed. It is a quick check to see if the entered Volume and Height are correct.</string>
+     </property>
+     <property name="text">
+      <string>With these numbers, HLT diameter is calculated to be 203 mm.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QWidget" name="">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>11</y>
+       <width>231</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="lblHltVol">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The total volume of the Hot-Liquid Tun (HLT). It is used to calculate the actual volume in the HLT.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>HLT Total Volume</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="sbHltVol">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>The total volume of the Hot-Liquid Tun (HLT). It is used to calculate the actual volume in the HLT.</string>
+        </property>
+        <property name="suffix">
+         <string> L</string>
+        </property>
+        <property name="maximum">
+         <number>999</number>
+        </property>
+        <property name="value">
+         <number>200</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>231</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QLabel" name="lblHltHeight">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>The total height in mm of the Hot-Liquid Tun (HLT). It is used to calculate the actual volume in the HLT.</string>
+        </property>
+        <property name="text">
+         <string>HLT Total Height</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="sbHltHeight">
+        <property name="maximumSize">
+         <size>
+          <width>200</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>The total height in mm of the Hot-Liquid Tun (HLT). It is used to calculate the actual volume in the HLT.</string>
+        </property>
+        <property name="suffix">
+         <string> mm</string>
+        </property>
+        <property name="minimum">
+         <number>100</number>
+        </property>
+        <property name="maximum">
+         <number>999</number>
+        </property>
+        <property name="value">
+         <number>200</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>100</y>
+       <width>231</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QLabel" name="lblMltVol">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The total volume of the Mash-Lauter Tun (MLT)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>MLT Total Volume</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="sbMltVol">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>The total volume of the Mash-Lauter Tun (MLT)</string>
+        </property>
+        <property name="suffix">
+         <string> L</string>
+        </property>
+        <property name="maximum">
+         <number>999</number>
+        </property>
+        <property name="value">
+         <number>110</number>
+        </property>
+        <property name="displayIntegerBase">
+         <number>10</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>130</y>
+       <width>231</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <widget class="QLabel" name="lblBkVol">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The total volume of the Boil-kettle&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Boil-kettle Total Volume</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="sbBkVol">
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The total volume of the Boil-kettle&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="suffix">
+         <string> L</string>
+        </property>
+        <property name="maximum">
+         <number>999</number>
+        </property>
+        <property name="value">
+         <number>140</number>
         </property>
        </widget>
       </item>

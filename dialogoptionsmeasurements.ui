@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>451</width>
-    <height>383</height>
+    <width>494</width>
+    <height>461</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>280</x>
-     <y>350</y>
+     <x>320</x>
+     <y>430</y>
      <width>161</width>
      <height>32</height>
     </rect>
@@ -34,8 +34,8 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>431</width>
-     <height>341</height>
+     <width>471</width>
+     <height>421</height>
     </rect>
    </property>
    <property name="currentIndex">
@@ -50,8 +50,8 @@
       <rect>
        <x>0</x>
        <y>60</y>
-       <width>203</width>
-       <height>22</height>
+       <width>221</width>
+       <height>24</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -124,8 +124,8 @@
       <rect>
        <x>0</x>
        <y>90</y>
-       <width>203</width>
-       <height>22</height>
+       <width>221</width>
+       <height>24</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -145,7 +145,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>135</width>
+          <width>150</width>
           <height>16777215</height>
          </size>
         </property>
@@ -196,10 +196,10 @@
     <widget class="QWidget" name="layoutWidget_3">
      <property name="geometry">
       <rect>
-       <x>220</x>
+       <x>232</x>
        <y>90</y>
-       <width>203</width>
-       <height>22</height>
+       <width>221</width>
+       <height>24</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -219,7 +219,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>135</width>
+          <width>160</width>
           <height>16777215</height>
          </size>
         </property>
@@ -275,8 +275,8 @@
       <rect>
        <x>0</x>
        <y>30</y>
-       <width>203</width>
-       <height>22</height>
+       <width>221</width>
+       <height>24</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
@@ -350,7 +350,7 @@
     <widget class="QLabel" name="label">
      <property name="geometry">
       <rect>
-       <x>30</x>
+       <x>60</x>
        <y>0</y>
        <width>371</width>
        <height>21</height>
@@ -368,12 +368,12 @@
       <rect>
        <x>30</x>
        <y>120</y>
-       <width>371</width>
-       <height>91</height>
+       <width>391</width>
+       <height>131</height>
       </rect>
      </property>
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If only&lt;span style=&quot; font-weight:600;&quot;&gt; one&lt;/span&gt; HLT temperature sensor is present (I2C or OW), that one is used for the actual HLT temperature. But if &lt;span style=&quot; font-weight:600;&quot;&gt;both&lt;/span&gt; sensors are present, this checkbox can be used to decide what to do with both values: average them together, use the I2C sensor only or use the OW sensor only. &lt;br/&gt;If only the I2C sensor is used, the OW sensor is free to perform other temperature measurements. In this case, a sensor-object is enabled on-screen, so that this temperature can be monitored independently from the HLT temperature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Up to three temperature sensors can be connected to the HLT: one I2C sensor and up to two One-Wire temperature sensors (DS18B20).&lt;/p&gt;&lt;p&gt;With these selections, the user can choose what to do with these sensors and which one(s) to use for actual HLT temperature measurement.&lt;/p&gt;&lt;p&gt;In case one or more One-Wire sensors are not used for HLT temperature measurement, sensor-objects are enabled on-screen, so that these temperatures can be monitored independently from the HLT temperature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="title">
       <string>HLT sensors: what to do if both sensors (I2C and OW) are present?</string>
@@ -386,15 +386,15 @@
        <rect>
         <x>10</x>
         <y>20</y>
-        <width>251</width>
+        <width>311</width>
         <height>17</height>
        </rect>
       </property>
       <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the most-reliable option when both sensors (I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C and OW) are present. In case one of these sensors fail, the other sensor is automatically used as the HLT temperature sensor. So even with a failure in one of the temperature-sensors, the brew process can continue normally.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the most-reliable option when two or more sensors (I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C and OW) are present. In case one of these sensors fail, the other sensor(s) is/are automatically used to calculate the HLT temperature sensor. So even with a failure in one or two of these sensors, the control electronics is able to control the HLT temperature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="text">
-       <string>Average both values and use this as Thlt value</string>
+       <string>Average all sensor values and use this as Thlt value</string>
       </property>
      </widget>
      <widget class="QRadioButton" name="rbh2">
@@ -402,12 +402,12 @@
        <rect>
         <x>10</x>
         <y>40</y>
-        <width>331</width>
+        <width>361</width>
         <height>17</height>
        </rect>
       </property>
       <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C sensor is typically built inside the HLT, so it makes sense to continue using this sensor for HLT temperature measurement. With this option, the other (OW) temperature sensor can now be used for another temperature measurement, e.g. the temperature at another point in the brew-system. A sensor-object is created on-screen that displays this temperature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C sensor is typically built inside the HLT, so it makes sense to continue using this sensor for HLT temperature measurement. With this option, the other (OW) temperature sensors can now be used for other temperature measurements, e.g. the temperature at another point in the brew-system. A sensor-object is created on-screen for every OW sensor which displays the temperature of that sensor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="text">
        <string>Use I2C sensor only for Thlt, use OW sensor for other purposes</string>
@@ -423,10 +423,42 @@
        </rect>
       </property>
       <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If, for some reason, the built-in (I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C) temperature sensor in the HLT needs to be disabled, you can select this option. The other (OW) HLT temperature-sensor is now used for HLT temperature measurements. For best results, this sensor also needs to be built-in inside the HLT.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If, for some reason, the built-in (I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C) temperature sensor in the HLT needs to be disabled, you can select this option. The first One-Wire temperature-sensor (OW1) is now used for HLT temperature measurements. For best results, this sensor also needs to be built-in inside the HLT. The second One-Wire Temperature (OW2) is now displayed on-screen, separate from the HLT-temperature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="text">
-       <string>Use OW sensor only for Thlt, I2C sensor is not used</string>
+       <string>Use OW1 sensor only for Thlt, I2C sensor is not used</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="rbh4">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>80</y>
+        <width>331</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If, for some reason, the built-in (I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C) temperature sensor in the HLT needs to be disabled, you can select this option. The second One-Wire temperature-sensor (OW2) is now used for HLT temperature measurements. For best results, this sensor also needs to be built-in inside the HLT. The first One-Wire Temperature (OW1) is now displayed on-screen, separate from the HLT-temperature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>Use OW2 sensor only for Thlt, I2C sensor is not used</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="rbh5">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>100</y>
+        <width>331</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If, for some reason, the built-in (I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C) temperature sensor in the HLT needs to be disabled, you can select this option. Both One-Wire temperature-sensors are now used for HLT temperature measurement. For best results, these sensors should be built inside the HLT. This is a reliable option: if there's a failure in one of the two OW sensors, the other OW sensor is continued to be used as HLT temperature sensor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>Average OW1 and OW2 for Thlt, I2C sensor is not used</string>
       </property>
      </widget>
     </widget>
@@ -434,13 +466,13 @@
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>220</y>
-       <width>371</width>
-       <height>91</height>
+       <y>260</y>
+       <width>391</width>
+       <height>131</height>
       </rect>
      </property>
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If only&lt;span style=&quot; font-weight:600;&quot;&gt; one&lt;/span&gt; MLT temperature sensor is present (I2C or OW), that one is used for the actual MLT temperature. But if &lt;span style=&quot; font-weight:600;&quot;&gt;both&lt;/span&gt; sensors are present, this checkbox can be used to decide what to do with both values: average them together, use the I2C sensor only or use the OW sensor only. &lt;br/&gt;If only the I2C sensor is used, the OW sensor is free to perform other temperature measurements. In this case, a sensor-object is enabled on-screen, so that this temperature can be monitored independently from the MLT temperature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Up to three temperature sensors can be connected to the MLT: one I2C sensor and up to two One-Wire temperature sensors (DS18B20).&lt;/p&gt;&lt;p&gt;With these selections, the user can choose what to do with these sensors and which one(s) to use for actual MLT temperature measurement.&lt;/p&gt;&lt;p&gt;The I2C temperature sensor is always mounted inside inside the MLT, so this one can only be used for actual MLT measurements. And there's always one One-Wire sensor mounted in the MLT return-pipe.&lt;/p&gt;&lt;p&gt;The uses can select which combination of sensors are used for actual MLT temperature measurement and which One-Wire sensor is used to calculate the temperature in the MLT return-pipe.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="title">
       <string>MLT sensors: what to do if both sensors (I2C and OW) are present?</string>
@@ -453,15 +485,15 @@
        <rect>
         <x>10</x>
         <y>20</y>
-        <width>251</width>
+        <width>371</width>
         <height>17</height>
        </rect>
       </property>
       <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the most-reliable option when both sensors (I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C and OW) are present. In case one of these sensors fail, the other sensor is automatically used as the MLT temperature sensor. So even with a failure in one of the temperature-sensors, the brew process can continue normally.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the default situation, with the I2C sensor mounted inside the MLT and one One-Wire sensor mounted in the MLT return-pipe. The second One-Wire sensor is not used in this case.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="text">
-       <string>Average both values and use this as Tmlt value</string>
+       <string>Use I2C for Tmlt, OW1 for Tmlt-return, OW2 sensor is not used</string>
       </property>
      </widget>
      <widget class="QRadioButton" name="rbm2">
@@ -469,15 +501,15 @@
        <rect>
         <x>10</x>
         <y>40</y>
-        <width>331</width>
+        <width>361</width>
         <height>17</height>
        </rect>
       </property>
       <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C sensor is typically built inside the MLT, so it makes sense to continue using this sensor for MLT temperature measurement. With this option, the other (OW) temperature sensor can now be used for another temperature measurement, e.g. the temperature at another point in the brew-system. A sensor-object is created on-screen that displays this temperature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If, for some reason, the built-in (I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C) temperature sensor in the MLT needs to be disabled, you can select this option. The first One-Wire temperature-sensor (OW1) is now used for MLT temperature measurements. For best results, this sensor also needs to be built-in inside the HLT. The second One-Wire Temperature (OW2) sensor is now used to measure the temperature of the MLT return pipe.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="text">
-       <string>Use I2C sensor only for Tmlt, use OW sensor for other purposes</string>
+       <string>Use OW1 for Tmlt, OW2 for Tmlt-return, I2C sensor is not used</string>
       </property>
      </widget>
      <widget class="QRadioButton" name="rbm3">
@@ -485,25 +517,57 @@
        <rect>
         <x>10</x>
         <y>60</y>
+        <width>371</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If, for some reason, the built-in (I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C) temperature sensor in the MLT needs to be disabled, you can select this option. The second One-Wire temperature-sensor (OW2) is now used for MLT temperature measurements. For best results, this sensor also needs to be built-in inside the HLT. The first One-Wire Temperature (OW1) sensor is now used to measure the temperature of the MLT return pipe.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>Use OW2 for Tmlt, OW1 for Tmlt-return, I2C sensor is not used</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="rbm4">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>80</y>
+        <width>361</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is a reliable option when all three sensors are available. Use the OW1 and the I2C sensor together to calculate the actual MLT temperature. If one of these sensors fail, the other one continues to be used.&lt;/p&gt;&lt;p&gt;The second One-Wire temperature sensor (OW2) is now used to calculate the temperature of the MLT return pipe.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="text">
+       <string>Average OW1 and I2C for Tmlt, use OW2 for Tmlt-return</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="rbm5">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>100</y>
         <width>331</width>
         <height>17</height>
        </rect>
       </property>
       <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If, for some reason, the built-in (I&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;C) temperature sensor in the MLT needs to be disabled, you can select this option. The other (OW) MLT temperature-sensor is now used for MLT temperature measurements. For best results, this sensor also needs to be built-in inside the MLT.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is a reliable option when all three sensors are available. Use the OW2 and the I2C sensor together to calculate the actual MLT temperature. If one of these sensors fail, the other one continues to be used.&lt;/p&gt;&lt;p&gt;The first One-Wire temperature sensor (OW1) is now used to calculate the temperature of the MLT return pipe.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="text">
-       <string>Use OW sensor only for Tmlt, I2C sensor is not used</string>
+       <string>Average OW2 and I2C for Tmlt, use OW1 for Tmlt-return</string>
       </property>
      </widget>
     </widget>
     <widget class="QWidget" name="layoutWidget_11">
      <property name="geometry">
       <rect>
-       <x>220</x>
+       <x>230</x>
        <y>30</y>
-       <width>203</width>
-       <height>22</height>
+       <width>221</width>
+       <height>24</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_12">
@@ -523,7 +587,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>135</width>
+          <width>160</width>
           <height>16777215</height>
          </size>
         </property>
@@ -574,10 +638,10 @@
     <widget class="QWidget" name="layoutWidget_12">
      <property name="geometry">
       <rect>
-       <x>220</x>
+       <x>232</x>
        <y>60</y>
-       <width>203</width>
-       <height>22</height>
+       <width>221</width>
+       <height>24</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_13">
@@ -597,7 +661,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>135</width>
+          <width>160</width>
           <height>16777215</height>
          </size>
         </property>
@@ -655,8 +719,8 @@
       <rect>
        <x>10</x>
        <y>20</y>
-       <width>368</width>
-       <height>22</height>
+       <width>411</width>
+       <height>24</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -676,7 +740,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>250</width>
+          <width>350</width>
           <height>16777215</height>
          </size>
         </property>
@@ -732,8 +796,8 @@
       <rect>
        <x>10</x>
        <y>50</y>
-       <width>368</width>
-       <height>22</height>
+       <width>411</width>
+       <height>24</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -753,7 +817,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>250</width>
+          <width>350</width>
           <height>16777215</height>
          </size>
         </property>
@@ -809,8 +873,8 @@
       <rect>
        <x>10</x>
        <y>80</y>
-       <width>368</width>
-       <height>22</height>
+       <width>411</width>
+       <height>24</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_7">
@@ -830,7 +894,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>250</width>
+          <width>350</width>
           <height>16777215</height>
          </size>
         </property>
@@ -886,8 +950,8 @@
       <rect>
        <x>10</x>
        <y>110</y>
-       <width>368</width>
-       <height>22</height>
+       <width>411</width>
+       <height>24</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -907,7 +971,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>250</width>
+          <width>350</width>
           <height>16777215</height>
          </size>
         </property>
@@ -963,7 +1027,7 @@
       <rect>
        <x>10</x>
        <y>140</y>
-       <width>311</width>
+       <width>361</width>
        <height>17</height>
       </rect>
      </property>
@@ -979,8 +1043,8 @@
       <rect>
        <x>10</x>
        <y>180</y>
-       <width>368</width>
-       <height>22</height>
+       <width>411</width>
+       <height>24</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_9">
@@ -1000,7 +1064,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>250</width>
+          <width>350</width>
           <height>16777215</height>
          </size>
         </property>
@@ -1056,8 +1120,8 @@
       <rect>
        <x>10</x>
        <y>210</y>
-       <width>368</width>
-       <height>22</height>
+       <width>411</width>
+       <height>24</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_10">
@@ -1077,7 +1141,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>250</width>
+          <width>350</width>
           <height>16777215</height>
          </size>
         </property>
@@ -1138,8 +1202,8 @@
       <rect>
        <x>10</x>
        <y>20</y>
-       <width>368</width>
-       <height>22</height>
+       <width>381</width>
+       <height>24</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_11">
@@ -1159,7 +1223,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>250</width>
+          <width>350</width>
           <height>16777215</height>
          </size>
         </property>

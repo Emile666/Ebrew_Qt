@@ -315,7 +315,7 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
 
     point.setX(point.x()+40);
     point.setY(point.y()-25);
-    Meter *temp5 = new Meter(point,METER_HTEMP,"Tmlt-ow");
+    Meter *temp5 = new Meter(point,METER_HTEMP,"Tmlt-ret");
     temp5->setToolTip("<b>Temperature sensor 5</b>: Auxiliary One-Wire temperature sensor 2 (°C). Red=Error reading sensor, Green=No error. Calibrate sensor with Options->Measurements Settings->Temperatures Dialog screen");
     point.setX((mlt->getCoordinates(COORD_LEFT_TOP_PIPE) + elbow9->getCoordinates(COORD_RIGHT)).x() / 2.0);
     point.setY(point.y()+25);
@@ -397,10 +397,16 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     p->boilPid = boilPid; // add boilPid reference to MainEbrew
 
     point = QPoint(-1000,100);
-    Meter *temp4 = new Meter(point,METER_HTEMP,"Thlt-ow");
-    temp4->setToolTip("<b>Temperature sensor 4</b>: Auxiliary One-Wire temperature sensor 1 (°C). Red=Error reading sensor, Green=No error. Calibrate sensor with Options->Measurements Settings->Temperatures Dialog screen");
+    Meter *temp4 = new Meter(point,METER_HTEMP,"Thlt-ow1");
+    temp4->setToolTip("<b>Temperature sensor 4</b>: Thlt One-Wire 1 temperature sensor (°C). Red=Error reading sensor, Green=No error. Calibrate sensor with Options->Measurements Settings->Temperatures Dialog screen");
     scene->addItem(temp4);
     p->T4 = temp4;        // Add temp4 reference to MainEbrew
+
+    point = QPoint(-900,100);
+    Meter *temp6 = new Meter(point,METER_HTEMP,"Thlt-ow2");
+    temp6->setToolTip("<b>Temperature sensor 6</b>: Thlt One-Wire 2 temperature sensor (°C). Red=Error reading sensor, Green=No error. Calibrate sensor with Options->Measurements Settings->Temperatures Dialog screen");
+    scene->addItem(temp6);
+    p->T6 = temp6;        // Add temp6 reference to MainEbrew
 
     p->setKettleVolumes(); // Init. titles of kettles with volumes found in Registry
 

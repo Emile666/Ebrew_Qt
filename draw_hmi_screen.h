@@ -21,7 +21,6 @@
 
 #include <QGraphicsScene>
 
-#include "hmi_objects.h"
 #include "MainEbrew.h"
 
 //------------------------------------------------------------------------------------------

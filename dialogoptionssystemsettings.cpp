@@ -21,6 +21,7 @@
 #include <QString>
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
+#include <QtMath>
 
 DialogOptionsSystemSettings::DialogOptionsSystemSettings(QWidget *parent) :
     QDialog(parent),
@@ -93,10 +94,13 @@ DialogOptionsSystemSettings::DialogOptionsSystemSettings(QWidget *parent) :
     // Brew-kettle Sizes
     //-------------------------
     ui->sbHltVol->setValue(pEbrew->RegEbrew->value("VHLT_MAX").toInt());
+    ui->cbHLT_height->setChecked(pEbrew->RegEbrew->value("CB_USE_VHLT_SENS").toInt());
+    ui->sbHltHeight->setValue(pEbrew->RegEbrew->value("HLT_HEIGHT").toInt());
     ui->sbMltVol->setValue(pEbrew->RegEbrew->value("VMLT_MAX").toInt());
     ui->sbBkVol->setValue(pEbrew->RegEbrew->value("VBOIL_MAX").toInt());
     ui->sbHltMin->setValue(pEbrew->RegEbrew->value("VHLT_MIN").toInt());
     ui->sbBkMin->setValue(pEbrew->RegEbrew->value("VBOIL_MIN").toInt());
+    calc_new_diameter();
 } // Constructor
 
 DialogOptionsSystemSettings::~DialogOptionsSystemSettings()
@@ -150,6 +154,8 @@ void DialogOptionsSystemSettings::on_buttonBox_accepted()
     // Brew-kettle Volumes
     //-------------------------
     pEbrew->RegEbrew->setValue("VHLT_MAX",ui->sbHltVol->value());
+    pEbrew->RegEbrew->setValue("HLT_HEIGHT",ui->sbHltHeight->value());
+    pEbrew->RegEbrew->setValue("CB_USE_VHLT_SENS",ui->cbHLT_height->isChecked() ? 1 : 0);
     pEbrew->RegEbrew->setValue("VMLT_MAX",ui->sbMltVol->value());
     pEbrew->RegEbrew->setValue("VBOIL_MAX",ui->sbBkVol->value());
     pEbrew->RegEbrew->setValue("VHLT_MIN",ui->sbHltMin->value());
@@ -174,3 +180,26 @@ void DialogOptionsSystemSettings::on_cbCommCh_currentIndexChanged(int index)
         ui->leIPaddr->setEnabled(true);
     } // else
 } // DialogOptionsSystemSettings::on_cbCommCh_currentIndexChanged()
+
+void DialogOptionsSystemSettings::calc_new_diameter(void)
+{
+    qreal diameter, height, volume;
+
+    height = ui->sbHltHeight->value();
+    volume = ui->sbHltVol->value();
+    if (height > 0.0)
+         diameter = 100.0 * qSqrt(volume / (M_PI_4 * height));
+    else diameter = 0.0;
+    ui->lblDhlt->setText(QString("Calculated HLT diameter is %1 cm.").arg(diameter,0,'f',1));
+} // DialogOptionsSystemSettings::calc_new_diameter()
+
+void DialogOptionsSystemSettings::on_sbHltVol_valueChanged(int arg1)
+{
+    calc_new_diameter();
+}
+
+void DialogOptionsSystemSettings::on_sbHltHeight_valueChanged(int arg1)
+{
+    calc_new_diameter();
+}
+

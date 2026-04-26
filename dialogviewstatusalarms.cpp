@@ -51,50 +51,79 @@ void DialogViewStatusAlarms::onUpdateProgress(void)
     ui->teAlarms->setFont(font);
     ui->teAlarms->clear();
     //--------- THLT -------------
-    string = QString("Thlt  (I2C) : ");
+    string = QString("Thlt-i2c: ");
+    ui->teAlarms->setTextColor(Qt::black);
     if (pEbrew->thlt_i2c > SENSOR_VAL_LIM_OK)
     {
         string += QString("%1 °C").arg(pEbrew->thlt_i2c,2,'f',2);
-        ui->teAlarms->setTextColor(Qt::black);
     } // if
     else
     {
-        string += QString("ERROR");
+        string += QString(" ERROR  ");
+        ui->teAlarms->setTextColor(Qt::red);
+    } // else
+    string += QString(" Thlt-ow1: ");
+    if (pEbrew->thlt_ow1 > SENSOR_VAL_LIM_OK)
+    {
+        string += QString("%1 °C").arg(pEbrew->thlt_ow1,2,'f',2);
+    } // if
+    else
+    {
+        string += QString(" ERROR  ");
+        ui->teAlarms->setTextColor(Qt::red);
+    } // else
+    string += QString(" Thlt-ow2: ");
+    if (pEbrew->thlt_ow2 > SENSOR_VAL_LIM_OK)
+    {
+        string += QString("%1 °C").arg(pEbrew->thlt_ow2,2,'f',2);
+    } // if
+    else
+    {
+        string += QString(" ERROR  ");
         ui->teAlarms->setTextColor(Qt::red);
     } // else
     ui->teAlarms->setText(string);
+
     //--------- TMLT -------------
-    string = QString("Tmlt  (I2C) : ");
+    ui->teAlarms->setTextColor(Qt::black);
+    string = QString("Tmlt-i2c: ");
     if (pEbrew->tmlt_i2c > SENSOR_VAL_LIM_OK)
     {
         string += QString("%1 °C").arg(pEbrew->tmlt_i2c,2,'f',2);
-        ui->teAlarms->setTextColor(Qt::black);
     } // if
     else
     {
-        string += QString("ERROR");
+        string += QString(" ERROR  ");
         ui->teAlarms->setTextColor(Qt::red);
     } // else
-    ui->teAlarms->append(string);
-    //--------- TCFC -------------
-    string = QString("Tcfc  (OW)  : ");
-    if (pEbrew->tcfc > SENSOR_VAL_LIM_OK)
+    string += QString(" Tmlt-ow1: ");
+    if (pEbrew->tmlt_ow1 > SENSOR_VAL_LIM_OK)
     {
-        string += QString("%1 °C").arg(pEbrew->tcfc,2,'f',2);
-        ui->teAlarms->setTextColor(Qt::black);
+        string += QString("%1 °C").arg(pEbrew->tmlt_ow1,2,'f',2);
     } // if
     else
     {
-        string += QString("ERROR");
+        string += QString(" ERROR  ");
+        ui->teAlarms->setTextColor(Qt::red);
+    } // else
+    string += QString(" Tmlt-ow2: ");
+    if (pEbrew->tmlt_ow2 > SENSOR_VAL_LIM_OK)
+    {
+        string += QString("%1 °C").arg(pEbrew->tmlt_ow2,2,'f',2);
+    } // if
+    else
+    {
+        string += QString(" ERROR  ");
         ui->teAlarms->setTextColor(Qt::red);
     } // else
     ui->teAlarms->append(string);
+
     //--------- TBOIL -------------
     string = QString("Tboil (OW)  : ");
     if (pEbrew->tboil > SENSOR_VAL_LIM_OK)
     {
         string += QString("%1 °C").arg(pEbrew->tboil,2,'f',2);
-        ui->teAlarms->setTextColor(Qt::black);
+                  ui->teAlarms->setTextColor(Qt::black);
     } // if
     else
     {
@@ -102,24 +131,12 @@ void DialogViewStatusAlarms::onUpdateProgress(void)
         ui->teAlarms->setTextColor(Qt::red);
     } // else
     ui->teAlarms->append(string);
-    //--------- THLT_OW -------------
-    string = QString("Thlt  (OW)  : ");
-    if (pEbrew->thlt_ow > SENSOR_VAL_LIM_OK)
+
+    //--------- TCFC -------------
+    string = QString("Tcfc  (OW)  : ");
+    if (pEbrew->tcfc > SENSOR_VAL_LIM_OK)
     {
-        string += QString("%1 °C").arg(pEbrew->thlt_ow,2,'f',2);
-        ui->teAlarms->setTextColor(Qt::black);
-    } // if
-    else
-    {
-        string += QString("ERROR");
-        ui->teAlarms->setTextColor(Qt::red);
-    } // else
-    ui->teAlarms->append(string);
-    //--------- TMLT_OW -------------
-    string = QString("Tmlt  (OW)  : ");
-    if (pEbrew->tmlt_ow > SENSOR_VAL_LIM_OK)
-    {
-        string += QString("%1 °C").arg(pEbrew->tmlt_ow,2,'f',2);
+        string += QString("%1 °C").arg(pEbrew->tcfc,2,'f',2);
         ui->teAlarms->setTextColor(Qt::black);
     } // if
     else
@@ -142,6 +159,7 @@ void DialogViewStatusAlarms::onUpdateProgress(void)
     } // else
     if (pEbrew->triacTooHot) string += QString(" SSR too hot!");
     ui->teAlarms->append(string);
+
     //--------- FLOW1 -------------
     string = QString("\nFlow1 : ");
     if (pEbrew->sensorAlarmInfo & SENS_FLOW1)

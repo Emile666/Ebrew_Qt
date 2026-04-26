@@ -122,6 +122,7 @@
 
 // Value returned from Ebrew hardware when a temperaturesensor is faulty or not connected
 #define SENSOR_VAL_LIM_OK (-99.9)
+#define SENSOR_ERROR      (SENSOR_VAL_LIM_OK-1.0)
 #define TEMP_DEFAULT       (20.0)
 
 //------------------------------------------------------------------------------------------

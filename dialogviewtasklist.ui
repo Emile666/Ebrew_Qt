@@ -40,7 +40,6 @@
    <property name="font">
     <font>
      <pointsize>10</pointsize>
-     <weight>75</weight>
      <bold>true</bold>
     </font>
    </property>
@@ -75,12 +74,11 @@
    <property name="font">
     <font>
      <pointsize>10</pointsize>
-     <weight>75</weight>
      <bold>true</bold>
     </font>
    </property>
    <property name="text">
-    <string>Scheduler task-list Ebrew hardware</string>
+    <string>Scheduler task-list Brew hardware</string>
    </property>
   </widget>
   <widget class="QTextEdit" name="teTaskList3">
@@ -110,12 +108,11 @@
    <property name="font">
     <font>
      <pointsize>10</pointsize>
-     <weight>75</weight>
      <bold>true</bold>
     </font>
    </property>
    <property name="text">
-    <string>Ebrew hardware List of I2C and One-Wire devices</string>
+    <string>Brew hardware List of I2C and One-Wire devices</string>
    </property>
   </widget>
   <widget class="QWidget" name="layoutWidget">
@@ -124,7 +121,7 @@
      <x>270</x>
      <y>660</y>
      <width>158</width>
-     <height>25</height>
+     <height>26</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">

@@ -42,6 +42,11 @@ private slots:
     void on_buttonBox_accepted();
     void on_cbCommCh_currentIndexChanged(int index);
 
+    void on_sbHltVol_valueChanged(int arg1);
+    void calc_new_diameter(void);
+
+    void on_sbHltHeight_valueChanged(int arg1);
+
 private:
     Ui::DialogOptionsSystemSettings *ui;
     MainEbrew *pEbrew; // pointer to parent (MainEbrew)
