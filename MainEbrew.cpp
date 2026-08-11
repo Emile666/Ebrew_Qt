@@ -72,7 +72,7 @@ MainEbrew::MainEbrew(void) : QMainWindow()
     splitIpAddressPort();            // Split Registry IP-address and port-number
     readMashSchemeFile(INIT_TIMERS); // Read mash scheme from file and init. all mash timers
     initBrewDaySettings();           // Init. mash, sparge and boil setting with values from Registry
-    toolHLTPilotLight->setEnabled(RegEbrew->value("HEATERSH").toInt() & GAS_MODULATING); // Enable pilot-light checkbox
+    ActionHLTPilotLight->setEnabled(RegEbrew->value("HEATERSH").toInt() & GAS_MODULATING); // Enable pilot-light checkbox
     pSlopeLim = new SlopeLimiter();
     pSlopeLim->setLim(RegEbrew->value("TSET_SLOPE_LIM").toDouble());
     slopeLimHLT = pSlopeLim; // copy pointer to MainEbrew
@@ -213,7 +213,7 @@ void MainEbrew::closeEvent(QCloseEvent *event)
 
 /*------------------------------------------------------------------
   Purpose  : This function creates the status bar at the bottom of
-             the screen and the toolbar at the top of the screen.
+             the screen.
   Variables: -
   Returns  : -
   ------------------------------------------------------------------*/
@@ -265,73 +265,6 @@ void MainEbrew::createStatusBar(void)
     statusSwRev->setToolTip("Shows the software and hardware revision number. The hardware revision number is read during power-up from the Ebrew hardware. If it reads <b>?.?</b>, then no connection could be made to the Ebrew hardware.<br>See also Options->System Settings->Communications");
     statusBar->addPermanentWidget(statusSwRev,1);
     setStatusBar(statusBar); // connect the statusBar to Ebrew
-
-    // Create Toolbar1 at top of screen: always visible
-    auto toolBar1 = new QToolBar("Toolbar1"); // Toolbar at left of screen
-    toolBar1->setMovable(false); // fixed at top of screen
-    toolBar1->setOrientation(Qt::Horizontal);
-    toolStartCIP = new QCheckBox("Start Clean-In-Place (CIP)");
-    toolStartCIP->setToolTip("Enable this checkbox to start cleaning of the brew system, disable to resume normal operation.");
-    toolBar1->addWidget(toolStartCIP);
-    addToolBar(Qt::TopToolBarArea,toolBar1);
-
-    // Create Toolbar2 at top of screen: brewing checkboxes
-    auto toolBar2 = new QToolBar("Toolbar2"); // Toolbar at left of screen
-    toolBarB = toolBar2; // save reference in MainEbrew
-    toolBar2->setMovable(false); // fixed at top of screen
-    toolBar2->setOrientation(Qt::Horizontal);
-
-    toolStartAddMalt = new QCheckBox("Start Adding Malt");
-    toolStartAddMalt->setEnabled(false); // default not enabled
-    toolStartAddMalt->setToolTip("Enable this checkbox if you are ready to start adding malt to the MLT (the pump is then switched off).");
-    toolBar2->addWidget(toolStartAddMalt);
-    toolMaltAdded = new QCheckBox("Malt added to MLT");
-    toolMaltAdded->setEnabled(false); // default not enabled
-    toolMaltAdded->setToolTip("Enable this checkbox if all malt has been added to the MLT and mashing can continu");
-    toolBar2->addWidget(toolMaltAdded);
-    toolMLTEmpty = new QCheckBox("MLT is empty");
-    toolMLTEmpty->setEnabled(false); // default not enabled
-    toolMLTEmpty->setToolTip("Enable this checkbox only if the brew system does not detect automatically that the MLT is empty.<br>It does this by monitoring flow sensor 2, in case of a failure, this checkbox can be used instead.");
-    toolBar2->addWidget(toolMLTEmpty);
-    toolBoilStarted = new QCheckBox("Boiling Started");
-    toolBoilStarted->setEnabled(false); // default not enabled
-    toolBoilStarted->setToolTip("Enable this checkbox only if the brew system does not detect automatically that boiling has started.<br>It does this by monitoring the boil-kettle temperature sensor. In case of a failure, this checkbox can be used instead.");
-    toolBar2->addWidget(toolBoilStarted);
-    toolStartChilling = new QCheckBox("CFC Prepared, start Chilling");
-    toolStartChilling->setEnabled(false); // default not enabled
-    toolStartChilling->setToolTip("Enable this checkbox if the counter flow chiller (CFC) is connected to the water tap for cooling water AND that the CFC output hose is placed in the fermentation bin.");
-    toolBar2->addWidget(toolStartChilling);
-    toolReadyChilling = new QCheckBox("Chilling is finished");
-    toolReadyChilling->setEnabled(false); // default not enabled
-    toolReadyChilling->setToolTip("Enable this checkbox only if the brew system does not detect automatically that the Boil-kettle is empty.<br>It does this by monitoring flow sensor 3 at the CFC-output, in case of a failure, this checkbox can be used instead.");
-    toolBar2->addWidget(toolReadyChilling);
-    toolGFSpargeWater = new QCheckBox("GF Sparge Water Heater");
-    toolGFSpargeWater->setToolTip("Enable this checkbox if you want to use the system only as Sparge Water Heater for the GrainFather.");
-    toolBar2->addWidget(toolGFSpargeWater);
-    toolHLTPilotLight = new QCheckBox("Pilot-light HLT gasburner");
-    toolHLTPilotLight->setToolTip("Enable this checkbox if the pilot-light of the HLT gasburner should be ignited.");
-    toolBar2->addWidget(toolHLTPilotLight);
-    addToolBar(Qt::TopToolBarArea,toolBar2);
-
-    // Create Toolbar3 at top of screen: CIP checkboxes
-    auto toolBar3 = new QToolBar("Toolbar3"); // Toolbar at left of screen
-    toolBarC = toolBar3; // save reference in MainEbrew
-    toolBar3->setMovable(false); // fixed at top of screen
-    toolBar3->setOrientation(Qt::Horizontal);
-    toolCipInitDone = new QCheckBox("CIP init. done");
-    toolCipInitDone->setEnabled(false); // default not enabled
-    toolCipInitDone->setToolTip("This checkbox is enabled when the user presses OK in the Dialog Box to indicate that CIP initialisation is done.");
-    toolCipDrainBK = new QCheckBox("CIP Drain Boil-kettle");
-    toolCipDrainBK->setEnabled(false); // default not enabled
-    toolCipDrainBK->setToolTip("This checkbox is enabled when the user presses OK in the Dialog Box to indicate that the Boil-kettle is drained completely.");
-    toolCipHltFilled = new QCheckBox("CIP HLT Filled");
-    toolCipHltFilled->setEnabled(false); // default not enabled
-    toolCipHltFilled->setToolTip("This checkbox is enabled when the user presses OK in the Dialog Box to indicate that the HLT is filled with fresh water.");
-    toolBar3->addWidget(toolCipInitDone);
-    toolBar3->addWidget(toolCipDrainBK);
-    toolBar3->addWidget(toolCipHltFilled);
-    addToolBar(Qt::TopToolBarArea,toolBar3);
-    setTopToolBar(TOOLBAR_BREWING); // start in normal brewing mode
 } // MainEbrew::createStatusBar()
 
 void MainEbrew::updateMsIdxStatusBar(void)
@@ -347,27 +280,6 @@ void MainEbrew::updateSpIdxStatusBar(void)
     sbar = QString(" Sparge idx: %1 ").arg(sp_idx);
     statusSpIdx->setText(sbar);
 } // MainEbrew::updateSpIdxStatusBar()
-
-/*------------------------------------------------------------------
-  Purpose  : This function makes the various checkboxes visible at
-             the top toolbar. There are two sets of checkboxes, one
-             for normal brewing and one for clean-in-place (CIP).
-  Variables: -
-  Returns  : -
-  ------------------------------------------------------------------*/
-void MainEbrew::setTopToolBar(int option)
-{
-    if (option == TOOLBAR_BREWING)
-    {
-        toolBarB->setVisible(true);
-        toolBarC->setVisible(false);
-    } // if
-    else
-    {
-        toolBarB->setVisible(false);
-        toolBarC->setVisible(true);
-    } // else
-} // MainEbrew::setTopToolBar()
 
 /*------------------------------------------------------------------
   Purpose  : This function creates the menu bar at the top of the screen
@@ -403,6 +315,74 @@ void MainEbrew::createMenuBar(void)
     Omenu->addAction(QIcon(":/img/cooking.png")     ,"Brew Day Settings..."       ,this,SLOT(MenuOptionsBrewDaySettings()));
     Omenu->addAction(QIcon(":/img/measurements.png"),"Measurements Settings..."   ,this,SLOT(MenuOptionsMeasurements()));
     menuBar->addMenu(Omenu);
+
+    // Actions menu
+    auto Amenu       = new QMenu("&Actions");
+    ActionHLTPilotLight = new QAction(QIcon(":/img/gasburner.png"),"Pilot light HLT Gasburner");
+    ActionHLTPilotLight->setCheckable(true);
+    ActionHLTPilotLight->setShortcut(QKeySequence(Qt::ALT | Qt::Key_P));
+    ActionHLTPilotLight->setToolTip("Enable this if the pilot-light of the HLT gasburner should be ignited");
+    Amenu->addAction(ActionHLTPilotLight);
+    ActionGFSpargeHeater = new QAction(QIcon(":/img/grainfather.png"),"GF Sparge Heater");
+    ActionGFSpargeHeater->setCheckable(true);
+    ActionGFSpargeHeater->setShortcut(QKeySequence(Qt::ALT | Qt::Key_G));
+    ActionGFSpargeHeater->setToolTip("Enable this if you want to use the system only as Sparge Water Heater for the GrainFather");
+    Amenu->addAction(ActionGFSpargeHeater);
+    ActionStartCIP = new QAction(QIcon(":img/cip.png"),"Start Clean-In-Place (CIP)");
+    ActionStartCIP->setCheckable(true);
+    ActionStartCIP->setShortcut(QKeySequence(Qt::ALT | Qt::Key_C));
+    ActionStartCIP->setToolTip("Enable this to start cleaning of the brew system, disable to resume normal operation");
+    Amenu->addAction(ActionStartCIP);
+    Amenu->addSeparator();
+    ActionStartAddMalt = new QAction("Start Adding Malt");
+    ActionStartAddMalt->setCheckable(true);
+    ActionStartAddMalt->setEnabled(false); // default not enabled
+    ActionStartAddMalt->setToolTip("This is checked if the brewer is ready to add malt to the MLT (Pump is then switched off)");
+    Amenu->addAction(ActionStartAddMalt);
+    ActionMaltAdded = new QAction("Malt added to MLT");
+    ActionMaltAdded->setCheckable(true);
+    ActionMaltAdded->setEnabled(false); // default not enabled
+    ActionMaltAdded->setToolTip("This is checked if all malt has been added to the MLT and mashing can continue");
+    Amenu->addAction(ActionMaltAdded);
+    ActionMLTEmpty = new QAction("MLT is empty");
+    ActionMLTEmpty->setCheckable(true);
+    ActionMLTEmpty->setEnabled(false); // default not checked
+    ActionMLTEmpty->setToolTip("Enable this only if the brew system does not detect automatically that the MLT is empty.<br>It does this by monitoring flow sensor 2, in case of a failure, this checkbox can be used instead");
+    Amenu->addAction(ActionMLTEmpty);
+    ActionBoilStarted = new QAction("Boiling started");
+    ActionBoilStarted->setCheckable(true);
+    ActionBoilStarted->setEnabled(false); // default not enabled
+    ActionBoilStarted->setToolTip("Enable this only if the brew system does not detect automatically that boiling has started.<br>It does this by monitoring the boil-kettle temperature sensor. In case of a failure, this checkbox can be used instead");
+    Amenu->addAction(ActionBoilStarted);
+    ActionStartChilling = new QAction("CFC Prepared, start Chilling");
+    ActionStartChilling->setCheckable(true);
+    ActionStartChilling->setEnabled(false); // default not enabled
+    ActionStartChilling->setToolTip("Enable this if the counter flow chiller (CFC) is connected to the water tap for cooling water AND the CFC output hose is placed in the fermentation bin");
+    Amenu->addAction(ActionStartChilling);
+    ActionReadyChilling = new QAction("Chilling is Finished");
+    ActionReadyChilling->setCheckable(true);
+    ActionReadyChilling->setEnabled(false); // default not enabled
+    ActionReadyChilling->setToolTip("Enable this only if the brew system does not detect automatically that the Boil-kettle is empty.<br>It does this by monitoring flow sensor 3 at the CFC-output, in case of a failure, this checkbox can be used instead.");
+    Amenu->addAction(ActionReadyChilling);
+    Amenu->addSeparator();
+    ActionCipInitDone = new QAction("CIP Init. Done");
+    ActionCipInitDone->setCheckable(true);
+    ActionCipInitDone->setEnabled(false); // default not enabled
+    ActionCipInitDone->setToolTip("This is enabled when the user presses OK in the Dialog Box to indicate that CIP initialisation is done");
+    Amenu->addAction(ActionCipInitDone);
+    ActionCipDrainBK = new QAction("CIP Drain Boil-kettle");
+    ActionCipDrainBK->setCheckable(true);
+    ActionCipDrainBK->setEnabled(false); // default not enabled
+    ActionCipDrainBK->setToolTip("This is enabled when the user presses OK in the Dialog Box to indicate that the Boil-kettle is drained completely");
+    Amenu->addAction(ActionCipDrainBK);
+    ActionCipHltFilled = new QAction("CIP HLT filled");
+    ActionCipHltFilled->setCheckable(true);
+    ActionCipHltFilled->setEnabled(false); // default not enabled
+    ActionCipHltFilled->setToolTip("This is enabled when the user presses OK in the Dialog Box to indicate that the HLT is filled with fresh water");
+    Amenu->addAction(ActionCipHltFilled);
+    Amenu->setToolTipsVisible(true);
+    menuBar->addMenu(Amenu);
+
     // Help menu
     auto Hmenu       = new QMenu("&Help");
     Hmenu->addAction(QIcon(":/img/about.png"),"&About"   ,this,SLOT(about()));
@@ -778,22 +758,22 @@ void MainEbrew::keyPressEvent(QKeyEvent *event)
         case     Qt::Key_M: switch (ebrew_std)
                             {
                                 case S01_WAIT_FOR_HLT_TEMP:
-                                     toolMaltAdded->setChecked(true);
+                                     ActionMaltAdded->setChecked(true);
                                      break;
                                 case S19_RDY_TO_ADD_MALT:
-                                     toolStartAddMalt->setChecked(true);
+                                     ActionStartAddMalt->setChecked(true);
                                      break;
                                 case S15_ADD_MALT_TO_MLT:
-                                     toolMaltAdded->setChecked(true);
+                                     ActionMaltAdded->setChecked(true);
                                      break;
                                 case S10_WAIT_FOR_BOIL:
-                                     toolBoilStarted->setChecked(true);
+                                     ActionBoilStarted->setChecked(true);
                                      break;
                                 case S12_BOILING_FINISHED:
-                                     toolStartChilling->setChecked(true);
+                                     ActionStartChilling->setChecked(true);
                                      break;
                                 case S34_CHILL_BK_READY:
-                                     toolStartChilling->setChecked(true);
+                                     ActionStartChilling->setChecked(true);
                                      break;
                             } // switch
                             break;
@@ -889,6 +869,8 @@ void MainEbrew::task_update_std(void)
     QColor        color;       // color for pipes
     uint16_t      std_out;     // values of valves
     uint8_t       pump_bits;   // values of pumps
+    uint8_t       type;        // which pipe-type to display
+    uint8_t       pipeSize;    // A left-right pipe is smaller than a T-pipe
 
     timer.start(); // Task time-measurement
     std_out = stateMachine(); // call the Ebrew STD
@@ -922,19 +904,32 @@ void MainEbrew::task_update_std(void)
     // Calculate if there's any flow running and if so, set the proper
     // colours for the pipes.
     //---------------------------------------------------------------------
-    bool anyInputOn  = (std_out & (V1b | V2b | V3b)) > 0x0000;
-    bool anyOutputOn = (std_out & (V4b | V6b | V7b)) > 0x0000;
-    bool pumpP1On    = (std_out & (P0b)) > 0x0000;
-    bool pumpP2On    = (std_out & (P1b)) > 0x0000;
+    uint16_t whichInput  =  std_out & (V1b | V2b | V3b);
+    bool     anyInputOn  =  whichInput > 0x0000;
+    uint16_t whichOutput =  std_out & (V4b | V6b | V7b);
+    bool     anyOutputOn =  whichOutput > 0x0000;
+    bool     pumpP1On    = (std_out & (P0b)) > 0x0000;
+    bool     pumpP2On    = (std_out & (P1b)) > 0x0000;
 
     //-------------------------------------------------
     // Is there output-flow from Pump P1?
     //-------------------------------------------------
+    type = PIPE_DEFAULT_TYPE; // default pipe-type
     if (pumpP1On && anyInputOn && anyOutputOn)
-         color = COLOR_OUT1; // flow running
+    {
+       if (whichOutput == V4b)
+       {
+            type = PIPE2_LEFT_BOTTOM;
+       } // if
+       else if ((whichOutput == V6b) || (whichOutput == V7b) || (whichOutput == (V6b | V7b)))
+       {
+            type = PIPE2_BOTTOM_RIGHT;
+       } // else if
+       color = COLOR_OUT1; // flow running
+    } // if
     else color = COLOR_OUT0; // no flow
     elbow6->setColor(color);
-    Tpipe3->setColor(color);
+    Tpipe3->drawPipe(type,50,color);
 
     //-------------------------------------------------
     // Output pump -> HLT heat-exchanger -> MLT return
@@ -964,11 +959,23 @@ void MainEbrew::task_update_std(void)
     //-------------------------------------------------
     // Is there output-flow to either V6 or V7?
     //-------------------------------------------------
-    if (pumpP1On && anyInputOn && (std_out & (V6b | V7b)))
+    uint16_t outputV6V7 = std_out & (V6b | V7b);
+    pipeSize = 50;  // default size for Tpipe4
+    type     = PIPE_DEFAULT_TYPE; // default pipe-type
+    if (pumpP1On && anyInputOn && outputV6V7)
+    {
+         if (outputV6V7 == V6b)
+            type = PIPE2_LEFT_BOTTOM;
+         else if (outputV6V7 == V7b)
+         {
+            type = PIPE2_LEFT_RIGHT;
+            pipeSize = 100; // left-right pipe now same size as T-pipe
+         } // else if
          color = COLOR_OUT1; // flow running
+    } // if
     else color = COLOR_OUT0; // no flow
     pipeH6->setColor(color);
-    Tpipe4->setColor(color);
+    Tpipe4->drawPipe(type,pipeSize,color);
 
     //-------------------------------------------------
     // Is there output-flow to V6?
@@ -1008,13 +1015,20 @@ void MainEbrew::task_update_std(void)
     //-------------------------------------------------
     // Is there input-flow to Pump P1?
     //-------------------------------------------------
-    if (pumpP1On && anyOutputOn && (std_out & (V1b | V2b | V3b)))
-         color = COLOR_IN1; // flow running
-    else color = COLOR_IN0; // no flow
+    type = PIPE_DEFAULT_TYPE; // default pipe-type
+    if (pumpP1On && anyOutputOn && anyInputOn)
+    {
+        color = COLOR_IN1; // flow running
+        if (whichInput == V2b)
+             type = PIPE2_LEFT_BOTTOM;
+        else if ((whichInput == V1b) || (whichInput == V3b) || (whichInput == (V1b | V3b)))
+             type = PIPE2_BOTTOM_RIGHT;
+    } // if
+    else color = COLOR_IN0; // no flow, default pipe-type
     pipeH4->setColor(color);
     elbow7->setColor(color);
     pipeV1->setColor(color);
-    Tpipe1->setColor(color);
+    Tpipe1->drawPipe(type,50,color); // draw T or elbow
 
     //-------------------------------------------------
     // Is there input-flow from Valve 2 (HLT)?
@@ -1035,11 +1049,23 @@ void MainEbrew::task_update_std(void)
     //---------------------------------------------------------------
     // Is there input-flow from either Valve 1 (MLT) or Valve 3 (BK)?
     //---------------------------------------------------------------
-    if (pumpP1On && anyOutputOn && (std_out & (V1b | V3b)))
+    uint16_t inputV1V3 = std_out & (V1b | V3b);
+    pipeSize = 50;  // default size for Tpipe2
+    type     = PIPE_DEFAULT_TYPE; // default pipe-type
+    if (pumpP1On && anyOutputOn && inputV1V3)
+    {
          color = COLOR_IN1; // flow running
-    else color = COLOR_IN0; // no flow
+        if (inputV1V3 == V1b)
+             type = PIPE2_LEFT_TOP;
+        else if (inputV1V3 == V3b)
+        {
+             type = PIPE2_LEFT_RIGHT;
+             pipeSize = 100; // left-right pipe now same size as T-pipe
+        } // else if
+    } // if
+    else color = COLOR_IN0; // no flow, default pipe-type
     pipeH2->setColor(color);
-    Tpipe2->setColor(color);
+    Tpipe2->drawPipe(type,pipeSize,color);
 
     //-------------------------------------------------
     // Is there input-flow from Valve 1 (MLT)?
@@ -1107,8 +1133,8 @@ void MainEbrew::task_pid_control(void)
     if      (gamma_hlt > RegEbrew->value("GAS_NON_MOD_HLIMIT").toInt()) hltGasNonMod = true;
     else if (gamma_hlt < RegEbrew->value("GAS_NON_MOD_LLIMIT").toInt()) hltGasNonMod = false;
     // Hysteresis for modulating gas-burner
-    if (toolHLTPilotLight->isChecked())
-    {   // Pilot-light checkbox in menu-bar
+    if (ActionHLTPilotLight->isChecked())
+    {   // Pilot-light checkbox in Action Menu
         hltGasMod = true;
     } // if
     else
@@ -2095,6 +2121,7 @@ uint16_t MainEbrew::stateMachine(void)
     bool      maltAdded; // help var. in state S01_WAIT_FOR_HLT_TEMP
     QString   string;    // For stdText->setText()
     QString   substring; // For stdText->setSubText()
+    QCheckBox cb;        // Return result for msgBox()
 
     switch (ebrew_std)
     {
@@ -2109,25 +2136,25 @@ uint16_t MainEbrew::stateMachine(void)
             tset_mlt  = ms[ms_idx].temp;         // get temp. from mash-scheme
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
             tset_boil = TEMP_DEFAULT;            // Setpoint Temp. for Boil-kettle
-            if (toolStartCIP->isChecked())  // Is Start CIP checkbox checked at top toolbar?
+            if (ActionStartCIP->isChecked())     // Is Start CIP checkbox checked at Actions Menu?
             {  // Clean-in-Place program
-               setTopToolBar(TOOLBAR_CIP);         // switch to CIP top-toolbar
-               toolCipInitDone->setEnabled(true);  // enable Checkbox at toolbar top
-               toolCipInitDone->setChecked(false); // uncheck Checkbox
+               ActionCipInitDone->setEnabled(true);  // enable Checkbox at Action Menu
+               ActionCipInitDone->setChecked(false); // uncheck Checkbox
                msgBox("Cleaning in Place (CIP) Initialisation",
                       "1) Fill Boil-kettle with a 1% NaOH solution.\n"
                       "2) Place MLT top return-pipe into Boil-kettle\n"
                       "3) Place CFC output-hose into Boil-kettle\n\n"
-                      "Press OK to continue",toolCipInitDone);
-                ebrew_std = S20_CIP_INIT;
+                      "Press OK to continue", &cb);
+               ActionCipInitDone->setChecked(cb.isChecked());
+               ebrew_std = S20_CIP_INIT;
             } // if
-            else if (toolGFSpargeWater->isChecked())
+            else if (ActionGFSpargeHeater->isChecked())
             {
                 hltPid->setButtonState(true);  // Enable PID-controller for HLT
                 ebrew_std = S38_GF_HEATER_ONLY;
             } // else if
             else if (hltPid->getButtonState())        // Is PowerButton pressed for HLT PID controller?
-            {  // start with normal brewing states
+            {   // start with normal brewing states
                 ebrew_std = S01_WAIT_FOR_HLT_TEMP;
                 burner_on << QTime::currentTime().toString(); // New transition, copy time-stamp into array of strings
             } // if
@@ -2144,30 +2171,30 @@ uint16_t MainEbrew::stateMachine(void)
             string    = QString("01. Wait for HLT Temperature (%1 °C)").arg(tset_hlt,2,'f',1);
             substring = QString("HLT is heated to the first mash-scheme temp.");
             if (RegEbrew->value("CB_Malt_First").toInt() > 0)
-            {   // Enable 'Malt is added' checkbox at top-toolbar
-                toolMaltAdded->setEnabled(true);
+            {   // Enable 'Malt is added' checkbox at Action Menu
+                ActionMaltAdded->setEnabled(true);
             } // if
             tset_mlt  = ms[ms_idx].temp;         // get temp. from mash-scheme
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
             tset_boil = TEMP_DEFAULT;            // Setpoint Temp. for Boil-kettle
-            maltAdded = (RegEbrew->value("CB_Malt_First").toInt() == 0) || toolMaltAdded->isChecked();
-            if ((thlt >= tset_hlt) && maltAdded && !toolGFSpargeWater->isChecked())
+            maltAdded = (RegEbrew->value("CB_Malt_First").toInt() == 0) || ActionMaltAdded->isChecked();
+            if ((thlt >= tset_hlt) && maltAdded && !ActionGFSpargeHeater->isChecked())
             {   // HLT TEMP is OK and malt is added when MaltFirst option is selected
-                toolStartCIP->setEnabled(false);     // Hide CIP option at toolbar
-                if (toolMaltAdded->isChecked()) toolMaltAdded->setEnabled(false); // disable checkbox, no longer needed
-                toolGFSpargeWater->setEnabled(false); // Hide this option from now on
+                ActionStartCIP->setEnabled(false);     // Disable CIP checkbox in Actions Menu
+                if (ActionMaltAdded->isChecked()) ActionMaltAdded->setEnabled(false); // disable checkbox, no longer needed
+                ActionGFSpargeHeater->setEnabled(false); // Hide this option from now on
                 Vhlt_old  = Vhlt; // remember old value
                 timer3    = 0;    // init. '1 minute' timer
                 ebrew_std = S14_PUMP_PREFILL;
             } // if
-            else if (toolStartCIP->isChecked())  // Is Start CIP checkbox checked at top toolbar?
+            else if (ActionStartCIP->isChecked())  // Is Start CIP checkbox checked at Action Menu?
             {
                 ebrew_std = S00_INITIALISATION;  // Back to init. state and then to CIP-states
             } // else if
             else if (!maltAdded)
             {
                 string.append(" + Add Malt to MLT (M)");
-                substring.append(", click \'Malt added to MLT\' at top toolbar if malt is added");
+                substring.append(", click \'Malt added to MLT\' at Actions->Malt added to MLT");
             } // else
             break;
 
@@ -2233,8 +2260,8 @@ uint16_t MainEbrew::stateMachine(void)
                 {   // We need to add malt to the MLT first
                     // Depending on the state of the checkbox 'Leave pumps running',
                     // we go directly to state 15 or only after the user selects the
-                    // 'Start adding malt' checkbox in the top-toolbar
-                    toolStartAddMalt->setEnabled(true);   // enable checkbox 'Start Adding Malt' at top-toolbar
+                    // 'Start adding malt' checkbox in the Actions Menu
+                    ActionStartAddMalt->setEnabled(true); // enable checkbox 'Start Adding Malt' at Actions Menu
                     if (RegEbrew->value("CB_pumps_on").toInt())
                          ebrew_std = S19_RDY_TO_ADD_MALT; // leave pumps running for now
                     else ebrew_std = S15_ADD_MALT_TO_MLT; // switch pumps off directly
@@ -2255,10 +2282,10 @@ uint16_t MainEbrew::stateMachine(void)
         //---------------------------------------------------------------------------
         case S19_RDY_TO_ADD_MALT:
             string    = QString("19. Ready to add Malt to MLT (M)");
-            substring = QString("If ready to add malt, click \'Start adding Malt\' on toolbar at top of screen");
+            substring = QString("If ready to add malt, click \'Start adding Malt\' at Actions Menu");
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
             tset_mlt  = ms[ms_idx].temp; // get temp. from mash-scheme
-            if (toolStartAddMalt->isChecked()) ebrew_std = S15_ADD_MALT_TO_MLT;
+            if (ActionStartAddMalt->isChecked()) ebrew_std = S15_ADD_MALT_TO_MLT;
             break;
 
         //---------------------------------------------------------------------------
@@ -2268,12 +2295,12 @@ uint16_t MainEbrew::stateMachine(void)
         //---------------------------------------------------------------------------
         case S15_ADD_MALT_TO_MLT:
             string    = QString("15. Add Malt to MLT (M)");
-            substring = QString("If malt is added, click \'Malt added to MLT\' at top toolbar");
+            substring = QString("If malt is added, click \'Malt added to MLT\' at Actions Menu");
             tset_hlt  = tset_mlt + RegEbrew->value("TOffset0").toDouble(); // compensate for dough-in losses
             tset_mlt  = ms[ms_idx].temp; // get temp. from mash-scheme
-            toolStartAddMalt->setEnabled(false); // disable checkbox, no longer needed
-            toolMaltAdded->setEnabled(true);     // enable checkbox 'Malt added to MLT'
-            if (toolMaltAdded->isChecked())
+            ActionStartAddMalt->setEnabled(false); // disable checkbox, no longer needed
+            ActionMaltAdded->setEnabled(true);     // enable checkbox 'Malt added to MLT'
+            if (ActionMaltAdded->isChecked())
             {  // malt is added to MLT, start mash timer
                ms[ms_idx].timer      = 0; // start the corresponding mash timer
                ms[ms_idx].time_stamp = QTime::currentTime().toString(); // save time-stamp for Progress Dialog
@@ -2283,7 +2310,7 @@ uint16_t MainEbrew::stateMachine(void)
                    ebrew_std = S18_MASH_REST_5_MIN;
                } // if
                else ebrew_std = S04_MASH_TIMER_RUNNING;
-               toolMaltAdded->setEnabled(false); // disable checkbox, no longer needed
+               ActionMaltAdded->setEnabled(false); // disable checkbox, no longer needed
             } // if
             break;
 
@@ -2417,9 +2444,9 @@ uint16_t MainEbrew::stateMachine(void)
                 else
                 {  // Init flowrate-low detector for flow2 mlt -> hlt
                     F2->initFlowRateDetector(RegEbrew->value("MIN_FR_MLT_PERC").toInt());
-                    timer1    = 0;                  // reset timer1
-                    ebrew_std = S09_EMPTY_MLT;      // Finished with Sparging, empty MLT
-                    toolMLTEmpty->setEnabled(true); // enable checkbox at top-toolbar
+                    timer1    = 0;                    // reset timer1
+                    ebrew_std = S09_EMPTY_MLT;        // Finished with Sparging, empty MLT
+                    ActionMLTEmpty->setEnabled(true); // enable checkbox at Action Menu
                 } // else if
             } // if
             break;
@@ -2516,12 +2543,12 @@ uint16_t MainEbrew::stateMachine(void)
             hltPid->setButtonState(false);  // Disable PID-controller for HLT
             tset_boil = RegEbrew->value("SP_BOIL").toDouble();  // Boil Temperature Setpoint
             boilPid->setButtonState(true);  // Enable PID-Controller for Boil-kettle
-            if (toolMLTEmpty->isChecked() || F2->isFlowRateLow())
+            if (ActionMLTEmpty->isChecked() || F2->isFlowRateLow())
             {
                 ebrew_std = S10_WAIT_FOR_BOIL;
                 timer5    = 0; // assure a min. stay time, so transition is detected
-                toolMLTEmpty->setChecked(true);  // Set checkbox to checked
-                toolMLTEmpty->setEnabled(false); // ... and disable it, no longer needed
+                ActionMLTEmpty->setChecked(true);  // Set checkbox to checked
+                ActionMLTEmpty->setEnabled(false); // ... and disable it, no longer needed
             } // if
             break;
 
@@ -2533,15 +2560,15 @@ uint16_t MainEbrew::stateMachine(void)
         //---------------------------------------------------------------------------
         case S10_WAIT_FOR_BOIL:
             string    = QString("10. Waiting for Boil (M)");
-            substring = QString("If boiling is not detected automatically, click \'Boiling Started\' at top toolbar");
+            substring = QString("If boiling is not detected automatically, click \'Boiling Started\' at Actions Menu");
             tset_hlt  = TEMP_DEFAULT;          // disable heating element
             tset_boil = RegEbrew->value("SP_BOIL").toDouble(); // Boil Temperature Setpoint
-            toolBoilStarted->setEnabled(true); // Enable checkbox at top-toolbar
-            boilPid->setButtonState(true);     // Enable PID-Controller for Boil-kettle
-            if (toolBoilStarted->isChecked() || (tboil > RegEbrew->value("BOIL_DETECT").toDouble()))
+            ActionBoilStarted->setEnabled(true); // Enable checkbox at Actions Menu
+            boilPid->setButtonState(true);       // Enable PID-Controller for Boil-kettle
+            if (ActionBoilStarted->isChecked() || (tboil > RegEbrew->value("BOIL_DETECT").toDouble()))
             {
-                toolBoilStarted->setChecked(true);       // Set checkbox to checked
-                toolBoilStarted->setEnabled(false);      // ... and disable again, no longer needed
+                ActionBoilStarted->setChecked(true);       // Set checkbox to checked
+                ActionBoilStarted->setEnabled(false);      // ... and disable again, no longer needed
                 Boil << QTime::currentTime().toString(); // New transition, copy time-stamp into array of strings
                 timer5    = 0;                           // init. timer for boiling time
                 hopIdx    = 0;                           // init. hop-index
@@ -2576,7 +2603,7 @@ uint16_t MainEbrew::stateMachine(void)
             } // else if
             else if (timer5 > boil_time_ticks)
             {
-                toolStartChilling->setEnabled(true);     // Enable checkbox at top-toolbar
+                ActionStartChilling->setEnabled(true);   // Enable checkbox at Action Menu
                 Boil << QTime::currentTime().toString(); // New transition, copy time-stamp into array of strings
                 brest_tmr = 0; // init boil-rest timer
                 ebrew_std = S12_BOILING_FINISHED;
@@ -2592,9 +2619,9 @@ uint16_t MainEbrew::stateMachine(void)
         case S12_BOILING_FINISHED:
             tset_boil = TEMP_DEFAULT;        // Boil Temperature Setpoint
             boilPid->setButtonState(false);  // Disable PID-Controller for Boil-kettle
-            if (((RegEbrew->value("CB_Boil_Rest").toInt() == 0) || (++brest_tmr > TMR_BOIL_REST_5_MIN)) && toolStartChilling->isChecked())
+            if (((RegEbrew->value("CB_Boil_Rest").toInt() == 0) || (++brest_tmr > TMR_BOIL_REST_5_MIN)) && ActionStartChilling->isChecked())
             {  // Init flow3 (cfc-out) flowrate-low detector
-                toolStartChilling->setChecked(false);     // Uncheck checkbox \'CFC Prepared, start Chilling\'
+                ActionStartChilling->setChecked(false);   // Uncheck checkbox \'CFC Prepared, start Chilling\'
                 Chill << QTime::currentTime().toString(); // New transition, copy time-stamp into array of strings
                 if (RegEbrew->value("CB_BK_recirc").toInt() == 1)
                 {
@@ -2603,11 +2630,11 @@ uint16_t MainEbrew::stateMachine(void)
                 } // if
                 else
                 {   // start directly with cooling and pumping into fermentor
-                    toolStartChilling->setEnabled(false); // Disable checkbox \'CFC Prepared, start Chilling\', no longer needed
-                    toolReadyChilling->setEnabled(true);  // Enable checkbox 'Chilling finished'
-                    FlowCfcOutResetValue = FlowCfcOut;    // reset Flow_cfc_out to count actual volume in Fermenter
+                    ActionStartChilling->setEnabled(false); // Disable checkbox \'CFC Prepared, start Chilling\', no longer needed
+                    ActionReadyChilling->setEnabled(true);  // Enable checkbox 'Chilling finished'
+                    FlowCfcOutResetValue = FlowCfcOut;      // reset Flow_cfc_out to count actual volume in Fermenter
                     F3->initFlowRateDetector(RegEbrew->value("MIN_FR_BOIL_PERC").toInt());
-                    ebrew_std = S16_CHILL_PUMP_FERMENTOR; // Chill wort and pump directly to Fermenter
+                    ebrew_std = S16_CHILL_PUMP_FERMENTOR;   // Chill wort and pump directly to Fermenter
                 } // else
             } // if
             else if (RegEbrew->value("CB_Boil_Rest").toInt() == 1)
@@ -2615,7 +2642,7 @@ uint16_t MainEbrew::stateMachine(void)
                if (brest_tmr > TMR_BOIL_REST_5_MIN)
                     string = QString("12. Boil Finished");
                else string = QString("12. Boil Finished, wait %1/%2 min.").arg(brest_tmr/60).arg(TMR_BOIL_REST_5_MIN/60);
-               if (!toolStartChilling->isChecked()) string.append(", prepare Chiller (M)");
+               if (!ActionStartChilling->isChecked()) string.append(", prepare Chiller (M)");
             } // if
             else
             {
@@ -2623,9 +2650,9 @@ uint16_t MainEbrew::stateMachine(void)
                 if (RegEbrew->value("CB_BK_recirc").toInt() == 1)
                      string.append("Boil-kettle");
                 else string.append("Fermenter");
-                if (!toolStartChilling->isChecked()) string.append(", prepare Chiller (M)");
+                if (!ActionStartChilling->isChecked()) string.append(", prepare Chiller (M)");
             } // else
-            substring   = QString("Prepare chiller. If ready, click \'CFC Prepared, start Chilling\' at top toolbar");
+            substring   = QString("Prepare chiller. If ready, click \'CFC Prepared, start Chilling\' at Actions Menu");
             break;
 
         //---------------------------------------------------------------------------
@@ -2698,7 +2725,7 @@ uint16_t MainEbrew::stateMachine(void)
             substring = QString("Boil-kettle wort cooling as long as temperature is more than %1 °C").arg(RegEbrew->value("LIMIT_BK_recirc").toInt());
             if (tboil < RegEbrew->value("LIMIT_BK_recirc").toDouble())
             {   // Boil-kettle temperature decreased below minimum
-                toolStartChilling->setChecked(false); // Uncheck checkbox \'CFC Prepared, start Chilling\'
+                ActionStartChilling->setChecked(false); // Uncheck checkbox \'CFC Prepared, start Chilling\'
                 ebrew_std = S34_CHILL_BK_READY;
             } // if
             break;
@@ -2709,14 +2736,14 @@ uint16_t MainEbrew::stateMachine(void)
         //---------------------------------------------------------------------------
         case S34_CHILL_BK_READY:
             string    = QString("34. Place CFC-output in Fermenter (M)");
-            substring = QString("If CFC-output is in Fermenter, press \'CFC Prepared, start Chilling\' at top toolbar");
+            substring = QString("If CFC-output is in Fermenter, press \'CFC Prepared, start Chilling\' at Actions Menu");
             tset_boil = TEMP_DEFAULT;       // Boil Temperature Setpoint
             boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
-            if (toolStartChilling->isChecked())
+            if (ActionStartChilling->isChecked())
             {   // CFC-output is now placed in fermentation-bin
-                toolStartChilling->setEnabled(false); // Disable checkbox \'CFC Prepared, start Chilling\', no longer needed
-                toolReadyChilling->setEnabled(true);  // Enable checkbox 'Chilling finished'
-                FlowCfcOutResetValue = FlowCfcOut;    // reset Flow_cfc_out to count actual volume in Fermenter
+                ActionStartChilling->setEnabled(false); // Disable checkbox \'CFC Prepared, start Chilling\', no longer needed
+                ActionReadyChilling->setEnabled(true);  // Enable checkbox 'Chilling finished'
+                FlowCfcOutResetValue = FlowCfcOut;      // reset Flow_cfc_out to count actual volume in Fermenter
                 F3->initFlowRateDetector(RegEbrew->value("MIN_FR_BOIL_PERC").toInt());
                 ebrew_std = S16_CHILL_PUMP_FERMENTOR;
             } // if
@@ -2728,13 +2755,13 @@ uint16_t MainEbrew::stateMachine(void)
         //---------------------------------------------------------------------------
         case S16_CHILL_PUMP_FERMENTOR:
             string    = QString("16. Chill & Pump to Fermentation Bin");
-            substring = QString("If end of chilling is not detected automatically, click \'Chilling is finished\' at top toolbar");
+            substring = QString("If end of chilling is not detected automatically, click \'Chilling is finished\' at Actions Menu");
             tset_boil = TEMP_DEFAULT;       // Boil Temperature Setpoint
             boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
-            if (toolReadyChilling->isChecked() || F3->isFlowRateLow()) // flowRate of CFC-output
+            if (ActionReadyChilling->isChecked() || F3->isFlowRateLow()) // flowRate of CFC-output
             {
-                toolReadyChilling->setChecked(true);      // Set checkbox to checked
-                toolReadyChilling->setEnabled(false);     // ... and disable it, no longer needed
+                ActionReadyChilling->setChecked(true);    // Set checkbox to checked
+                ActionReadyChilling->setEnabled(false);   // ... and disable it, no longer needed
                 Chill << QTime::currentTime().toString(); // New transition, copy time-stamp into array of strings
                 ebrew_std = S17_FINISHED;
             } // if
@@ -2760,20 +2787,19 @@ uint16_t MainEbrew::stateMachine(void)
         //---------------------------------------------------------------------------
         case S20_CIP_INIT:
             string    = QString("20. CIP: Initialisation, fill Boil-kettle with 1% NaOH");
-            substring = QString("Put MLT-return & CFC-output in Boil-kettle, click \'CIP init. done\' at top toolbar");
+            substring = QString("Put MLT-return & CFC-output in Boil-kettle, click \'CIP Init. Done\' at Actions Menu");
             tset_hlt  = TEMP_DEFAULT; // HLT setpoint temperature
             tset_boil = TEMP_DEFAULT; // Boil-kettle setpoint temperature
             cip_circ  = 0;            // Init. CIP circulation counter
-            boilPid->setButtonState(false);    // Disable PID-Controller for Boil-kettle
-            if (toolCipInitDone->isChecked())  // User indicated that Boil-kettle is filled
+            boilPid->setButtonState(false);     // Disable PID-Controller for Boil-kettle
+            if (ActionCipInitDone->isChecked()) // User indicated that Boil-kettle is filled
             {
-                toolCipInitDone->setEnabled(false); // disable checkbox, no longer needed
+                ActionCipInitDone->setEnabled(false); // disable checkbox, no longer needed
                 ebrew_std = S21_CIP_HEAT_UP;
             } // if
-            else if (!toolStartCIP->isChecked())
+            else if (!ActionStartCIP->isChecked())
             {
-                toolCipInitDone->setEnabled(false); // disable Checkbox at toolbar top
-                setTopToolBar(TOOLBAR_BREWING);     // select normal brewing toolbar at top of screen
+                ActionCipInitDone->setEnabled(false); // disable Checkbox at Action Menu
                 ebrew_std = S00_INITIALISATION;
             } // if
             break;
@@ -2792,9 +2818,8 @@ uint16_t MainEbrew::stateMachine(void)
                 cip_tmr1  = 0;        // Init. CIP timer
                 ebrew_std = S22_CIP_CIRC_5_MIN;
              } // if
-             else if (!toolStartCIP->isChecked())
+             else if (!ActionStartCIP->isChecked())
              {
-                setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                 ebrew_std = S00_INITIALISATION;
              } // else
              break;
@@ -2813,9 +2838,8 @@ uint16_t MainEbrew::stateMachine(void)
                  cip_tmr1  = 0;        // Reset CIP timer
                  ebrew_std = S39_CIP_V6_CIRC_5_MIN;
               } // if
-              else if (!toolStartCIP->isChecked())
+              else if (!ActionStartCIP->isChecked())
               {
-                 setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                  ebrew_std = S00_INITIALISATION;
               } // else
               break;
@@ -2831,9 +2855,8 @@ uint16_t MainEbrew::stateMachine(void)
                  cip_tmr1  = 0;        // Reset CIP timer
                  ebrew_std = S40_CIP_V7_CIRC_5_MIN;
               } // if
-              else if (!toolStartCIP->isChecked())
+              else if (!ActionStartCIP->isChecked())
               {
-                 setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                  ebrew_std = S00_INITIALISATION;
               } // else
               break;
@@ -2849,19 +2872,19 @@ uint16_t MainEbrew::stateMachine(void)
                  cip_tmr1  = 0;        // Reset CIP timer
                  if (++cip_circ > 1)   // Count number of CIP circulations
                  {
-                    toolCipDrainBK->setEnabled(true);  // enable Checkbox at toolbar top
-                    toolCipDrainBK->setChecked(false); // uncheck Checkbox
+                    ActionCipDrainBK->setEnabled(true);  // enable Checkbox at Action Menu
+                    ActionCipDrainBK->setChecked(false); // uncheck Checkbox
                     msgBox("Cleaning in Place (CIP): Drain Boil-kettle",
                            "1) Place MLT top return-pipe into drain\n"
                            "2) Place CFC output-hose into drain\n\n"
-                           "Press OK to continue",toolCipDrainBK);
+                           "Press OK to continue",&cb);
+                    ActionCipDrainBK->setChecked(cb.isChecked());
                     ebrew_std = S24_CIP_DRAIN_BOIL1;
                  }	// if
                  else ebrew_std = S23_CIP_REST_5_MIN;
               } // if
-              else if (!toolStartCIP->isChecked())
+              else if (!ActionStartCIP->isChecked())
               {
-                 setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                  ebrew_std = S00_INITIALISATION;
               } // else
               break;
@@ -2879,9 +2902,8 @@ uint16_t MainEbrew::stateMachine(void)
                   cip_tmr1  = 0;        // Reset CIP timer
                   ebrew_std = S22_CIP_CIRC_5_MIN;
                } // if
-               else if (!toolStartCIP->isChecked())
+               else if (!ActionStartCIP->isChecked())
                {
-                  setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                   ebrew_std = S00_INITIALISATION;
                } // else
                break;
@@ -2895,14 +2917,13 @@ uint16_t MainEbrew::stateMachine(void)
                 substring = QString("NaOH solution is removed from the Boil-kettle");
                 tset_boil = TEMP_DEFAULT;       // Boil-kettle Temperature Setpoint
                 boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
-                if (toolCipDrainBK->isChecked())
+                if (ActionCipDrainBK->isChecked())
                 {  // Init flowrate-low detector
                    F3->initFlowRateDetector(RegEbrew->value("MIN_FR_BOIL_PERC").toInt());
                    ebrew_std = S25_CIP_DRAIN_BOIL2;
                 } // if
-                else if (!toolStartCIP->isChecked())
+                else if (!ActionStartCIP->isChecked())
                 {
-                   setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                    ebrew_std = S00_INITIALISATION;
                 } // else
                 break;
@@ -2918,19 +2939,19 @@ uint16_t MainEbrew::stateMachine(void)
                  boilPid->setButtonState(false); // Disable PID-Controller for Boil-kettle
                  if (F3->isFlowRateLow()) // flowrate of CFC-output
                  {
-                     toolCipHltFilled->setEnabled(true);  // enable Checkbox at toolbar top
-                     toolCipHltFilled->setChecked(false); // uncheck Checkbox
+                     ActionCipHltFilled->setEnabled(true);  // enable Checkbox at Action Menu
+                     ActionCipHltFilled->setChecked(false); // uncheck Checkbox
                      msgBox("Cleaning in Place (CIP): Fill HLT with Fresh Water",
                             "1) NEW: Fill HLT with fresh water\n"
                             "2) NEW: Place Boil-kettle return into drain\n"
                             "3) Leave MLT top return-pipe into drain\n"
                             "4) Leave CFC output-hose into drain\n\n"
-                            "Press OK to continue",toolCipHltFilled);
+                            "Press OK to continue",&cb);
+                     ActionCipHltFilled->setChecked(cb.isChecked());
                      ebrew_std = S26_CIP_FILL_HLT;
                  } // if
-                 else if (!toolStartCIP->isChecked())
+                 else if (!ActionStartCIP->isChecked())
                  {
-                    setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                     ebrew_std = S00_INITIALISATION;
                  } // else
                  break;
@@ -2941,14 +2962,13 @@ uint16_t MainEbrew::stateMachine(void)
          case S26_CIP_FILL_HLT:
               string    = QString("26. CIP: Fill HLT with fresh water");
               substring = QString("Fill HLT with fresh water, then continue");
-              if (toolCipHltFilled->isChecked())
+              if (ActionCipHltFilled->isChecked())
               {  // User indicated that HLT has been filled with fresh water
                  cip_tmr1  = 0;
                  ebrew_std = S27_CIP_CLEAN_OUTPUT_V7;
               } // if
-              else if (!toolStartCIP->isChecked())
+              else if (!ActionStartCIP->isChecked())
               {
-                 setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                  ebrew_std = S00_INITIALISATION;
               } // else
               break;
@@ -2964,9 +2984,8 @@ uint16_t MainEbrew::stateMachine(void)
                 cip_tmr1  = 0; // Reset CIP timer
                 ebrew_std = S28_CIP_CLEAN_OUTPUT_V6;
              } // if
-             else if (!toolStartCIP->isChecked())
+             else if (!ActionStartCIP->isChecked())
              {
-                setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                 ebrew_std = S00_INITIALISATION;
              } // else
              break;
@@ -2982,9 +3001,8 @@ uint16_t MainEbrew::stateMachine(void)
                  cip_tmr1  = 0; // Reset CIP timer
                  ebrew_std = S29_CIP_CLEAN_OUTPUT_V4;
               } // if
-              else if (!toolStartCIP->isChecked())
+              else if (!ActionStartCIP->isChecked())
               {
-                 setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                  ebrew_std = S00_INITIALISATION;
               } // else
               break;
@@ -3000,9 +3018,8 @@ uint16_t MainEbrew::stateMachine(void)
                   cip_tmr1  = 0; // Reset CIP timer
                   ebrew_std = S30_CIP_CLEAN_INPUT_V3;
                } // if
-               else if (!toolStartCIP->isChecked())
+               else if (!ActionStartCIP->isChecked())
                {
-                  setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                   ebrew_std = S00_INITIALISATION;
                } // else
                break;
@@ -3019,9 +3036,8 @@ uint16_t MainEbrew::stateMachine(void)
                    cip_tmr1  = 0; // Reset CIP timer
                    ebrew_std = S31_CIP_CLEAN_INPUT_V1;
                 } // if
-                else if (!toolStartCIP->isChecked())
+                else if (!ActionStartCIP->isChecked())
                 {
-                   setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                    ebrew_std = S00_INITIALISATION;
                 } // else
                 break;
@@ -3037,23 +3053,21 @@ uint16_t MainEbrew::stateMachine(void)
                  {
                     ebrew_std = S32_CIP_END;
                  } // if
-                 else if (!toolStartCIP->isChecked())
+                 else if (!ActionStartCIP->isChecked())
                  {
-                    setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                     ebrew_std = S00_INITIALISATION;
                  } // else
                  break;
 
             //---------------------------------------------------------------------------
-            // S32_CIP_END: Last state of CIP. Uncheck 'Start Clean-in-Place (CIP) at
-            //              toolbar at top of screen to return to Initialisation state.
+            // S32_CIP_END: Last state of CIP. Uncheck 'Start Clean-in-Place (CIP) in
+            //              Actions Menu to return to Initialisation state.
             //---------------------------------------------------------------------------
             case S32_CIP_END:
                  string    = QString("32. CIP: End of CIP-program");
                  substring = QString("Uncheck checkbox \'Start Clean-In-Place (CIP)\' to return to Init. state");
-                 if (!toolStartCIP->isChecked())
+                 if (!ActionStartCIP->isChecked())
                  {
-                    setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                     commPortWrite("R0");            // reset all flows to 0.0 L in Ebrew hardware
                     ebrew_std = S00_INITIALISATION;
                  } // else
@@ -3068,9 +3082,8 @@ uint16_t MainEbrew::stateMachine(void)
                 string    = QString("36. Grainfather Sparge Water Heater");
                 substring = QString("Uncheck checkbox \'GF Sparge Water Heater\' to return to Init. state");
                 tset_hlt  = 78.0;                  // Set sparge-water for Grainfather to 78.0 °C
-                if (!toolGFSpargeWater->isChecked())
+                if (!ActionGFSpargeHeater->isChecked())
                 {
-                   setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                    commPortWrite("R0");            // reset all flows to 0.0 L in Ebrew hardware
                    hltPid->setButtonState(false);  // Disable PID-controller for HLT
                    ebrew_std = S00_INITIALISATION;
@@ -3083,7 +3096,6 @@ uint16_t MainEbrew::stateMachine(void)
             default:
                 string    = QString("xx. Unknown State");
                 substring = QString("Internal error, the STD is not supposed to get here.");
-                setTopToolBar(TOOLBAR_BREWING); // select normal brewing toolbar at top of screen
                 ebrew_std = S00_INITIALISATION;
                 break;
     } // switch

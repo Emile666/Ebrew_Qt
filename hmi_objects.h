@@ -70,6 +70,7 @@
 #define PIPE2_RIGHT_LEFT  (11)
 #define PIPE2_BOTTOM_TOP  (12)
 #define PIPE2_BOTTOM_TOP_NO_ARROW (13)
+#define PIPE_DEFAULT_TYPE (14)
 
 // These are the possible tank options
 #define TANK_HEAT_EXCHANGER   (0x0001) /* Tank contains heat-exchanger with pipes on the right */
@@ -107,13 +108,18 @@
 #define COORD_BOTTOM       (10)
 
 // Color-definitions for input and output pipes, with and without flow
-#define COLOR_BACKGROUND QColor(224,224,224) /* Background color for entire scene */
-//#define COLOR_OUT0       QColor(  0,  0,255) /* Output pipe color when no flow */
-#define COLOR_OUT0       QColor(255,255,255) /* Output pipe color when no flow */
-#define COLOR_OUT1       QColor(  0,220,255) /* Output pipe color when flow */
-//#define COLOR_IN0        QColor(102,153,255) /* Input pipe color when no flow */
-#define COLOR_IN0        QColor(255,255,255) /* Input pipe color when no flow */
-#define COLOR_IN1        QColor(102,255,255) /* Input pipe color when flow */
+#define COLOR_BACKGROUND QColor(224,224,224)   /* Background color for entire scene */
+#define COLOR_OUT0       COLOR_BACKGROUND      /* Output pipe color when no flow */
+#define COLOR_OUT1       QColor(  0,220,255)   /* Output pipe color when flow */
+#define COLOR_IN0        COLOR_BACKGROUND      /* Input pipe color when no flow */
+#define COLOR_IN1        QColor(102,255,255)   /* Input pipe color when flow */
+
+// Color-definitions for TANK input and output pipes, with and without flow
+#define TANK_COLOR_OUT0  QColor(255,255,255)   /* Output pipe color when no flow */
+#define TANK_COLOR_OUT1  COLOR_OUT1            /* Output pipe color when flow */
+#define TANK_COLOR_IN0   QColor(255,255,255)   /* Input pipe color when no flow */
+#define TANK_COLOR_IN1   COLOR_IN1             /* Input pipe color when flow */
+
 #define COLOR_LEFT_PIPES   (0)
 #define COLOR_BOTTOM_PIPE1 (1)
 #define COLOR_BOTTOM_PIPE2 (2)
@@ -250,6 +256,7 @@ public:
     QPointF getCoordinates(uint8_t side);
     void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     void    setColor(QColor color);
+    void    setType(uint8_t type);
 
 protected:
     QRectF    boundingRect() const override { return boundary; }

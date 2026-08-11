@@ -18,5 +18,8 @@
         <file>img/task.png</file>
         <file>img/pcb_ebrew.jpg</file>
         <file>img/terminal.png</file>
+        <file>img/grainfather.png</file>
+        <file>img/gasburner.png</file>
+        <file>img/cip.png</file>
     </qresource>
 </RCC>

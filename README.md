@@ -16,7 +16,7 @@ PC-application for my home-brewery: Ebrew 3.0 Qt.
 More software design details: see my website: http://www.vandelogt.nl/uk_software.php
 
 # Software Development Environment
-Qt 5. This version replaces the Ebrew 2.0 version created with Borland C++ Builder 6.
+Qt 6. This version replaces the Ebrew 2.0 version created with Borland C++ Builder 6.
 
 This release is in active use at the brewhouse.
 

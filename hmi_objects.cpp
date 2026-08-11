@@ -171,6 +171,7 @@ void Tank::setOrientation(int width, int height, uint16_t options)
 
 void Tank::setColor(uint8_t pipe, QColor color)
 {
+    if (color == COLOR_BACKGROUND) color = TANK_COLOR_IN0;
     switch (pipe)
     {
         case COLOR_LEFT_PIPES  : colLeftPipes   = color; break;
@@ -419,6 +420,7 @@ Pipe::Pipe(int x, int y, uint8_t type, uint16_t length, QColor color)
     : QGraphicsPolygonItem()
 {
     setPos(x,y);
+    setType(type);
     drawPipe(type,length,color);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
     //setFlag(QGraphicsItem::ItemIsSelectable,true);
@@ -431,6 +433,7 @@ Pipe::Pipe(QPointF point, uint8_t type, uint16_t length, QColor color)
 {
     setPos(point);
     setColor(color);
+    setType(type);
     drawPipe(type,length,color);
 } // Pipe()
 
@@ -454,18 +457,27 @@ void Pipe::setColor(QColor color)
 {
     pipeColor = color;
     setBrush(color);
-} // Pipe:: setFlow()
+} // Pipe:: setColor()
+
+void Pipe::setType(uint8_t type)
+{
+    pipeType = type;
+} // Pipe:: setType()
 
 void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
 {
     QPainterPath path;
     int          x;
 
-    pipeType   = type;
     pipeLength = length;
     setBrush(color);
 
-    switch (pipeType)
+    if (type == PIPE_DEFAULT_TYPE)
+    {
+         type = pipeType; // Default type at init / draw_hmi_screen()
+    } // if
+
+    switch (type)
     {
         case PIPE2_LEFT_TOP: // From lower-left to top-right
              left = QPoint(-length,0);

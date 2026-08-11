@@ -119,7 +119,7 @@ void DialogOptionsSystemSettings::on_buttonBox_accepted()
                    (ui->cb24->isChecked() << 3) + (ui->cb25->isChecked() << 4);
     pEbrew->RegEbrew->setValue("HEATERSH",htrh);
     pEbrew->hlt->setHeatingOptions(htrh);
-    pEbrew->toolHLTPilotLight->setEnabled(ui->cb11->isChecked()); // Enable pilot-light gasburner checkbox in menu-bar
+    pEbrew->ActionHLTPilotLight->setEnabled(ui->cb11->isChecked()); // Enable pilot-light gasburner in Action menu
     pEbrew->RegEbrew->setValue("HEATERSB",htrb);
     pEbrew->boil->setHeatingOptions(htrb);
     pEbrew->RegEbrew->setValue("GAS_NON_MOD_LLIMIT",ui->sb21->value()); // Parameter 1
@@ -193,12 +193,12 @@ void DialogOptionsSystemSettings::calc_new_diameter(void)
     ui->lblDhlt->setText(QString("Calculated HLT diameter is %1 cm.").arg(diameter,0,'f',1));
 } // DialogOptionsSystemSettings::calc_new_diameter()
 
-void DialogOptionsSystemSettings::on_sbHltVol_valueChanged(int arg1)
+void DialogOptionsSystemSettings::on_sbHltVol_valueChanged(void)
 {
     calc_new_diameter();
 }
 
-void DialogOptionsSystemSettings::on_sbHltHeight_valueChanged(int arg1)
+void DialogOptionsSystemSettings::on_sbHltHeight_valueChanged(void)
 {
     calc_new_diameter();
 }

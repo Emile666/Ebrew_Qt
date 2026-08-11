@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.25"                        /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.26"                        /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -101,12 +101,6 @@
 //----------------------------------
 #define INIT_TIMERS    (true)
 #define NO_INIT_TIMERS (false)
-
-//----------------------------------
-// Defines for setTopToolBar()
-//----------------------------------
-#define TOOLBAR_BREWING (0)
-#define TOOLBAR_CIP     (1)
 
 //------------------------------------------------------
 // Defines for State Transition Diagram.
@@ -274,8 +268,7 @@ public:
     QUdpSocket  *udpSocket;      // Udp-socket object
     QFile       *fEbrewLog;      // Log-file object
     QFile       *fDbgCom;        // Com-port debug file object
-    QToolBar    *toolBarB;       // Toolbar with brewing checkboxes
-    QToolBar    *toolBarC;       // Toolbar with CIP checkboxes
+
     QString     ebrewRevision = EBREW_REVISION; // Ebrew SW revision number
 
     // Pointers to pipes and elbows in graphical scene
@@ -285,7 +278,7 @@ public:
     Pipe *elbowP23; // Pump P2 top-right elbow
     Pipe *pipeH1;   // Pump P2 horizontal pipe
     Pipe *pipeH2;   // Input : horizontal pipe between TPipe1  and TPipe2
-    Pipe *pipeH3;   // Input : horizontal pipe between TPipe2  and elbow3/valve3/BK-output
+    Pipe *pipeH3;   // Input : horizontal pipe between TPipe2  and elbow3
     Pipe *pipeH4;   // Input : horizontal pipe between elbow7  and pump P1
     Pipe *pipeH5;   // Output: horizontal pipe between elbow10 and TPipe3
     Pipe *pipeH6;   // Output: horizontal pipe between TPipe3  and Tpipe4
@@ -302,8 +295,8 @@ public:
 
     Pipe *elbow2;   // Input : elbow between valve2  and flow1
     Pipe *elbow3;   // Input : elbow between valve3  and pipeH3
-    Pipe *elbow4;   // Output: elbow between pipeH8  and elbow4
-    Pipe *elbow5;   // Output: elbow between flow3   and temp3
+    Pipe *elbow4;   // Output: elbow between pipeH8  and pipeV5
+    Pipe *elbow5;   // Output: elbow between flow3   and Tcfc
     Pipe *elbow6;   // Output: elbow between pump P1 and Tpipe3
     Pipe *elbow7;   // Input : elbow between pipeV1  and pipeH4
     Pipe *elbow8;   // Output: elbow between HLT heat-exchanger output and flow4
@@ -330,7 +323,6 @@ public:
     void       commPortOpen(void);          // Open communications channel
     void       commPortClose(void);         // Close the communications channel
     void       commPortWrite(QByteArray s); // Writes a string to the communications channel
-    void       setTopToolBar(int option);   // Set toolbar at top of screen for brewing or for CIP
 
     // Temperature, Volume and pid-output values
     qreal thlt  = 20.0;     // HLT actual temperature
@@ -504,20 +496,21 @@ private:
     QLabel    *statusSpIdx;       // Statusbar sparge-index (sp_idx) value
     QLabel    *statusSwRev;       // Statusbar SW+HW revision numbers
 
-    // Checkboxes at toolbar at top of screen
-    QCheckBox *toolStartCIP;      // Toolbar top checkbox start CIP program
-    QCheckBox *toolStartAddMalt;  // Toolbar top checkbox ready to add malt
-    QCheckBox *toolMaltAdded;     // Toolbar top checkbox malt is added
-    QCheckBox *toolMLTEmpty;      // Toolbar top checkbox MLT is empty
-    QCheckBox *toolBoilStarted;   // Toolbar top checkbox boiling is started
-    QCheckBox *toolStartChilling; // Toolbar top checkbox prepare chiller
-    QCheckBox *toolReadyChilling; // Toolbar top checkbox chilling is finished
-    QCheckBox *toolCipInitDone;   // Toolbar top checkbox ready to start CIP program
-    QCheckBox *toolCipDrainBK;    // Toolbar top checkbox drain Boil-kettle
-    QCheckBox *toolCipHltFilled;  // Toolbar top checkbox HLT filled with water
-    QCheckBox *toolGFSpargeWater; // Toolbar top checkbox Grainfather Sparge Water heater
 public:
-    QCheckBox *toolHLTPilotLight; // Toolbar top checkbox Enable pilot light of HLT gasburner
+    // Action checkboxes in Menu->Action
+    QAction   *ActionHLTPilotLight;  // checkbox Enable pilot light of HLT gasburner
+    QAction   *ActionGFSpargeHeater; // Use system as Sparge heater for a Grainfather
+    QAction   *ActionStartCIP;       // Start Clean-In-Place (CIP) process
+    QAction   *ActionStartAddMalt;   // Checked when brewer is ready to add malt to the MLT
+    QAction   *ActionMaltAdded;      // Checked when brewer has added all malt to the MLT
+    QAction   *ActionMLTEmpty;       // Checked when MLT is empty at end of sparging process
+    QAction   *ActionBoilStarted;    // Checked when boiling has started
+    QAction   *ActionStartChilling;  // Checked when CFC is prepared and ready for chilling
+    QAction   *ActionReadyChilling;  // Checked when chilling is finished
+    QAction   *ActionCipInitDone;    // Checked when ready to initiate CIP program
+    QAction   *ActionCipDrainBK;     // Checked when Boil-kettle is drained completely
+    QAction   *ActionCipHltFilled;   // Checked when HLT is filled with fresh water
+
 }; // MainEbrew()
 
 #endif // MAIN_EBREW_H
