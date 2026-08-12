@@ -198,6 +198,21 @@ protected:
     MA      *pma;            // pointer to moving-average filter for flowrate
 }; // Class Meter
 
+class Tank; // forward declaration, so that tankInternal knows that Tank exists
+
+//------------------------------------------------------------------------------------------
+// Tank Internal object for Tank class
+//------------------------------------------------------------------------------------------
+class TankInternal : public QGraphicsPolygonItem
+{
+public:
+    TankInternal(int x, int y, int w, int h, QGraphicsItem *parent);
+    QRectF   boundingRect() const override { return boundary; }
+protected:
+    void      contextMenuEvent(QGraphicsSceneContextMenuEvent * event) override;
+    QRectF    boundary;              /* boundary of tank object */
+}; // class TankInternal
+
 //------------------------------------------------------------------------------------------
 // Tank object for HLT, MLT and Boil-kettle
 //------------------------------------------------------------------------------------------
@@ -215,7 +230,7 @@ public:
     uint8_t  getHeatingOptions(void);
     void     setHeatingOptions(uint8_t options);
     void     clrHeatingOptions(uint8_t options);
-
+    void     showContextMenu(QGraphicsSceneContextMenuEvent* event); // New public function which TankInternal may call
 protected:
     void      contextMenuEvent(QGraphicsSceneContextMenuEvent * event) override;
     int       tankWidth, tankHeight;
@@ -229,6 +244,7 @@ protected:
     qreal     tankPower     =   0.0; /* Actual heating power applied to the tank */
     bool      tankTempErr;           /* true = error in actual temperature */
     QRectF    boundary;              /* boundary of tank object */
+    TankInternal *tankI;             /* Internal tank object */
 
     QPointF   leftPipe1;      /* Coordinate of top-left pipe for connecting a pump */
     QPointF   leftPipe2;      /* Coordinate of bottom-left pipe for connecting a pump */

@@ -80,6 +80,31 @@ void PowerButton::setButtonState(bool state)
 } // PowerButton::setButtonState()
 
 //------------------------------------------------------------------------------------------
+// Tank Internal object: used for filling the tank Internals and have a popup menu.
+//------------------------------------------------------------------------------------------
+TankInternal::TankInternal(int x, int y, int w, int h, QGraphicsItem *parent)
+    : QGraphicsPolygonItem(parent)
+{
+    boundary = QRectF(0,0,w,h);
+    setPolygon(QPolygonF(boundary));
+    setPos(x,y);
+    setPen(Qt::NoPen);
+    setBrush(QBrush(QColor(0,100,255,30))); // semi transparant blue
+} // TankInternal()
+
+void TankInternal::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {
+    Tank* parentTank = static_cast<Tank*>(parentItem()); // get parent Tank object
+
+    if (parentTank)
+    {
+         parentTank->showContextMenu(event); // send event to parent Tank object
+    } else
+    {
+         event->ignore(); // fallback: if no parent present, ignore event
+    } // else
+} // TankInternal::ContextMenuEvent()
+
+//------------------------------------------------------------------------------------------
 // Tank object for HLT, MLT and Boil-kettle
 //------------------------------------------------------------------------------------------
 Tank::Tank(int x, int y, int width, int height, uint16_t options)
@@ -88,7 +113,7 @@ Tank::Tank(int x, int y, int width, int height, uint16_t options)
     setPos(x,y);
     setOrientation(width,height,options);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
-    //setFlag(QGraphicsItem::ItemIsSelectable,true);
+    tankI = new TankInternal(TANK_WALL-(width>>1),TANK_WALL-height,width-(TANK_WALL<<1), height-(TANK_WALL<<1),this);
 } // Tank()
 
 void Tank::setNameVolume(QString name, qreal minVol)
@@ -355,6 +380,11 @@ void Tank::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
 } // Tank::paint()
 
 void Tank::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+{   // This is a public method, which TankInternal is allowed to call
+    showContextMenu(event); // call the private methode
+} // Tank::contextMenuEvent()
+
+void Tank::showContextMenu(QGraphicsSceneContextMenuEvent *event)
 {
     if (tankOptions & TANK_CONTEXTMENU)
     {
