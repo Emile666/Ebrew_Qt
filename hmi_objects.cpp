@@ -531,7 +531,7 @@ void Pipe::drawPipe(uint8_t type, uint16_t length, QColor color)
              path.lineTo(+x,+RPIPE);
              path.lineTo(-x,+RPIPE);
              path.lineTo(-x,1-RPIPE);
-             boundary = QRectF(-x,-RPIPE,pipeLength,2*RPIPE+2);
+             boundary = QRectF(-x,-RPIPE,pipeLength,2*RPIPE+15); // also includes the arrow in Paint()
              break;
         case PIPE2_LEFT_BOTTOM:
              left   = QPoint(-length,0);
@@ -774,6 +774,7 @@ Meter::Meter(QPointF point, uint8_t type, QString name)
     setPos(point);
     setName(name);
     setError(false);   // No error => green colour
+    showKW = false;    // Do not show power in kW
     meterType = type;
     if ((meterType == METER_HFLOW) || (meterType == METER_VFLOW))
     {
@@ -825,6 +826,7 @@ void Meter::setFlowParameters(uint16_t msec, bool temp_corr, qreal flow_err)
 
 void Meter::setFlowValue(qreal value,qreal temp)
 {
+    showKW = false; // Do not show power in kW
     meterValue  = value;
     if ((meterType == METER_HFLOW) || (meterType == METER_VFLOW))
     {
@@ -841,12 +843,20 @@ void Meter::setFlowValue(qreal value,qreal temp)
             meterValue /= (1.0 + 0.00021 * (temp - 20.0));
     } // if
     update();
-} // Meter::setValue()
+} // Meter::setFlowValue()
 
-qreal Meter::getFlowValue(void)
+void Meter::setFlowValue(qreal value,qreal temp,qreal temp2)
+{
+    setFlowValue(value,temp); // calculate flow rate and apply temp. correction
+    showKW  = true;           // show power in kW
+    powerKW = flowRate * (temp - temp2) * 4.184 / 60.0; // 1 kcal. = 4.184 kJ, metervalue [L/min.]
+    if (powerKW < 0.0) powerKW = -powerKW;
+} // Meter::setFlowValue()
+
+qreal Meter::getMeterValue(void)
 {
     return meterValue;
-} // Meter::getFlowValue()
+} // Meter::getMeterValue()
 
 qreal Meter::getFlowRate(uint8_t fil)
 {
@@ -884,7 +894,7 @@ void Meter::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 {
     QPainterPath path;
     QFont        font;
-    QString      text1,text2 = "";
+    QString      text1,text2,text3 = "";
 
     path.addEllipse(QRect(-14,-1,50,50));
     if (meterError)
@@ -906,6 +916,7 @@ void Meter::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     {
         text1 = QString("%1 L").arg(meterValue,1,'f',1);
         text2 = QString("%1 L/min.").arg(flowRate,1,'f',1);
+        text3 = QString("%1 kW").arg(powerKW,1,'f',1);
     } // if
     else
     {
@@ -913,13 +924,21 @@ void Meter::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     } // else
     if ((meterType == METER_HFLOW) || (meterType == METER_HTEMP))
     {    // horizontal lay-out
-         painter->drawText(-14,63,text1);
-         if (flowRate > 0.01) painter->drawText(-14,78,text2);
+        painter->drawText(-14,63,text1);
+        if (flowRate > 0.01)
+        {
+             painter->drawText(-14,78,text2);
+             if (showKW) painter->drawText(-14,93,text3);
+        } // if
     } // if
     else
     {   // vertical lay-out
-        painter->drawText(+40,25,text1);
-        if (flowRate > 0.01) painter->drawText(+40,40,text2);
+        painter->drawText(+40,17,text1);
+        if (flowRate > 0.01)
+        {
+             painter->drawText(+40,32,text2);
+             if (showKW) painter->drawText(+40,47,text3);
+        } // if
     } // else
     font.setPointSize(10);
     font.setBold(true);

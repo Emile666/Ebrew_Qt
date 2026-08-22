@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.27"                        /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.28"                        /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -309,6 +309,11 @@ public:
     Pipe *Tpipe3;   // Output: connects to pipeH5, elbow6 and pipeH6
     Pipe *Tpipe4;   // Output: connects to pipeH6, valve6 and flow2
 
+    QColor pipeInOff  = COLOR_IN0;
+    QColor pipeInOn   = COLOR_IN1;
+    QColor pipeOutOff = COLOR_OUT0;
+    QColor pipeOutOn  = COLOR_OUT1;
+
     uint16_t   stateMachine(void);          // Ebrew State Transition Diagram
     void       readMashSchemeFile(bool initTimers); // Read mash-scheme from file
     void       setKettleVolumes(void);      // Set title of kettles with volumes and min. volume from Registry
@@ -348,6 +353,7 @@ public:
     qreal Vhlt_old;         // Prev. value of Vhlt, used in STD
     qreal Vmlt_old;         // Prev. value of Vmlt, used in STD
     qreal Vboil_old;        // Prev. value of Vboil, used in STD
+    qreal grainBill;        // Total amount of grains in kg, read from mash schedule file
     qreal Vhlt_mm = SENSOR_VAL_LIM_OK; // HLT height in mm as read from ultrasonic sensor
 
     // Flow-rate values
@@ -461,6 +467,7 @@ public slots:
     void     task_read_flows(void);            // 2 sec. task for reading all flow-sensors
     void     task_write_logfile(void);         // 5 sec. task for writing info into logfile
     void     about(void);                      // About() screen of MainEbrew
+    void     MenuFileReadXML(void);            // File->Read Brew-File.xml
     void     MenuEditMashScheme(void);         // Edit->Mash Scheme dialog screen
     void     MenuEditFixParameters(void);      // Edit->Fix Parameters dialog screen
     void     MenuEditTerminal(void);           // Edit->Terminal editor dialog screen
@@ -471,6 +478,7 @@ public slots:
     void     MenuOptionsMeasurements(void);    // Options->Measurements Settings dialog screen
     void     MenuOptionsBrewDaySettings(void); // Options->Brew Day Settings dialog screen
     void     MenuOptionsSystemSettings(void);  // Options->System Settings dialog screen
+    void     MenuOptionsGuiSettings(void);     // Options->User Interface Settings dialog screen
     void     commPortRead(void);               // Reads a string from the communications channel
     void     removeLF(QByteArray& s);          // Removes \n from QByteArray
 

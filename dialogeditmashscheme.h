@@ -36,6 +36,7 @@ public:
 
 private slots:
     void on_pushButton_clicked();   // Load Mash Scheme File...
+    void writeXmlFile(QFile *file); // Write xml file
     void on_pushButton_2_clicked(); // Save As...
     void on_pushButton_3_clicked(); // Save
 

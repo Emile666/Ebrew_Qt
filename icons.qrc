@@ -21,5 +21,6 @@
         <file>img/grainfather.png</file>
         <file>img/gasburner.png</file>
         <file>img/cip.png</file>
+        <file>img/guisettings.png</file>
     </qresource>
 </RCC>

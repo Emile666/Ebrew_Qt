@@ -98,6 +98,7 @@ DialogOptionsSystemSettings::DialogOptionsSystemSettings(QWidget *parent) :
     ui->sbHltHeight->setValue(pEbrew->RegEbrew->value("HLT_HEIGHT").toInt());
     ui->sbMltVol->setValue(pEbrew->RegEbrew->value("VMLT_MAX").toInt());
     ui->sbBkVol->setValue(pEbrew->RegEbrew->value("VBOIL_MAX").toInt());
+    ui->sbGrAbsRate->setValue(pEbrew->RegEbrew->value("GRAINABSRATE").toDouble());
     ui->sbHltMin->setValue(pEbrew->RegEbrew->value("VHLT_MIN").toInt());
     ui->sbBkMin->setValue(pEbrew->RegEbrew->value("VBOIL_MIN").toInt());
     calc_new_diameter();
@@ -158,6 +159,7 @@ void DialogOptionsSystemSettings::on_buttonBox_accepted()
     pEbrew->RegEbrew->setValue("CB_USE_VHLT_SENS",ui->cbHLT_height->isChecked() ? 1 : 0);
     pEbrew->RegEbrew->setValue("VMLT_MAX",ui->sbMltVol->value());
     pEbrew->RegEbrew->setValue("VBOIL_MAX",ui->sbBkVol->value());
+    pEbrew->RegEbrew->setValue("GRAINABSRATE",ui->sbGrAbsRate->value());
     pEbrew->RegEbrew->setValue("VHLT_MIN",ui->sbHltMin->value());
     pEbrew->RegEbrew->setValue("VBOIL_MIN",ui->sbBkMin->value());
     pEbrew->setKettleVolumes();  // Init. titles of kettles with volumes found in Registry

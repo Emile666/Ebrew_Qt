@@ -20,6 +20,9 @@
 #include "ui_dialogeditmashscheme.h"
 #include <QFileDialog>
 #include <QTextStream>
+#include <QXmlStreamWriter>
+#include <QTextBlock>
+#include <QRegularExpression>
 
 /*------------------------------------------------------------------
   Purpose  : This is the constructor for the Mash Scheme Editor
@@ -71,6 +74,122 @@ void DialogEditMashScheme::on_pushButton_clicked()
     } // if
 } // DialogEditMashScheme::on_pushButton_clicked()
 
+
+/*------------------------------------------------------------------
+  Purpose  : This is called when 'Save as xml...' is clicked.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void DialogEditMashScheme::writeXmlFile(QFile *file)
+{
+    QTextDocument *doc = ui->plainTextEdit->document();
+    QTextBlock block;
+    QString    s;
+    QStringList list1;
+    uint8_t     i,j;
+
+    if (file->open(QFile::WriteOnly | QFile::Text))
+    {
+        QXmlStreamWriter writer(file);
+        writer.setAutoFormatting(true); // Takes care of EOL and indentation
+        writer.writeStartDocument();    // Writes <?xml version="1.0" encoding="UTF-8"?>
+        for (i = 0; i < 3; i++)
+        {
+            s = doc->findBlockByLineNumber(i).text();
+            writer.writeComment(s);
+        } // for i
+        writer.writeStartElement("brew_session");
+        writer.writeComment("1. Brew Session Parameters");
+        writer.writeStartElement("settings");
+        for (i = 3; i < 9; i++)
+        {
+            s = doc->findBlockByLineNumber(i).text();
+            list1 = s.split(QRegularExpression("[(:)]"));
+            if (list1.size() >= 4)
+            {
+                writer.writeStartElement("param");
+                writer.writeAttribute("name",list1.at(0).trimmed());
+                writer.writeAttribute("unit",list1.at(1));
+                writer.writeCharacters(list1.at(3).trimmed());
+                writer.writeEndElement();
+            } // if
+        } // for
+        writer.writeEndElement(); // </brew_session>
+        writer.device()->write(""); // force a write flush
+        writer.device()->write("\n");
+
+        // 2. Mash Trajectory
+        for (i = 10; i < 12; i++)
+        {
+            s = doc->findBlockByLineNumber(i).text();
+            writer.writeComment(s);
+        } // for i
+        writer.writeStartElement("mash_steps");
+        while (!((s = doc->findBlockByLineNumber(i).text()).isEmpty()) && (i < 22))
+        {
+            list1 = s.split(QRegularExpression("[,]"));
+            if (list1.size() >= 2)
+            {
+                writer.writeStartElement("step");
+                writer.writeAttribute("temp", list1.at(0).trimmed());
+                writer.writeAttribute("time", list1.at(1).trimmed());
+                writer.writeEndElement(); // this is a self-closing tag <step ... />
+            } // if
+            i++;
+        } // while
+        writer.writeEndElement(); // </mash_steps>
+        writer.device()->write(""); // force a write flush
+        writer.device()->write("\n");
+
+        // 3. Hop-additions
+        for (j = i+1; j < i+3; j++)
+        {
+            s = doc->findBlockByLineNumber(j).text();
+            writer.writeComment(s);
+        } // for i
+        writer.writeStartElement("hop_additions");
+        while (!((s = doc->findBlockByLineNumber(j).text()).isEmpty()) && (j < i+10))
+        {
+            list1 = s.split(QRegularExpression("[,]"));
+            if (list1.size() >= 2)
+            {
+                writer.writeStartElement("addition");
+                writer.writeAttribute("time", list1.at(0).trimmed());
+                writer.writeAttribute("hops", list1.at(1).trimmed());
+                writer.writeEndElement(); // this is a self-closing tag <step ... />
+            } // if
+            j++;
+        } // while
+        writer.writeEndElement(); // </hop_additions>
+        writer.device()->write(""); // force a write flush
+        writer.device()->write("\n");
+
+        // 4. Hop-stand (whirlpool)
+        for (i = j+1; i < j+3; i++)
+        {
+            s = doc->findBlockByLineNumber(i).text();
+            writer.writeComment(s);
+        } // for i
+        writer.writeStartElement("hop_stands");
+        while (!((s = doc->findBlockByLineNumber(i).text()).isEmpty()) && (i < j+10))
+        {
+            list1 = s.split(QRegularExpression("[,]"));
+            if (list1.size() >= 2)
+            {
+                writer.writeStartElement("stand");
+                writer.writeAttribute("time", list1.at(0).trimmed());
+                writer.writeAttribute("hops", list1.at(1).trimmed());
+                writer.writeEndElement(); // this is a self-closing tag <step ... />
+            } // if
+            i++;
+        } // // while
+        writer.writeEndElement(); // </hop_additions>
+        writer.writeEndElement(); // </mash_steps>
+        writer.writeEndDocument();
+        file->close();
+    } // if
+} // DialogEditMashScheme::writeXmlFile()
+
 /*------------------------------------------------------------------
   Purpose  : This is called when 'Save as...' is clicked.
   Variables: -
@@ -79,14 +198,25 @@ void DialogEditMashScheme::on_pushButton_clicked()
 void DialogEditMashScheme::on_pushButton_2_clicked()
 {
     QString file1Name = QFileDialog::getSaveFileName(this,
-             "Save As...", "./", "Mash Scheme Files (*.sch)");
+             "Save As...", "./", "Mash Scheme Files (*.sch);;Brew Files (*.xml)");
+
     if (!file1Name.isEmpty())
     {
-        QFile file(file1Name);
-        file.open(QFile::WriteOnly | QFile::Text);
-        QTextStream out (&file);
-        out << ui->plainTextEdit->toPlainText();
-        file.close();
+        QFile     file(file1Name);
+        QFileInfo fileInfo(file1Name);
+        QString   ext = fileInfo.suffix().toLower(); // get extension in lowercase
+
+        if (ext == "xml")
+        {
+            writeXmlFile(&file);
+        } // if
+        else
+        {
+            file.open(QFile::WriteOnly | QFile::Text);
+            QTextStream out (&file);
+            out << ui->plainTextEdit->toPlainText();
+            file.close();
+        } // else
     } // if
 } // DialogEditMashScheme::on_pushButton_2_clicked()
 

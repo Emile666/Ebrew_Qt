@@ -32,6 +32,8 @@
 #include <QList>
 #include <QCloseEvent>
 #include <QThread>
+#include <QFileDialog>
+#include <QXmlStreamReader>
 
 #include "MainEbrew.h"
 #include "dialogeditmashscheme.h"
@@ -44,6 +46,7 @@
 #include "dialogoptionsmeasurements.h"
 #include "dialogbrewdaysettings.h"
 #include "dialogoptionssystemsettings.h"
+#include "dialogoptionsguisettings.h"
 
 //------------------------------------------------------------------------------------------
 // CLASS MainEbrew
@@ -293,6 +296,7 @@ void MainEbrew::createMenuBar(void)
     // File menu
     auto Fmenu       = new QMenu("&File");
     Fmenu->addAction(QIcon(":/img/fileopen.png")    ,"Read Log-File..."); // TODO slot voor Read logFile
+    Fmenu->addAction(QIcon(":/img/fileopen.png")    ,"Read Brew-File..."         ,this, SLOT(MenuFileReadXML()));
     Fmenu->addSeparator();
     Fmenu->addAction(QIcon(":/img/exit.png")        ,"E&xit"                      , QKeySequence("Ctrl+Q"), this, SLOT(close())               );
     menuBar->addMenu(Fmenu);
@@ -314,6 +318,7 @@ void MainEbrew::createMenuBar(void)
     Omenu->addAction(QIcon(":/img/pidsettings.png") ,"&PID Controller Settings...",this,SLOT(MenuOptionsPidSettings()));
     Omenu->addAction(QIcon(":/img/cooking.png")     ,"Brew Day Settings..."       ,this,SLOT(MenuOptionsBrewDaySettings()));
     Omenu->addAction(QIcon(":/img/measurements.png"),"Measurements Settings..."   ,this,SLOT(MenuOptionsMeasurements()));
+    Omenu->addAction(QIcon(":/img/guisettings.png") ,"User Interface Settings..." ,this,SLOT(MenuOptionsGuiSettings()));
     menuBar->addMenu(Omenu);
 
     // Actions menu
@@ -421,6 +426,7 @@ void MainEbrew::createRegistry(void)
     RegEbrew->setValue("CB_USE_VHLT_SENS",1); // 1 = use ultrasonic sensor to calculate HLT volume
     RegEbrew->setValue("VMLT_MAX",110);       // Max. MLT volume
     RegEbrew->setValue("VBOIL_MAX",140);      // Max. Boil kettle volume
+    RegEbrew->setValue("GRAINABSRATE",0.80);  // Grain Absorption Rate in L/kg
     RegEbrew->setValue("VHLT_MIN",40);        // Min. HLT volume needed for electric heating
     RegEbrew->setValue("VBOIL_MIN",40);       // Min. Boil kettle volume needed for electric heating
 
@@ -489,6 +495,12 @@ void MainEbrew::createRegistry(void)
     RegEbrew->setValue("MIN_FR_MLT_PERC",10); // Min. Flowrate for MLT Empty detection
     RegEbrew->setValue("MIN_FR_BOIL_PERC",2); // Min. Flowrate for Boil-kettle Empty detection
     RegEbrew->setValue("VALVE_DELAY",0.3);    // Valve delay/dead-time when closing valve V2 in L
+
+    //------------------------------------------
+    // Options -> User Interface Settings Dialog
+    //------------------------------------------
+    RegEbrew->setValue("CB_HIDEPIPES",0);      // Hide loose pipes in GUI
+
 } // MainEbrew::createRegistry()
 
 /*------------------------------------------------------------------
@@ -590,6 +602,13 @@ void MainEbrew::readMashSchemeFile(bool initTimers)
        sbar.clear();
        sbar = QString(" Boil: %1 min. ").arg(boil_time);
        statusBoilTime->setText(sbar);
+
+       line = in.readLine(); // Read boiling-time
+       list1 = line.split(':');
+       if (list1.size() >= 2)
+            grainBill = list1.at(1).toDouble();
+       else grainBill = 0.0; // error in maisch.sch
+       qDebug() << "GrainBill = " << grainBill << " kg";
 
        line         = in.readLine(); // Try to read hopstand temperature
        hopStandTemp = 0;             // Init to 0, no hopstand
@@ -910,24 +929,36 @@ void MainEbrew::task_update_std(void)
     bool     anyOutputOn =  whichOutput > 0x0000;
     bool     pumpP1On    = (std_out & (P0b)) > 0x0000;
     bool     pumpP2On    = (std_out & (P1b)) > 0x0000;
+    bool     hidePipes   = RegEbrew->value("CB_HIDEPIPES").toInt() ? true : false;
 
     //-------------------------------------------------
     // Is there output-flow from Pump P1?
+    // This also defines the shape for Tpipe3.
     //-------------------------------------------------
     type = PIPE_DEFAULT_TYPE; // default pipe-type
+    pipeH6->show();
+    Tpipe4->show();
+    pipeH5->show();
+    elbow10->show();
+    pipeV3->show();
     if (pumpP1On && anyInputOn && anyOutputOn)
     {
        if (whichOutput == V4b)
-       {
+       {    // Hide pipes to the right of Tpipe4
             type = PIPE2_LEFT_BOTTOM;
+            pipeH6->hide();
+            Tpipe4->hide();
        } // if
        else if ((whichOutput == V6b) || (whichOutput == V7b) || (whichOutput == (V6b | V7b)))
-       {
+       {    // Hide pipes to the left of Tpipe3
             type = PIPE2_BOTTOM_RIGHT;
+            pipeH5->hide();
+            elbow10->hide();
+            pipeV3->hide();
        } // else if
-       color = COLOR_OUT1; // flow running
+       color = pipeOutOn; // flow running
     } // if
-    else color = COLOR_OUT0; // no flow
+    else color = pipeOutOff; // no flow
     elbow6->setColor(color);
     Tpipe3->drawPipe(type,50,color);
 
@@ -936,12 +967,12 @@ void MainEbrew::task_update_std(void)
     //-------------------------------------------------
     if (pumpP1On && anyInputOn && (std_out & V4b))
     {
-         color        = COLOR_OUT1; // flow running
+         color        = pipeOutOn; // flow running
          flow4Running = true;       // flow4 should see a flowrate
     } // if
     else
     {
-        color        = COLOR_OUT0; // no flow
+        color        = pipeOutOff; // no flow
         flow4Running = false;      // flow4 is not running
     } // else
     pipeH5->setColor(color);
@@ -958,6 +989,7 @@ void MainEbrew::task_update_std(void)
 
     //-------------------------------------------------
     // Is there output-flow to either V6 or V7?
+    // This also defines the shape for Tpipe4.
     //-------------------------------------------------
     uint16_t outputV6V7 = std_out & (V6b | V7b);
     pipeSize = 50;  // default size for Tpipe4
@@ -971,61 +1003,75 @@ void MainEbrew::task_update_std(void)
             type = PIPE2_LEFT_RIGHT;
             pipeSize = 100; // left-right pipe now same size as T-pipe
          } // else if
-         color = COLOR_OUT1; // flow running
+         color = pipeOutOn; // flow running
     } // if
-    else color = COLOR_OUT0; // no flow
+    else color = pipeOutOff; // no flow
     pipeH6->setColor(color);
-    Tpipe4->drawPipe(type,pipeSize,color);
+    Tpipe4->drawPipe(type,pipeSize,color); // connects to V6, pipeH6 and flow2
 
     //-------------------------------------------------
     // Is there output-flow to V6?
     //-------------------------------------------------
     if (pumpP1On && anyInputOn && (std_out & V6b))
     {
-        color        = COLOR_OUT1; // flow running
+        color        = pipeOutOn;  // flow running
         flow3Running = true;       // flow3 (CFC-output) should see a flowrate
     } // if
     else
     {
-        color        = COLOR_OUT0; // no flow
+        color        = pipeOutOff; // no flow
         flow3Running = false;      // flow3 is not running
     } // else
-    pipeV4->setColor(color);
-    elbow5->setColor(color);
-    pipeH7->setColor(color);
+    pipeV4->setColor(color); // connects V6 with flow3
+    elbow5->setColor(color); // connects flow3 with Tcfc
+    pipeH7->setColor(color); // output to fermenter
 
     //-------------------------------------------------
     // Is there output-flow to V7?
     //-------------------------------------------------
     if (pumpP1On && anyInputOn && (std_out & V7b))
     {
-        color = COLOR_OUT1;  // flow running
+        color = pipeOutOn;   // flow running
         flow2Running = true; // flow2 (BK-input) should see a flowrate
     } // if
     else
     {
-        color = COLOR_OUT0;   // no flow
+        color = pipeOutOff;   // no flow
         flow2Running = false; // flow2 is not running
     } // else
-    pipeH8->setColor(color);
+    pipeH8->setColor(color); // connects to flow2
     elbow4->setColor(color);
-    pipeV5->setColor(color);
+    pipeV5->setColor(color); // connects to V7
     boil->setColor(COLOR_BOTTOM_PIPE2,color);
 
     //-------------------------------------------------
     // Is there input-flow to Pump P1?
+    // This also defines the shape for Tpipe1.
     //-------------------------------------------------
-    type = PIPE_DEFAULT_TYPE; // default pipe-type
+    type = PIPE_DEFAULT_TYPE; // default pipe-type (T) for Tpipe1
+    pipeH2->show();
+    Tpipe2->show(); // connects to V1
+    pipeH3->show();
+    elbow3->show(); // connects to V3
     if (pumpP1On && anyOutputOn && anyInputOn)
     {
-        color = COLOR_IN1; // flow running
+        color = pipeInOn; // flow running
         if (whichInput == V2b)
-             type = PIPE2_LEFT_BOTTOM;
+        {
+             type = PIPE2_LEFT_BOTTOM; // Knee from left to bottom for Tpipe1
+             if (hidePipes)
+             {   // Hide pipes if no flow from right-hand side
+                 pipeH2->hide();
+                 Tpipe2->hide(); // connects to V1
+                 pipeH3->hide();
+                 elbow3->hide(); // connects to V3
+             } // if
+        } // if
         else if ((whichInput == V1b) || (whichInput == V3b) || (whichInput == (V1b | V3b)))
              type = PIPE2_BOTTOM_RIGHT;
     } // if
-    else color = COLOR_IN0; // no flow, default pipe-type
-    pipeH4->setColor(color);
+    else color = pipeInOff;  // no flow, default pipe-type
+    pipeH4->setColor(color); // connects to Pump1-In
     elbow7->setColor(color);
     pipeV1->setColor(color);
     Tpipe1->drawPipe(type,50,color); // draw T or elbow
@@ -1035,62 +1081,70 @@ void MainEbrew::task_update_std(void)
     //-------------------------------------------------
     if (pumpP1On && anyOutputOn && (std_out & V2b))
     {
-        color        = COLOR_IN1; // flow running
+        color        = pipeInOn;  // flow running
         flow1Running = true;      // FLOW1 HLT->MLT should see a flowrate
     } // if
     else
     {
-        color        = COLOR_IN0; // no flow
+        color        = pipeInOff; // no flow
         flow1Running = false;     // FLOW1 HLT->MLT is not running
     } // else
-    elbow2->setColor(color);
+    elbow2->setColor(color); // connects V2 to flow1
     hlt->setColor(COLOR_BOTTOM_PIPE1,color);
 
     //---------------------------------------------------------------
     // Is there input-flow from either Valve 1 (MLT) or Valve 3 (BK)?
+    // This also defines the shape for Tpipe2.
     //---------------------------------------------------------------
     uint16_t inputV1V3 = std_out & (V1b | V3b);
     pipeSize = 50;  // default size for Tpipe2
     type     = PIPE_DEFAULT_TYPE; // default pipe-type
     if (pumpP1On && anyOutputOn && inputV1V3)
     {
-         color = COLOR_IN1; // flow running
+         color = pipeInOn; // flow running
         if (inputV1V3 == V1b)
+        {
              type = PIPE2_LEFT_TOP;
+             if (hidePipes)
+             {   // hide pipes to the right of Tpipe2
+                 pipeH3->hide();
+                 elbow3->hide(); // connects to V3
+             } // if
+        } // if
         else if (inputV1V3 == V3b)
         {
              type = PIPE2_LEFT_RIGHT;
              pipeSize = 100; // left-right pipe now same size as T-pipe
         } // else if
     } // if
-    else color = COLOR_IN0; // no flow, default pipe-type
+    else color = pipeInOff; // no flow, default pipe-type
     pipeH2->setColor(color);
-    Tpipe2->drawPipe(type,pipeSize,color);
+    Tpipe2->drawPipe(type,pipeSize,color); // connects to V1
 
     //-------------------------------------------------
     // Is there input-flow from Valve 1 (MLT)?
     //-------------------------------------------------
     if (pumpP1On && anyOutputOn && (std_out & V1b))
-         color = COLOR_IN1; // flow running
-    else color = COLOR_IN0; // no flow
+         color = pipeInOn;  // flow running
+    else color = pipeInOff; // no flow
     mlt->setColor(COLOR_BOTTOM_PIPE1,color);
 
     //-------------------------------------------------
     // Is there input-flow from Valve 3 (BK)?
     //-------------------------------------------------
     if (pumpP1On && anyOutputOn && (std_out & V3b))
-         color = COLOR_IN1; // flow running
-    else color = COLOR_IN0; // no flow
+         color = pipeInOn;  // flow running
+    else color = pipeInOff; // no flow
     pipeH3->setColor(color);
-    elbow3->setColor(color);
+    elbow3->setColor(color); // connects to V3
     boil->setColor(COLOR_BOTTOM_PIPE1,color);
 
     //-------------------------------------------------
     // Is the pump for the HLT heat-exchanger on?
     //-------------------------------------------------
     if (pumpP2On)
-         color = COLOR_IN1;
-    else color = COLOR_IN0;
+         color = pipeInOn;
+    else color = pipeInOff;
     elbowP20->setColor(color);
     elbowP21->setColor(color);
     elbowP22->setColor(color);
@@ -1518,9 +1572,9 @@ void MainEbrew::task_read_flows(void)
 
     F1->setFlowValue(FlowHltMlt ,thlt);
     F2->setFlowValue(FlowMltBoil,tmlt);
-    FlowCfcOut -= FlowCfcOutResetValue; // reset flow4 at end of boiling
-    F3->setFlowValue(FlowCfcOut ,tcfc);
-    F4->setFlowValue(Flow4      ,thlt);
+    FlowCfcOut -= FlowCfcOutResetValue; // reset flow3 at end of boiling
+    F3->setFlowValue(FlowCfcOut ,tcfc,tboil); // Should display kW as well
+    F4->setFlowValue(Flow4,T5->getMeterValue(),tmlt); // Should display kW as well
 
     //------------------ FLOW1 ------------------------------------------------
     if ((F1->getFlowRate(FLOWRATE_RAW) < 0.1) && flow1Running)
@@ -1544,7 +1598,7 @@ void MainEbrew::task_read_flows(void)
     } // if
     else
     {   // Calculate an estimate for HLT volume
-        Vhlt = Vhlt_init - F1->getFlowValue(); // adjust actual volume in HLT
+        Vhlt = Vhlt_init - F1->getMeterValue(); // adjust actual volume in HLT
     } // else
     if (vhlt_sw)
     {  // Switch & Fix
@@ -1566,7 +1620,11 @@ void MainEbrew::task_read_flows(void)
         sensorAlarmInfo &= ~SENS_FLOW2;
         F2->setError(false);
     } // else
-    Vmlt = F1->getFlowValue() - F2->getFlowValue(); //use these values instead of FlowHltMlt - FlowMltBoil
+    qreal Vgrains; // Volume of grains in mash tun
+    if (ActionMaltAdded->isChecked()) // only increase Vmlt after malt has been added
+         Vgrains = RegEbrew->value("GRAINABSRATE").toDouble() * grainBill; // used to increase Vmlt
+    else Vgrains = 0.0;
+    Vmlt = F1->getMeterValue() - F2->getMeterValue() + Vgrains; // use these values instead of FlowHltMlt - FlowMltBoil
     if (vmlt_sw)
     {  // Switch & Fix
        Vmlt = vmlt_fx;
@@ -1587,7 +1645,7 @@ void MainEbrew::task_read_flows(void)
         sensorAlarmInfo &= ~SENS_FLOW3;
         F3->setError(false);
     } // else
-    Vboil = F2->getFlowValue() - F3->getFlowValue(); // use these values instead of FlowMltBoil - FlowCfcOut
+    Vboil = F2->getMeterValue() - F3->getMeterValue(); // use these values instead of FlowMltBoil - FlowCfcOut
     if (vboil_sw)
     {  // Switch & Fix
        Vboil = vboil_fx;
@@ -1670,6 +1728,100 @@ void MainEbrew::about(void)
                         "Github: <a href=\"https://github.com/Emile666/Ebrew_Qt\">https://github.com/Emile666/Ebrew_Qt</a><br>"
                         "Brewery: Brouwerij de Boezem, The Netherlands").arg(ebrewRevision.mid(11,4)));
 } // MainEbrew::about()
+
+/*------------------------------------------------------------------
+  Purpose  : This function is called whenever in the Menubar
+             File->Read Brew-File.xml is clicked.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::MenuFileReadXML(void)
+{
+   QString file1Name = QFileDialog::getOpenFileName(this,"Open Brew-File", "./", "Brew-Files (*.xml)");
+   if (!file1Name.isEmpty())
+   {
+        QFile file(file1Name);
+        bool  loopExit;
+
+        if (!file.open(QFile::ReadOnly | QFile::Text))
+        {
+             qWarning() << "Could not open xml file " << file.errorString();
+             return;
+        } // if
+        QXmlStreamReader reader(&file);
+        while (!reader.atEnd() && !reader.hasError())
+        {
+            QXmlStreamReader::TokenType token = reader.readNext();
+            // qDebug() << "1 token: " << token << "reader.name(): " << reader.name();
+            if (token == QXmlStreamReader::StartElement)
+            {
+                if (reader.name() == u"settings")
+                {
+                    while (!reader.atEnd() && !reader.hasError() && (token != QXmlStreamReader::EndElement))
+                    {
+                        token = reader.readNext();
+                        if (token == QXmlStreamReader::StartElement && reader.name() == u"param")
+                        {
+                            QString name  = reader.attributes().value("name").toString();
+                            QString unit  = reader.attributes().value("unit").toString();
+                            QString value = reader.readElementText(); // moves reader to </param>
+                            qDebug() << "param: " << name << value << unit;
+                        } // if
+                    } // while
+                } // if
+                else if (reader.name() == u"mash_steps")
+                {
+                    loopExit = false;
+                    while (!reader.atEnd() && !reader.hasError() && !loopExit)
+                    {
+                        token = reader.readNext();
+                        if ((token == QXmlStreamReader::StartElement) && reader.name() == u"step")
+                        {
+                            int temp  = reader.attributes().value("temp").toInt();
+                            int time  = reader.attributes().value("time").toInt();
+                            qDebug() << "step: " << temp << time;
+                        } // if
+                        else if ((token == QXmlStreamReader::EndElement) && reader.name() == u"mash_steps")
+                            loopExit = true;
+                    } // while
+                } // else if
+                else if (reader.name() == u"hop_additions")
+                {
+                    loopExit = false;
+                    while (!reader.atEnd() && !reader.hasError() && !loopExit)
+                    {
+                        token = reader.readNext();
+                        if ((token == QXmlStreamReader::StartElement) && reader.name() == u"addition")
+                        {
+                            int temp  = reader.attributes().value("time").toInt();
+                            QString s = reader.attributes().value("hops").toString();
+                            qDebug() << "addition: " << temp << s;
+                        } // if
+                        else if ((token == QXmlStreamReader::EndElement) && reader.name() == u"hop_additions")
+                            loopExit = true;
+                    } // while
+                } // else if
+                else if (reader.name() == u"hop_stands")
+                {
+                    loopExit = false;
+                    while (!reader.atEnd() && !reader.hasError() && !loopExit)
+                    {
+                        token = reader.readNext();
+                        if ((token == QXmlStreamReader::StartElement) && reader.name() == u"stand")
+                        {
+                            int temp  = reader.attributes().value("time").toInt();
+                            QString s = reader.attributes().value("hops").toString();
+                            qDebug() << "stand: " << temp << s;
+                        } // if
+                        else if ((token == QXmlStreamReader::EndElement) && reader.name() == u"hop_stands")
+                            loopExit = true;
+                    } // while
+                } // else if
+             } // if
+        } // while
+        file.close();
+   } // if
+} // MainEbrew::MenuFileReadXML()
 
 /*------------------------------------------------------------------
   Purpose  : This function is called whenever in the Menubar
@@ -1800,6 +1952,19 @@ void MainEbrew::MenuOptionsSystemSettings(void)
 
     Dialog->show();
 } // MainEbrew::MenuOptionsSystemSettings()
+
+/*------------------------------------------------------------------
+  Purpose  : This function is called whenever in the Menubar
+             Options->User Interface Settings is clicked.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::MenuOptionsGuiSettings(void)
+{
+    auto Dialog = new dialogoptionsguisettings(this);
+
+    Dialog->show();
+} // MainEbrew::MenuOptionsGuiSettings()
 
 /*------------------------------------------------------------------
   Purpose  : This function displays a messagebox and makes sure only

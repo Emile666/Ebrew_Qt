@@ -9,6 +9,7 @@ HEADERS = hmi_objects.h \
     dialogeditfixparameters.h \
     dialogeditmashscheme.h \
     dialogeditterminal.h \
+    dialogoptionsguisettings.h \
     dialogoptionsmeasurements.h \
     dialogoptionspidsettings.h \
     dialogoptionssystemsettings.h \
@@ -25,6 +26,7 @@ SOURCES = main.cpp hmi_objects.cpp \
     dialogeditfixparameters.cpp \
     dialogeditmashscheme.cpp \
     dialogeditterminal.cpp \
+    dialogoptionsguisettings.cpp \
     dialogoptionsmeasurements.cpp \
     dialogoptionspidsettings.cpp \
     dialogoptionssystemsettings.cpp \
@@ -47,6 +49,7 @@ FORMS += \
     dialogeditfixparameters.ui \
     dialogeditmashscheme.ui \
     dialogeditterminal.ui \
+    dialogoptionsguisettings.ui \
     dialogoptionsmeasurements.ui \
     dialogoptionspidsettings.ui \
     dialogoptionssystemsettings.ui \

@@ -164,7 +164,8 @@ public:
     void    setName(QString name);
     void    setTempValue(qreal value);
     void    setFlowValue(qreal value,qreal temp); /* temp. is needed for temp. correction */
-    qreal   getFlowValue(void); // get actual flow value, with temp. and calibration compensation
+    void    setFlowValue(qreal value,qreal temp,qreal temp2);
+    qreal   getMeterValue(void); // get actual temp. or flow value with temp. and calibration compensation
     void    setFlowParameters(uint16_t msec, bool temp_corr, qreal flow_err);
     qreal   getFlowRate(uint8_t fil); // return the (un)filtered flow-rate in L/min.
     void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
@@ -189,6 +190,9 @@ protected:
     qreal   meterValueOld;   // Previous meter value
     uint8_t meterType;       // Flow or Temp. meter
     bool    meterError;      // true = error (painted red)
+    bool    showKW;          // Show power in kW
+    qreal   powerKW;         // Calculated power in kW
+
     // Variables for flowrate calculation
     qreal   Ts;              // Time in msec. between two setValue() calls
     bool    tempCorrection;  // true = apply temperature volume correction
