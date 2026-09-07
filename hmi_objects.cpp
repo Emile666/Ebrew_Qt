@@ -783,6 +783,10 @@ Meter::Meter(QPointF point, uint8_t type, QString name)
         setText("F");
         setFlowParameters(1000,false,0.0); // set defaults to 1 sec, no temp. correction
         meterValueOld = 0.0;
+        meterOvfVal   = 0.0; // Meter overflow value
+        fval          = 0.0;
+        fvalOld       = 0.0;
+        hwCrashCntr   = 0;
         setFlowValue(meterValueOld,TEMP_DEFAULT); // init. values for flowrate measurement
         initFlowRateDetector(10); // init. flowrate-low detector
     } // if
@@ -827,22 +831,37 @@ void Meter::setFlowParameters(uint16_t msec, bool temp_corr, qreal flow_err)
 void Meter::setFlowValue(qreal value,qreal temp)
 {
     showKW = false; // Do not show power in kW
-    meterValue  = value;
+    meterValue = value;
     if ((meterType == METER_HFLOW) || (meterType == METER_VFLOW))
     {
-        // Apply Calibration error correction
-        meterValue *= 1.0 + 0.01 * flowErr;
-        // Calculate Flow-rate in L per minute: Ts [msec.]
-        if (meterValue > meterValueOld)
-             flowRateRaw = (60000.0 / Ts) * (meterValue - meterValueOld);
-        else flowRateRaw = 0.0;
-        meterValueOld = meterValue;
-        flowRate = pma->moving_average(flowRateRaw);
-        // Apply Temperature-correction
+        fval        = value;
+        meterValue += 0.01 * flowErr + meterOvfVal; // value for display
+        if (fval > fvalOld)
+        {	// Normal situation, new value is higher than old value
+            flowRateRaw = (60000.0 / Ts) * (meterValue - meterValueOld);
+        } // if
+        else if (fval < fvalOld)
+        {   // value has a new (low) value, old holds last value just before crash
+            meterValue  -= meterOvfVal;   // remove old overflow value
+            meterOvfVal  = meterValueOld; // set to previous meterValue from just before crash
+            meterValue  += meterOvfVal;   // update metervalue for display with new overflow value
+            hwCrashCntr++;                // increase HW crash counter
+            // Leave flowRateRaw to its current value
+        } // else if
+        else
+        {   // meterValue = meterValueOld, no flow
+            flowRateRaw = 0.0;
+        } // else
+        //qDebug() << meterName << fval << fvalOld << meterValue << meterValueOld << meterOvfVal << flowRateRaw;
+        meterValueOld = meterValue; // save meterValue for flowrate calculation
+        fvalOld       = fval;       // save for next call
+        flowRate      = pma->moving_average(flowRateRaw); // filter flowrate with moving-average filter
         if (tempCorrection)
+        {   // Apply Temperature-correction
             meterValue /= (1.0 + 0.00021 * (temp - 20.0));
+        } // if
     } // if
-    update();
+    update(); // update values on screen
 } // Meter::setFlowValue()
 
 void Meter::setFlowValue(qreal value,qreal temp,qreal temp2)

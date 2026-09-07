@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.28"                        /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.29"                        /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -479,6 +479,7 @@ public slots:
     void     MenuOptionsBrewDaySettings(void); // Options->Brew Day Settings dialog screen
     void     MenuOptionsSystemSettings(void);  // Options->System Settings dialog screen
     void     MenuOptionsGuiSettings(void);     // Options->User Interface Settings dialog screen
+    void     MenuActionsStart(void);           // Actions->Start Brew Session
     void     commPortRead(void);               // Reads a string from the communications channel
     void     removeLF(QByteArray& s);          // Removes \n from QByteArray
 

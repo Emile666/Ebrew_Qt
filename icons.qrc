@@ -22,5 +22,6 @@
         <file>img/gasburner.png</file>
         <file>img/cip.png</file>
         <file>img/guisettings.png</file>
+        <file>img/brewday.png</file>
     </qresource>
 </RCC>

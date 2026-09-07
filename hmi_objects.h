@@ -46,7 +46,7 @@
 #define METER_HTEMP     (1) /* Meter-type: temperature-meter horizontal lay-out */
 #define METER_VFLOW     (2) /* Meter-type: flow-meter vertical lay-out */
 #define METER_VTEMP     (3) /* Meter-type: temperature-meter vertical lay-out */
-#define METER_FLOW_MA_N (5) /* Flow-meter moving-average filter order */
+#define METER_FLOW_MA_N (3) /* Flow-meter moving-average filter order */
 #define FLOWRATE_RAW    (0) /* get unfiltered flow-rate */
 #define FLOWRATE_FIL    (1) /* get filtered flow-rate */
 
@@ -163,8 +163,8 @@ public:
     Meter(QPointF point, uint8_t type, QString name);
     void    setName(QString name);
     void    setTempValue(qreal value);
-    void    setFlowValue(qreal value,qreal temp); /* temp. is needed for temp. correction */
-    void    setFlowValue(qreal value,qreal temp,qreal temp2);
+    void    setFlowValue(qreal value,qreal temp); // temp. is needed for temp. correction
+    void    setFlowValue(qreal value,qreal temp,qreal temp2); // this also shows a kW rating
     qreal   getMeterValue(void); // get actual temp. or flow value with temp. and calibration compensation
     void    setFlowParameters(uint16_t msec, bool temp_corr, qreal flow_err);
     qreal   getFlowRate(uint8_t fil); // return the (un)filtered flow-rate in L/min.
@@ -181,6 +181,7 @@ public:
     double  frl_det_lim;     // Lower-limit for flowrate
     double  frl_min_det_lim; // Minimum flowrate: sensor-check
     uint8_t frl_perc;        // Percentage of max flowrate
+    uint8_t hwCrashCntr;     // Count number of HW crashes seen
 
 protected:
     QRectF boundingRect() const override { return boundary; }
@@ -188,6 +189,9 @@ protected:
     QString meterName;       // Name of meter, e.g. Flow1
     qreal   meterValue;      // Actual meter value
     qreal   meterValueOld;   // Previous meter value
+    qreal   meterOvfVal;     // Meter Overflow value
+    qreal   fval;            // Used in SetFlowValue()
+    qreal   fvalOld;         // Used in SetFlowValue()
     uint8_t meterType;       // Flow or Temp. meter
     bool    meterError;      // true = error (painted red)
     bool    showKW;          // Show power in kW

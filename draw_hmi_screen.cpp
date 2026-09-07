@@ -224,10 +224,14 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     QGraphicsTextItem *text = scene->addText("To Fermenter",font);
     text->setPos(point);     // insert text
 
-    point = QPoint(-1100,265);
+    point = QPoint(-1100,180);
     font.setPointSize(10);
     font.setBold(false);
-    text = scene->addText("1..8\tValve enable/disable\n"
+    text = scene->addText("Alt+B\tStart new Brew Session\n"
+                          "Alt+C\tStart Clean-in-Place (CIP)\n"
+                          "Alt+G\tGrainfather Sparge Heater\n"
+                          "Alt+P\tPilot-light HLT gasburner\n\n"
+                          "1..8\tValve enable/disable\n"
                           "A\tAuto all Pumps and Valves\n"
                           "P\tMain Pump enable/disable\n"
                           "Q\tHLT Pump enable/disable\n"
@@ -374,24 +378,24 @@ void draw_hmi_screen(QGraphicsScene *scene, MainEbrew *p)
     p->pipeH9 = pipeH9;         // add reference to MainEbrew
     scene->addItem(pipeH9);
 
-    Display *stdText = new Display(QPointF(-850,440),700, QString("Current STD state"), Qt::red, Qt::yellow);
+    Display *stdText = new Display(QPointF(-825,440),700, QString("Current STD state"), Qt::red, Qt::yellow);
     stdText->setToolTip("<b>Current State</b>: shows the current state of the brew-session, together with a hint of what to do next. If <b>(M)</b> is shown, it indicates that a manual action is needed");
     stdText->setText("00. Initialisation");
     stdText->setSubText("Press the HLT PID Controller button to advance to the next state");
     scene->addItem(stdText);
     p->stdText = stdText;
 
-    Display *autoManualText = new Display(QPointF(-850,370),400, QString("Auto-All or Manual?"), Qt::green, Qt::yellow);
+    Display *autoManualText = new Display(QPointF(-825,370),400, QString("Auto-All or Manual?"), Qt::green, Qt::yellow);
     autoManualText->setToolTip("<b>Auto-all or Manual</b>: shows a warning if one or more valves are set to Manual operation. ");
     scene->addItem(autoManualText);
     p->autoManualText = autoManualText;
 
-    PowerButton *hltPid = new PowerButton(-850,200,270,60,"HLT PID Controller");
+    PowerButton *hltPid = new PowerButton(-840,270,130,60,"HLT PID");
     hltPid->setToolTip("<b>HLT Power Switch</b>: switches the HLT PID controller On or Off. Press it after power-up to start a new brew-session");
     scene->addWidget(hltPid);
     p->hltPid = hltPid; // add hltPid reference to MainEbrew
 
-    PowerButton *boilPid = new PowerButton(-850,270,270,60,"BOIL PID Controller");
+    PowerButton *boilPid = new PowerButton(-705,270,130,60,"BOIL PID");
     boilPid->setToolTip("<b>Boil-kettle Power Switch</b>: switches the PID controller for the Boil-kettle On or Off. Use it if you want to manually control the Boil-kettle");
     scene->addWidget(boilPid);
     p->boilPid = boilPid; // add boilPid reference to MainEbrew

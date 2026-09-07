@@ -23,6 +23,7 @@
 //------------------------------------------------------------------------------------------
 PidCtrl::PidCtrl(qreal Kc, qreal Ti, qreal Td, qreal Ts)
 {
+    xk_2 = xk_1 = 0.0;
     pidInit(Kc, Ti, Td, Ts); // init. pid-controller
     pidEnable(PID_OFF);      // disable pid-controller at start-up
     pidSetLimits(0.0,100.0); // output between 0% and 100%

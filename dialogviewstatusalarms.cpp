@@ -231,6 +231,12 @@ void DialogViewStatusAlarms::onUpdateProgress(void)
         ui->teAlarms->setTextColor(Qt::black);
     } // else
     ui->teAlarms->append(string);
+    ui->teAlarms->setTextColor(Qt::black);
+    string = QString("HW crash counters: %1 %2 %3 %4").arg(pEbrew->F1->hwCrashCntr)
+                                                      .arg(pEbrew->F2->hwCrashCntr)
+                                                      .arg(pEbrew->F3->hwCrashCntr)
+                                                      .arg(pEbrew->F4->hwCrashCntr);
+    ui->teAlarms->append(string);
 
     ui->tePidHlt->clear();
     ui->tePidHlt->setFont(font);

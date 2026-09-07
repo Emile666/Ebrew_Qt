@@ -323,6 +323,8 @@ void MainEbrew::createMenuBar(void)
 
     // Actions menu
     auto Amenu       = new QMenu("&Actions");
+    Amenu->addAction(QIcon(":/img/brewday.png")     ,"Start a new Brew session"   ,QKeySequence(Qt::ALT | Qt::Key_B),this, SLOT(MenuActionsStart()));
+    Amenu->addSeparator();
     ActionHLTPilotLight = new QAction(QIcon(":/img/gasburner.png"),"Pilot light HLT Gasburner");
     ActionHLTPilotLight->setCheckable(true);
     ActionHLTPilotLight->setShortcut(QKeySequence(Qt::ALT | Qt::Key_P));
@@ -1965,6 +1967,17 @@ void MainEbrew::MenuOptionsGuiSettings(void)
 
     Dialog->show();
 } // MainEbrew::MenuOptionsGuiSettings()
+
+/*------------------------------------------------------------------
+  Purpose  : This function is called whenever in the Menubar
+             Actions->Start Brew Session is clicked.
+  Variables: -
+  Returns  : -
+  ------------------------------------------------------------------*/
+void MainEbrew::MenuActionsStart(void)
+{
+    hltPid->setButtonState(true); // Enable PID controller, this starts the state-machine
+} // MainEbrew::MenuActionsStart()
 
 /*------------------------------------------------------------------
   Purpose  : This function displays a messagebox and makes sure only
