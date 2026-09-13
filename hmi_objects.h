@@ -165,6 +165,7 @@ public:
     void    setTempValue(qreal value);
     void    setFlowValue(qreal value,qreal temp); // temp. is needed for temp. correction
     void    setFlowValue(qreal value,qreal temp,qreal temp2); // this also shows a kW rating
+    void    resetFlowValue(void);
     qreal   getMeterValue(void); // get actual temp. or flow value with temp. and calibration compensation
     void    setFlowParameters(uint16_t msec, bool temp_corr, qreal flow_err);
     qreal   getFlowRate(uint8_t fil); // return the (un)filtered flow-rate in L/min.

@@ -72,6 +72,10 @@ MainEbrew::MainEbrew(void) : QMainWindow()
         createRegistry(); // create default Registry entries
         qDebug() << "ebrew Registry was NOT found, init. Registry with default values";
     } // if
+    pipeInOff  = QColor::fromRgba(RegEbrew->value("COLINOFF").toUInt());  // get input pipe color with no flow from Registry
+    pipeInOn   = QColor::fromRgba(RegEbrew->value("COLINON").toUInt());   // get input pipe color with flow from Registry
+    pipeOutOff = QColor::fromRgba(RegEbrew->value("COLOUTOFF").toUInt()); // get output pipe color with no flow from Registry
+    pipeOutOn  = QColor::fromRgba(RegEbrew->value("COLOUTON").toUInt());  // get output pipe color with flow from Registry
     splitIpAddressPort();            // Split Registry IP-address and port-number
     readMashSchemeFile(INIT_TIMERS); // Read mash scheme from file and init. all mash timers
     initBrewDaySettings();           // Init. mash, sparge and boil setting with values from Registry
@@ -501,8 +505,11 @@ void MainEbrew::createRegistry(void)
     //------------------------------------------
     // Options -> User Interface Settings Dialog
     //------------------------------------------
-    RegEbrew->setValue("CB_HIDEPIPES",0);      // Hide loose pipes in GUI
-
+    RegEbrew->setValue("CB_HIDEPIPES",0);              // Hide loose pipes in GUI
+    RegEbrew->setValue("COLINOFF" ,COLOR_IN0.rgba());  // Default color for input pipe with no flow
+    RegEbrew->setValue("COLINON"  ,COLOR_IN1.rgba());  // Default color for input pipe with flow
+    RegEbrew->setValue("COLOUTOFF",COLOR_OUT0.rgba()); // Default color for output pipe with no flow
+    RegEbrew->setValue("COLOUTON" ,COLOR_OUT1.rgba()); // Default color for output pipe with flow
 } // MainEbrew::createRegistry()
 
 /*------------------------------------------------------------------
@@ -1574,8 +1581,7 @@ void MainEbrew::task_read_flows(void)
 
     F1->setFlowValue(FlowHltMlt ,thlt);
     F2->setFlowValue(FlowMltBoil,tmlt);
-    FlowCfcOut -= FlowCfcOutResetValue; // reset flow3 at end of boiling
-    F3->setFlowValue(FlowCfcOut ,tcfc,tboil); // Should display kW as well
+    F3->setFlowValue(FlowCfcOut ,tcfc,tboil);         // Should display kW as well
     F4->setFlowValue(Flow4,T5->getMeterValue(),tmlt); // Should display kW as well
 
     //------------------ FLOW1 ------------------------------------------------
@@ -2810,8 +2816,8 @@ uint16_t MainEbrew::stateMachine(void)
                 {   // start directly with cooling and pumping into fermentor
                     ActionStartChilling->setEnabled(false); // Disable checkbox \'CFC Prepared, start Chilling\', no longer needed
                     ActionReadyChilling->setEnabled(true);  // Enable checkbox 'Chilling finished'
-                    FlowCfcOutResetValue = FlowCfcOut;      // reset Flow_cfc_out to count actual volume in Fermenter
                     F3->initFlowRateDetector(RegEbrew->value("MIN_FR_BOIL_PERC").toInt());
+                    F3->resetFlowValue();                   // reset Flow_cfc_out to count actual volume flowing into fermenter
                     ebrew_std = S16_CHILL_PUMP_FERMENTOR;   // Chill wort and pump directly to Fermenter
                 } // else
             } // if
@@ -2921,8 +2927,8 @@ uint16_t MainEbrew::stateMachine(void)
             {   // CFC-output is now placed in fermentation-bin
                 ActionStartChilling->setEnabled(false); // Disable checkbox \'CFC Prepared, start Chilling\', no longer needed
                 ActionReadyChilling->setEnabled(true);  // Enable checkbox 'Chilling finished'
-                FlowCfcOutResetValue = FlowCfcOut;      // reset Flow_cfc_out to count actual volume in Fermenter
                 F3->initFlowRateDetector(RegEbrew->value("MIN_FR_BOIL_PERC").toInt());
+                F3->resetFlowValue();                   // reset Flow_cfc_out to count actual volume flowing into fermenter
                 ebrew_std = S16_CHILL_PUMP_FERMENTOR;
             } // if
             break;

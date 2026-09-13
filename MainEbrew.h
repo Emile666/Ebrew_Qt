@@ -36,7 +36,7 @@
 //------------------------------
 // Ebrew system-wide defines
 //------------------------------
-#define EBREW_REVISION "$Revision: 3.29"                        /* Ebrew SW revision number */
+#define EBREW_REVISION "$Revision: 3.30"                        /* Ebrew SW revision number */
 #define COMMDBGFILE    "com_port_dbg.txt"                       /* Default filename for COM port logging */
 #define LOGFILE        "ebrewlog.txt"                           /* Default Ebrew log-file name */
 #define MASHFILE       "maisch.sch"                             /* Default mash-scheme file */
@@ -309,10 +309,10 @@ public:
     Pipe *Tpipe3;   // Output: connects to pipeH5, elbow6 and pipeH6
     Pipe *Tpipe4;   // Output: connects to pipeH6, valve6 and flow2
 
-    QColor pipeInOff  = COLOR_IN0;
-    QColor pipeInOn   = COLOR_IN1;
-    QColor pipeOutOff = COLOR_OUT0;
-    QColor pipeOutOn  = COLOR_OUT1;
+    QColor pipeInOff;  // Color for input pipes with no flow
+    QColor pipeInOn;   // Color for input pipes with flow
+    QColor pipeOutOff; // Color for output pipes with no flow
+    QColor pipeOutOn;  // Color for output pipes with flow
 
     uint16_t   stateMachine(void);          // Ebrew State Transition Diagram
     void       readMashSchemeFile(bool initTimers); // Read mash-scheme from file
@@ -361,7 +361,6 @@ public:
     qreal FlowMltBoil;          // Flow-meter 2 value
     qreal FlowCfcOut;           // Flow-meter 3 value
     qreal Flow4;                // Flow-meter 4 value
-    qreal FlowCfcOutResetValue = 0.0; // Needed in boiling phase to reset flowmeter
     bool  flow1Running;         // True = flowsensor 1 should see a flow
     bool  flow2Running;         // True = flowsensor 2 should see a flow
     bool  flow3Running;         // True = flowsensor 3 should see a flow

@@ -872,6 +872,11 @@ void Meter::setFlowValue(qreal value,qreal temp,qreal temp2)
     if (powerKW < 0.0) powerKW = -powerKW;
 } // Meter::setFlowValue()
 
+void Meter::resetFlowValue(void)
+{
+    meterOvfVal = -meterValue; // set Display value to 0.0
+} // Meter::resetFlowValue()
+
 qreal Meter::getMeterValue(void)
 {
     return meterValue;

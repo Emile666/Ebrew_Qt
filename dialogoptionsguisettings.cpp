@@ -36,6 +36,7 @@ void dialogoptionsguisettings::on_pbColInOff_clicked()
     {
         updateButtonColor(ui->pbColInOff,selectedColor); // Adjust color
         pEbrew->pipeInOff = selectedColor;
+        pEbrew->RegEbrew->setValue("COLINOFF",selectedColor.rgba()); // save to Registry
     } // if
 } // dialogoptionsguisettings::on_pbColInOff_clicked
 
@@ -48,6 +49,7 @@ void dialogoptionsguisettings::on_pbColInOn_clicked()
     {
         updateButtonColor(ui->pbColInOn,selectedColor); // Adjust color
         pEbrew->pipeInOn = selectedColor;
+        pEbrew->RegEbrew->setValue("COLINON",selectedColor.rgba()); // save to Registry
     } // if
 } // dialogoptionsguisettings::on_pbColInOn_clicked()
 
@@ -60,6 +62,7 @@ void dialogoptionsguisettings::on_pbColOutOff_clicked()
     {
         updateButtonColor(ui->pbColOutOff,selectedColor); // Adjust color
         pEbrew->pipeOutOff = selectedColor;
+        pEbrew->RegEbrew->setValue("COLOUTOFF",selectedColor.rgba()); // save to Registry
     } // if
 } // dialogoptionsguisettings::on_pbColOutOff_clicked()
 
@@ -72,6 +75,7 @@ void dialogoptionsguisettings::on_pbColOutOn_clicked()
     {
         updateButtonColor(ui->pbColOutOn,selectedColor); // Adjust color
         pEbrew->pipeOutOn = selectedColor;
+        pEbrew->RegEbrew->setValue("COLOUTON",selectedColor.rgba()); // save to Registry
     } // if
 } // dialogoptionsguisettings::on_pbColOutOn_clicked()
 
