@@ -32,6 +32,8 @@
 #include <QFont>
 #include <QGraphicsSceneMouseEvent>
 #include <QTextStream>
+#include <QCoreApplication>
+#include <QActionGroup>
 
 //------------------------------------------------------------------------------------------
 // Pushbutton with a green/red LED
@@ -835,7 +837,8 @@ void Meter::setFlowValue(qreal value,qreal temp)
     if ((meterType == METER_HFLOW) || (meterType == METER_VFLOW))
     {
         fval        = value;
-        meterValue += 0.01 * flowErr + meterOvfVal; // value for display
+        meterValue *= 1.0 + 0.01 * flowErr; // Apply Calibration error correction
+        meterValue += meterOvfVal;          // value for display
         if (fval > fvalOld)
         {	// Normal situation, new value is higher than old value
             flowRateRaw = (60000.0 / Ts) * (meterValue - meterValueOld);
@@ -1075,6 +1078,20 @@ Actuator::Actuator(QPointF point, QString name)
     //setFlag(QGraphicsItem::ItemIsSelectable,true);
     //setFlag(QGraphicsItem::ItemIsMovable,true);
     left = top = right = bottom = QPoint(0,0); // init. all coordinates
+    // Create pop-up menu
+    setAutoAction      = menu.addAction("Auto");
+    setManualOffAction = menu.addAction("OFF (M)");
+    setManualOnAction  = menu.addAction("ON (M)");
+    setTimerAction     = menu.addAction("TIMER");
+    setAutoAction->setCheckable(true);
+    setManualOffAction->setCheckable(true);
+    setManualOnAction->setCheckable(true);
+    setTimerAction->setCheckable(false);
+    // Make these items mutually exclusive
+    QActionGroup *menuGroup = new QActionGroup(&menu);
+    menuGroup->addAction(setAutoAction);
+    menuGroup->addAction(setManualOffAction);
+    menuGroup->addAction(setManualOnAction);
 } // Actuator()
 
 // This function returns the parent coordinate of top, right, left or bottom of pipe
@@ -1106,22 +1123,27 @@ void Actuator::setName(QString name)
 
 void Actuator::setStatus(uint8_t status)
 {
-    actuatorStatus = status;
-    if ((actuatorStatus == MANUAL_OFF) || (actuatorStatus == AUTO_OFF))
-         setColor(Qt::red);
-    else setColor(Qt::green);
-    update();
+    if (status != actuatorStatus)
+    {
+        if (status != MANUAL_OFF) cancelTimer(); // cancel the timer when AUTO or MANUAL_ON is selected
+        actuatorStatus = status;
+        if ((actuatorStatus == MANUAL_OFF) || (actuatorStatus == AUTO_OFF))
+             setColor(Qt::red);
+        else setColor(Qt::green);
+        update();
+    } // if
 } // Actuator::setStatus()
 
 void Actuator::setNextStatus(void)
 {
-    if ((actuatorStatus == AUTO_OFF) || (actuatorStatus == MANUAL_OFF))
+    uint8_t status = actuatorStatus;
+    if ((status == AUTO_OFF) || (status == MANUAL_OFF))
     {
-        actuatorStatus = MANUAL_ON;
+        status = MANUAL_ON;
     } // if
-    else if ((actuatorStatus == AUTO_ON) || (actuatorStatus == MANUAL_ON))
-         actuatorStatus = MANUAL_OFF;
-    setStatus(actuatorStatus);
+    else if ((status == AUTO_ON) || (status == MANUAL_ON))
+         status = MANUAL_OFF;
+    setStatus(status);
 } // Actuator::setNextStatus()
 
 bool Actuator::inManualMode(void)
@@ -1136,22 +1158,49 @@ uint8_t Actuator::getStatus(void)
     return actuatorStatus;
 } // Actuator::getStatus()
 
+void Actuator::cancelTimer(void)
+{
+    if (timer)
+    {
+         qDebug() << "trying to cancel timer: " << timer << "Is active:" << timer->isActive();
+         if (timer->isActive())
+         {
+                timer->stop();
+                qDebug() << "Timer stopped";
+         } // if
+         timer->deleteLater();
+         timer = nullptr;
+    } // if
+    else
+    {
+         qDebug() << "cancelTimer called, but no timer exists.";
+    } // else
+} // Actuator::cancelTimer()
+
 void Actuator::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 {
-    QMenu menu;
-    QAction *setAutoAction      = menu.addAction("Auto");
-    QAction *setManualOffAction = menu.addAction("OFF (M)");
-    QAction *setManualOnAction  = menu.addAction("ON (M)");
-    setAutoAction->setCheckable(true);
-    setManualOffAction->setCheckable(true);
-    setManualOnAction->setCheckable(true);
     if      (!inManualMode())              setAutoAction->setChecked(true);
     else if (actuatorStatus == MANUAL_OFF) setManualOffAction->setChecked(true);
     else if (actuatorStatus == MANUAL_ON)  setManualOnAction->setChecked(true);
+
     QAction *selectedAction = menu.exec(event->screenPos());
-    if      (selectedAction == setAutoAction)      setStatus(AUTO_OFF);
-    else if (selectedAction == setManualOffAction) setStatus(MANUAL_OFF);
-    else if (selectedAction == setManualOnAction)  setStatus(MANUAL_ON);
+    if      (selectedAction == setAutoAction)      setStatus(AUTO_OFF);   // Cancels a possible running timer
+    else if (selectedAction == setManualOffAction) setStatus(MANUAL_OFF); // Does not cancel a timer
+    else if (selectedAction == setManualOnAction)  setStatus(MANUAL_ON);  // Cancels a possible running timer
+    else if (selectedAction == setTimerAction)
+    {
+         cancelTimer(); // remove possible old running timer
+         timer = new QTimer(qApp);
+         QObject::connect(timer, &QTimer::timeout, qApp, [this]()
+         {   // This lambda function is called on a timeout
+              setStatus(AUTO_OFF); // back to AUTO mode, removes the running timer
+              qDebug() << "Timer stop (timeout reached)";
+         });
+         timer->setSingleShot(true);     // Now start the timer
+         timer->start(TIMER_DLY * 1000); // TIMER_DLY [sec.]
+         qDebug() << "Timer start" << timer << timer->isActive();
+         setStatus(MANUAL_OFF); // Does not cancel a timer
+    } // else if
 } // Actuator::contextMenuEvent()
 
 /*------------------------------------------------------------------
@@ -1187,6 +1236,7 @@ Valve::Valve(QPointF point, bool orientation, QString name)
 {
     setOrientation(orientation); // Draw the valve
     actuatorStatus = AUTO_OFF;
+    setTimerAction->setVisible(false); // Disable Timer option in popup menu
 } // Valve::Valve()
 
 void Valve::setOrientation(bool orientation)
@@ -1261,8 +1311,9 @@ void Valve::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 Pump::Pump(QPointF point, bool orientation, QString name)
     : Actuator(point,name)
 {
-    setPumpOrientation(orientation); // Draw the valve
+    setPumpOrientation(orientation);  // Draw the valve
     actuatorStatus = AUTO_OFF;
+    setTimerAction->setVisible(true); // Enable Timer option in popup menu
 } // Pump()
 
 void Pump::setPumpOrientation(bool orientation)
@@ -1320,7 +1371,9 @@ void Pump::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
         painter->drawText(-20,-40,actuatorName);
         font.setPointSize(14);
         painter->setFont(font);
-        painter->drawText(-35,RPUMP+25,statustext[actuatorStatus]);
+        if (timer && timer->isActive())
+             painter->drawText(-35,RPUMP+25,"TIMER");
+        else painter->drawText(-35,RPUMP+25,statustext[actuatorStatus]);
         font.setPointSize(10);
         painter->setFont(font);
         painter->drawText(-50,22,"in");

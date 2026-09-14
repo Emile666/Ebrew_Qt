@@ -35,6 +35,7 @@
 #include <QMenu>
 #include <QGraphicsSimpleTextItem>
 #include <QPushButton>
+#include <QTimer>
 #include "controlobjects.h"
 
 #define HORIZONTAL      (0) /* Valve horizontal direction */
@@ -91,6 +92,9 @@
 #define MANUAL_ON  (1) /* Actuator in manual mode, on */
 #define AUTO_OFF   (2) /* Actuator in automatic mode, off */
 #define AUTO_ON    (3) /* Actuator in automatic mode, on */
+#define TIMER_MODE (4) /* Actuator 5 min. timer mode */
+
+#define TIMER_DLY  (300) /* Timer delay value in seconds */
 
 // Coordinates for Tank object
 #define COORD_LEFT_PIPE1    (0)
@@ -329,6 +333,7 @@ public:
     void    setNextStatus(void);
     uint8_t getStatus(void);
     QPointF getCoordinates(uint8_t side);
+    void    cancelTimer(void);
     bool    inManualMode(void);
     void    setActuator(uint16_t& actionBits, uint16_t whichBit);
     QRectF  boundary; // boundary of object
@@ -342,6 +347,12 @@ protected:
     uint8_t   actuatorStatus;                   // Actuator status: MANUAL_OFF, MANUAL_ON, AUTO_OFF, AUTO_ON
     QString   statustext[4] = { "OFF(M)", "ON (M)", "OFF(A)", "ON (A)" };
     QPointF   left,top,right,bottom;            // coordinates of various points
+    QTimer    *timer = nullptr;                 // Running timer 5 minutes
+    QMenu     menu;                             // Pop-up menu
+    QAction   *setAutoAction;                   // Action menu for Auto
+    QAction   *setManualOffAction;              // Action menu for OFF(M)
+    QAction   *setManualOnAction;               // Action menu for ON(M)
+    QAction   *setTimerAction;                  // Action menu for Timer mode (5 min.)
 }; // class Actuator
 
 //------------------------------------------------------------------------------------------
